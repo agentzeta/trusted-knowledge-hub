@@ -19,32 +19,35 @@ export const useVoiceAgent = () => {
     
     // Initialize speech recognition if available
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = false;
-      recognitionRef.current.interimResults = false;
+      const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
       
-      recognitionRef.current.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        console.log('Voice recognition result:', transcript);
-        if (transcript) {
-          processVoiceInput(transcript);
-        }
-      };
-      
-      recognitionRef.current.onerror = (event: any) => {
-        console.error('Speech recognition error:', event.error);
-        setIsListening(false);
-        toast({
-          title: "Voice Recognition Error",
-          description: `Error: ${event.error}. Please try again.`,
-          variant: "destructive",
-        });
-      };
-      
-      recognitionRef.current.onend = () => {
-        setIsListening(false);
-      };
+      if (SpeechRecognitionAPI) {
+        recognitionRef.current = new SpeechRecognitionAPI();
+        recognitionRef.current.continuous = false;
+        recognitionRef.current.interimResults = false;
+        
+        recognitionRef.current.onresult = (event: any) => {
+          const transcript = event.results[0][0].transcript;
+          console.log('Voice recognition result:', transcript);
+          if (transcript) {
+            processVoiceInput(transcript);
+          }
+        };
+        
+        recognitionRef.current.onerror = (event: any) => {
+          console.error('Speech recognition error:', event.error);
+          setIsListening(false);
+          toast({
+            title: "Voice Recognition Error",
+            description: `Error: ${event.error}. Please try again.`,
+            variant: "destructive",
+          });
+        };
+        
+        recognitionRef.current.onend = () => {
+          setIsListening(false);
+        };
+      }
     }
     
     // Cleanup
@@ -94,7 +97,6 @@ export const useVoiceAgent = () => {
     }
   };
 
-  // Process voice input to determine intent
   const processVoiceInput = (transcript: string) => {
     console.log('Processing voice input:', transcript);
     const normalizedText = transcript.toLowerCase().trim();
