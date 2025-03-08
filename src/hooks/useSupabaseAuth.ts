@@ -7,6 +7,7 @@ export const useSupabaseAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(false);
 
   useEffect(() => {
     const getSession = async () => {
@@ -30,30 +31,51 @@ export const useSupabaseAuth = () => {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    return await supabase.auth.signInWithPassword({ email, password });
+    setAuthLoading(true);
+    try {
+      return await supabase.auth.signInWithPassword({ email, password });
+    } finally {
+      setAuthLoading(false);
+    }
   };
 
   const signUp = async (email: string, password: string) => {
-    return await supabase.auth.signUp({ email, password });
+    setAuthLoading(true);
+    try {
+      return await supabase.auth.signUp({ email, password });
+    } finally {
+      setAuthLoading(false);
+    }
   };
 
   const signInWithGoogle = async () => {
-    return await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth`
-      }
-    });
+    setAuthLoading(true);
+    try {
+      return await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth`
+        }
+      });
+    } finally {
+      setAuthLoading(false);
+    }
   };
 
   const signOut = async () => {
-    return await supabase.auth.signOut();
+    setAuthLoading(true);
+    try {
+      return await supabase.auth.signOut();
+    } finally {
+      setAuthLoading(false);
+    }
   };
 
   return {
     user,
     session,
     loading,
+    authLoading,
     signIn,
     signUp,
     signInWithGoogle,
