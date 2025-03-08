@@ -3,7 +3,6 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import Header from '../components/Header';
 import QueryInterface from '../components/QueryInterface';
-import ResponseCard from '../components/ResponseCard';
 import ConsensusVisual from '../components/ConsensusVisual';
 import { QueryProvider, useQueryContext } from '../context/QueryContext';
 
@@ -45,25 +44,7 @@ const MainContent = () => {
         <QueryInterface />
         
         {responses.length > 0 && (
-          <>
-            <ConsensusVisual responses={responses} />
-            
-            <div className="mt-12">
-              <motion.h2
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-xl font-semibold mb-4"
-              >
-                All AI Responses
-              </motion.h2>
-              
-              <div className="space-y-6">
-                {responses.map((response, index) => (
-                  <ResponseCard key={response.id} response={response} index={index} />
-                ))}
-              </div>
-            </div>
-          </>
+          <ConsensusVisual responses={responses} />
         )}
       </div>
     </div>
