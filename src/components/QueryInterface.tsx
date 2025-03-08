@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQueryContext } from '../context/QueryContext';
 import { Search } from 'lucide-react';
+import ApiKeyManager from './ApiKeyManager';
 
 // Example queries by category
 const exampleQueries = {
@@ -52,6 +53,11 @@ const QueryInterface: React.FC = () => {
       transition={{ duration: 0.5, delay: 0.2 }}
       className="w-full max-w-3xl mx-auto mt-8"
     >
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-medium">Ask a question</h2>
+        <ApiKeyManager />
+      </div>
+      
       <div className="relative card-shadow hover-card-shadow rounded-2xl glass p-1 transition-all duration-300">
         <form onSubmit={handleSubmit} className="relative">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -93,25 +99,28 @@ const QueryInterface: React.FC = () => {
       </div>
       
       {/* Example queries */}
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
-        className="flex flex-wrap justify-center gap-2 mt-4"
-      >
-        {Object.entries(exampleQueries).map(([category, queryText]) => (
-          <motion.button
-            key={category}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => handleExampleClick(queryText)}
-            className="px-3 py-1.5 text-xs bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full border border-white/20 text-gray-700 dark:text-gray-200 transition-all"
-            disabled={isLoading}
-          >
-            {category}
-          </motion.button>
-        ))}
-      </motion.div>
+      <div className="mt-4 mb-6">
+        <p className="text-sm text-gray-500 mb-2">Try an example query:</p>
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="flex flex-wrap gap-2"
+        >
+          {Object.entries(exampleQueries).map(([category, queryText]) => (
+            <motion.button
+              key={category}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => handleExampleClick(queryText)}
+              className="px-3 py-1.5 text-xs bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full border border-white/20 text-gray-700 dark:text-gray-200 transition-all"
+              disabled={isLoading}
+            >
+              {category}
+            </motion.button>
+          ))}
+        </motion.div>
+      </div>
       
       <AnimatePresence>
         {isLoading && (
@@ -143,7 +152,12 @@ const QueryInterface: React.FC = () => {
           className="mt-8 rounded-xl glass card-shadow"
         >
           <div className="p-6">
-            <h2 className="text-xl font-semibold mb-3">Answer:</h2>
+            <div className="flex justify-between items-start mb-4">
+              <h2 className="text-xl font-semibold">Consensus Answer:</h2>
+              <span className="text-sm text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
+                From {primaryResponse.source}
+              </span>
+            </div>
             <div className="prose prose-lg max-w-none">
               <p className="text-gray-700 dark:text-gray-300 text-lg">{primaryResponse.content}</p>
             </div>
@@ -160,7 +174,7 @@ const QueryInterface: React.FC = () => {
           className="mt-6 rounded-xl glass card-shadow"
         >
           <div className="p-6">
-            <h3 className="text-lg font-medium mb-4">Verification Results:</h3>
+            <h3 className="text-lg font-medium mb-4">Individual AI Responses:</h3>
             <div className="space-y-4">
               {responses.map((response) => (
                 <div key={response.id} className="p-4 rounded-lg bg-white/50 dark:bg-gray-800/50">
