@@ -7,8 +7,10 @@ import { fetchResponses } from '../services/responseService';
 import { saveResponseToDatabase } from '../services/databaseService'; 
 import { exportToGoogleDocsService } from '../services/exportService';
 import { useSupabaseAuth } from '../hooks/useSupabaseAuth';
+import { recordOnFlareBlockchain, createAttestation } from '../services/blockchainService';
 
 const STORAGE_KEY = 'ai_consensus_api_keys';
+const WALLET_KEY = 'ai_consensus_wallet_key';
 
 const QueryContext = createContext<QueryContextType | undefined>(undefined);
 
@@ -18,6 +20,10 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [isLoading, setIsLoading] = useState(false);
   const [apiKeys, setApiKeys] = useState<ApiKeys>(DEFAULT_API_KEYS);
   const [consensusResponse, setConsensusResponse] = useState<string | null>(null);
+  const [blockchainReference, setBlockchainReference] = useState<string | null>(null);
+  const [attestationId, setAttestationId] = useState<string | null>(null);
+  const [privateKey, setPrivateKey] = useState<string | null>(null);
+  const [isRecordingOnChain, setIsRecordingOnChain] = useState(false);
   
   const { user } = useSupabaseAuth();
   
@@ -30,6 +36,11 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       } catch (error) {
         console.error('Error parsing stored API keys:', error);
       }
+    }
+
+    const storedWalletKey = localStorage.getItem(WALLET_KEY);
+    if (storedWalletKey) {
+      setPrivateKey(storedWalletKey);
     }
   }, []);
   
@@ -46,22 +57,86 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     });
   };
 
+  const setWalletKey = (key: string) => {
+    setPrivateKey(key);
+    localStorage.setItem(WALLET_KEY, key);
+    
+    toast({
+      title: "Wallet Key Saved",
+      description: "Your private key has been securely saved in your browser's local storage.",
+      duration: 3000,
+    });
+  };
+
   const submitQuery = async (queryText: string) => {
     setQuery(queryText);
     setIsLoading(true);
     setConsensusResponse(null);
+    setBlockchainReference(null);
+    setAttestationId(null);
     
     try {
       const result = await fetchResponses(queryText, apiKeys);
       
       const { allResponses, derivedConsensus } = result;
       setConsensusResponse(derivedConsensus);
-      
+      setResponses(allResponses);
+
+      // If user is logged in, save response to database
       if (user) {
-        saveResponseToDatabase(user.id, queryText, derivedConsensus, allResponses);
+        await saveResponseToDatabase(user.id, queryText, derivedConsensus, allResponses);
       }
       
-      setResponses(allResponses);
+      // If private key is set, record on blockchain
+      if (privateKey) {
+        setIsRecordingOnChain(true);
+        
+        try {
+          // Record on Flare blockchain
+          const txHash = await recordOnFlareBlockchain(
+            privateKey,
+            queryText,
+            derivedConsensus
+          );
+          setBlockchainReference(txHash);
+          
+          // Create attestation
+          const attestationUID = await createAttestation(
+            privateKey,
+            queryText,
+            derivedConsensus
+          );
+          setAttestationId(attestationUID);
+          
+          // Update database with blockchain references
+          if (user) {
+            await saveResponseToDatabase(
+              user.id, 
+              queryText, 
+              derivedConsensus, 
+              allResponses,
+              txHash,
+              attestationUID
+            );
+          }
+          
+          toast({
+            title: "Blockchain Verification Complete",
+            description: "Your consensus response has been recorded on the Flare blockchain and attested via EAS.",
+            duration: 5000,
+          });
+        } catch (error) {
+          console.error('Blockchain recording error:', error);
+          toast({
+            title: "Blockchain Recording Failed",
+            description: "An error occurred while recording to the blockchain. Please try again later.",
+            variant: "destructive",
+            duration: 5000,
+          });
+        } finally {
+          setIsRecordingOnChain(false);
+        }
+      }
     } catch (error) {
       console.error('Error submitting query:', error);
       toast({
@@ -122,9 +197,14 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       responses, 
       isLoading, 
       submitQuery, 
-      setApiKey, 
+      setApiKey,
+      setWalletKey,
+      privateKey,
       apiKeys,
       consensusResponse,
+      blockchainReference,
+      attestationId,
+      isRecordingOnChain,
       user,
       exportToGoogleDocs
     }}>

@@ -6,7 +6,9 @@ export const saveResponseToDatabase = async (
   userId: string,
   queryText: string, 
   consensusText: string, 
-  sourceResponses: Response[]
+  sourceResponses: Response[],
+  blockchainReference?: string,
+  attestationId?: string
 ) => {
   try {
     const sourceResponsesJson = sourceResponses.map(resp => ({
@@ -25,6 +27,8 @@ export const saveResponseToDatabase = async (
         query: queryText,
         consensus_response: consensusText,
         source_responses: sourceResponsesJson,
+        blockchain_reference: blockchainReference,
+        attestation_id: attestationId
       });
       
     if (error) {

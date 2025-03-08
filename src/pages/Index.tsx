@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import Header from '../components/Header';
 import QueryInterface from '../components/QueryInterface';
 import ConsensusVisual from '../components/ConsensusVisual';
+import BlockchainVerification from '../components/BlockchainVerification';
 import CommunityQueries from '../components/CommunityQueries';
 import { useQueryContext } from '../hooks/useQueryContext';
 import { Shield } from 'lucide-react';
@@ -62,6 +63,7 @@ const Index = () => {
             className="mt-6"
           >
             <ConsensusVisual responses={responses} />
+            <BlockchainVerification />
           </motion.div>
         )}
 

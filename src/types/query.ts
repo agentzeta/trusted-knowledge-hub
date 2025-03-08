@@ -28,8 +28,13 @@ export interface QueryContextType {
   isLoading: boolean;
   submitQuery: (query: string) => void;
   setApiKey: (provider: string, key: string) => void;
+  setWalletKey: (key: string) => void;
+  privateKey: string | null;
   apiKeys: ApiKeys;
   consensusResponse: string | null;
+  blockchainReference: string | null;
+  attestationId: string | null;
+  isRecordingOnChain: boolean;
   user: any;
   exportToGoogleDocs: () => Promise<void>;
 }
