@@ -20,7 +20,7 @@ const ApiKeyManager: React.FC = () => {
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger className="flex items-center gap-1">
         <Settings className="h-4 w-4" />
-        <span>Settings</span>
+        <span>API Keys</span>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
