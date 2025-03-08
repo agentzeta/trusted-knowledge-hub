@@ -1,45 +1,23 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { FileText, LogIn, LogOut, User, Upload } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
-import { useQueryContext } from '@/context/QueryContext';
+import { useQueryContext } from '@/hooks/useQueryContext';
+import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 
 const GoogleAuth: React.FC = () => {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { user, query, consensusResponse, exportToGoogleDocs } = useQueryContext();
-
-  useEffect(() => {
-    // Check for existing session
-    const checkSession = async () => {
-      setLoading(false);
-    };
-
-    checkSession();
-  }, []);
+  const { query, consensusResponse, exportToGoogleDocs } = useQueryContext();
+  const { user, signInWithGoogle, signOut } = useSupabaseAuth();
 
   const handleGoogleSignIn = async () => {
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          scopes: 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/documents',
-          redirectTo: window.location.origin,
-        }
-      });
-
-      if (error) {
-        toast({
-          title: "Authentication Error",
-          description: error.message,
-          variant: "destructive",
-          duration: 3000,
-        });
-      }
+      setLoading(true);
+      await signInWithGoogle();
     } catch (error: any) {
       toast({
         title: "Authentication Error",
@@ -47,26 +25,19 @@ const GoogleAuth: React.FC = () => {
         variant: "destructive",
         duration: 3000,
       });
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleGoogleSignOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      
-      if (error) {
-        toast({
-          title: "Sign Out Error",
-          description: error.message,
-          variant: "destructive",
-          duration: 3000,
-        });
-      } else {
-        toast({
-          title: "Signed out successfully",
-          duration: 2000,
-        });
-      }
+      setLoading(true);
+      await signOut();
+      toast({
+        title: "Signed out successfully",
+        duration: 2000,
+      });
     } catch (error: any) {
       toast({
         title: "Sign Out Error",
@@ -74,6 +45,8 @@ const GoogleAuth: React.FC = () => {
         variant: "destructive",
         duration: 3000,
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -97,16 +70,7 @@ const GoogleAuth: React.FC = () => {
     }
 
     try {
-      if (exportToGoogleDocs) {
-        await exportToGoogleDocs();
-        toast({
-          title: "Export Successful",
-          description: "Your query results have been exported to Google Docs",
-          duration: 3000,
-        });
-      } else {
-        throw new Error("Export function not available");
-      }
+      await exportToGoogleDocs();
     } catch (error: any) {
       toast({
         title: "Export Failed",

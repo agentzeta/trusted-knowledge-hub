@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useQueryContext } from '../context/QueryContext';
-import { supabase } from '@/integrations/supabase/client';
+import { useQueryContext } from '../hooks/useQueryContext';
+import { useSupabaseAuth } from '../hooks/useSupabaseAuth';
 import QueryHeader from './QueryHeader';
 import QuerySearchInput from './QuerySearchInput';
 import ExampleQueriesSection from './ExampleQueriesSection';
@@ -24,7 +24,8 @@ const storedQueries = [
 ];
 
 const QueryInterface: React.FC = () => {
-  const { submitQuery, isLoading, query, responses, consensusResponse, user } = useQueryContext();
+  const { submitQuery, isLoading, query, responses, consensusResponse } = useQueryContext();
+  const { user, signInWithGoogle } = useSupabaseAuth();
   const [inputQuery, setInputQuery] = useState('');
   const [suggestions, setSuggestions] = useState<typeof storedQueries>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -61,20 +62,6 @@ const QueryInterface: React.FC = () => {
     setShowSuggestions(false);
   };
 
-  const handleGoogleSignIn = async () => {
-    try {
-      await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          scopes: 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
-          redirectTo: window.location.origin
-        }
-      });
-    } catch (error) {
-      console.error('Sign in error:', error);
-    }
-  };
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -83,7 +70,7 @@ const QueryInterface: React.FC = () => {
       className="w-full max-w-3xl mx-auto mt-8"
     >
       <QueryHeader
-        handleGoogleSignIn={handleGoogleSignIn}
+        handleGoogleSignIn={signInWithGoogle}
         user={user}
       />
       

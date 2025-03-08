@@ -1,12 +1,12 @@
 
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import React, { createContext, useState, ReactNode, useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
-import { ApiKeys, QueryContextType, Response } from '../types/query';
+import { QueryContextType, ApiKeys, Response } from '../types/query';
 import { DEFAULT_API_KEYS } from '../services/models/constants';
 import { fetchResponses } from '../services/responseService';
 import { saveResponseToDatabase } from '../services/databaseService'; 
 import { exportToGoogleDocsService } from '../services/exportService';
-import { supabase } from '@/integrations/supabase/client';
+import { useSupabaseAuth } from '../hooks/useSupabaseAuth';
 
 const STORAGE_KEY = 'ai_consensus_api_keys';
 
@@ -18,7 +18,8 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [isLoading, setIsLoading] = useState(false);
   const [apiKeys, setApiKeys] = useState<ApiKeys>(DEFAULT_API_KEYS);
   const [consensusResponse, setConsensusResponse] = useState<string | null>(null);
-  const [user, setUser] = useState<any>(null);
+  
+  const { user } = useSupabaseAuth();
   
   useEffect(() => {
     const storedKeys = localStorage.getItem(STORAGE_KEY);
@@ -30,25 +31,6 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         console.error('Error parsing stored API keys:', error);
       }
     }
-  }, []);
-  
-  useEffect(() => {
-    const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      setUser(data.session?.user || null);
-
-      const { data: authListener } = supabase.auth.onAuthStateChange(
-        async (event, session) => {
-          setUser(session?.user || null);
-        }
-      );
-
-      return () => {
-        authListener.subscription.unsubscribe();
-      };
-    };
-
-    checkSession();
   }, []);
   
   const setApiKey = (provider: string, key: string) => {
@@ -151,12 +133,4 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   );
 };
 
-export const useQueryContext = () => {
-  const context = useContext(QueryContext);
-  if (context === undefined) {
-    throw new Error('useQueryContext must be used within a QueryProvider');
-  }
-  return context;
-};
-
-export type { Response };
+export { QueryContext };
