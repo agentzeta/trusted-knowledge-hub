@@ -1,11 +1,11 @@
-
 import React from 'react';
-import { LogIn, Settings, FileText } from 'lucide-react';
+import { LogIn, Settings, FileText, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import ApiKeyManager from './ApiKeyManager';
 import { useQueryContext } from '../hooks/useQueryContext';
 import { exportToGoogleDocsService } from '../services/exportService';
+import { useSupabaseAuth } from '../hooks/useSupabaseAuth';
 
 interface QueryHeaderProps {
   handleGoogleSignIn: () => Promise<void>;
@@ -15,6 +15,7 @@ interface QueryHeaderProps {
 const QueryHeader: React.FC<QueryHeaderProps> = ({ handleGoogleSignIn, user }) => {
   const { toast } = useToast();
   const { query, consensusResponse } = useQueryContext();
+  const { authLoading } = useSupabaseAuth();
 
   const handleExportToGoogleDocs = async () => {
     if (!user) {
@@ -79,9 +80,14 @@ const QueryHeader: React.FC<QueryHeaderProps> = ({ handleGoogleSignIn, user }) =
             size="sm" 
             onClick={handleGoogleSignIn}
             className="flex items-center gap-1"
+            disabled={authLoading}
           >
-            <LogIn className="h-4 w-4" />
-            <span>Sign in</span>
+            {authLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <LogIn className="h-4 w-4" />
+            )}
+            <span>{authLoading ? 'Signing in...' : 'Sign in'}</span>
           </Button>
         )}
         

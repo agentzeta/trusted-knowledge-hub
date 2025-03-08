@@ -1,52 +1,35 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
-import { FileText, LogIn, LogOut, User, Upload } from 'lucide-react';
+import { FileText, LogIn, LogOut, User, Upload, Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useQueryContext } from '@/hooks/useQueryContext';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 
 const GoogleAuth: React.FC = () => {
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { query, consensusResponse, exportToGoogleDocs } = useQueryContext();
-  const { user, signInWithGoogle, signOut } = useSupabaseAuth();
+  const { user, signInWithGoogle, signOut, authLoading } = useSupabaseAuth();
 
   const handleGoogleSignIn = async () => {
     try {
-      setLoading(true);
       await signInWithGoogle();
     } catch (error: any) {
-      toast({
-        title: "Authentication Error",
-        description: error.message || "Failed to sign in with Google",
-        variant: "destructive",
-        duration: 3000,
-      });
-    } finally {
-      setLoading(false);
+      // Error is already handled in the hook
     }
   };
 
   const handleGoogleSignOut = async () => {
     try {
-      setLoading(true);
       await signOut();
       toast({
         title: "Signed out successfully",
         duration: 2000,
       });
     } catch (error: any) {
-      toast({
-        title: "Sign Out Error",
-        description: error.message || "Failed to sign out",
-        variant: "destructive",
-        duration: 3000,
-      });
-    } finally {
-      setLoading(false);
+      // Error is already handled in the hook
     }
   };
 
@@ -84,8 +67,15 @@ const GoogleAuth: React.FC = () => {
   return (
     <div className="fixed top-20 right-4 flex flex-col space-y-2 z-40">
       <TooltipProvider>
-        {loading ? (
-          <div className="h-10 w-10 rounded-full bg-gray-200 animate-pulse"></div>
+        {authLoading ? (
+          <Button 
+            size="icon" 
+            variant="outline" 
+            className="bg-white/80 backdrop-blur-sm border-blue-200 shadow-md"
+            disabled
+          >
+            <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+          </Button>
         ) : user ? (
           <>
             <Tooltip>
