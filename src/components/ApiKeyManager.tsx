@@ -20,8 +20,13 @@ const ApiKeyManager: React.FC = () => {
   const { setApiKey, apiKeys } = useQueryContext();
   const [openaiKey, setOpenaiKey] = useState(apiKeys.openai || '');
   const [anthropicKey, setAnthropicKey] = useState(apiKeys.anthropic || '');
+  const [anthropicClaude35Key, setAnthropicClaude35Key] = useState(apiKeys.anthropicClaude35 || '');
   const [geminiKey, setGeminiKey] = useState(apiKeys.gemini || '');
+  const [geminiProExpKey, setGeminiProExpKey] = useState(apiKeys.geminiProExperimental || '');
   const [perplexityKey, setPerplexityKey] = useState(apiKeys.perplexity || '');
+  const [deepseekKey, setDeepseekKey] = useState(apiKeys.deepseek || '');
+  const [grokKey, setGrokKey] = useState(apiKeys.grok || '');
+  const [qwenKey, setQwenKey] = useState(apiKeys.qwen || '');
   const [isOpen, setIsOpen] = useState(false);
 
   const handleSaveOpenAI = () => {
@@ -32,12 +37,32 @@ const ApiKeyManager: React.FC = () => {
     if (anthropicKey) setApiKey('anthropic', anthropicKey);
   };
 
+  const handleSaveAnthropicClaude35 = () => {
+    if (anthropicClaude35Key) setApiKey('anthropicClaude35', anthropicClaude35Key);
+  };
+
   const handleSaveGemini = () => {
     if (geminiKey) setApiKey('gemini', geminiKey);
   };
 
+  const handleSaveGeminiProExp = () => {
+    if (geminiProExpKey) setApiKey('geminiProExperimental', geminiProExpKey);
+  };
+
   const handleSavePerplexity = () => {
     if (perplexityKey) setApiKey('perplexity', perplexityKey);
+  };
+
+  const handleSaveDeepseek = () => {
+    if (deepseekKey) setApiKey('deepseek', deepseekKey);
+  };
+
+  const handleSaveGrok = () => {
+    if (grokKey) setApiKey('grok', grokKey);
+  };
+
+  const handleSaveQwen = () => {
+    if (qwenKey) setApiKey('qwen', qwenKey);
   };
 
   return (
@@ -57,11 +82,10 @@ const ApiKeyManager: React.FC = () => {
         </DialogHeader>
         
         <Tabs defaultValue="openai" className="w-full mt-4">
-          <TabsList className="grid grid-cols-4 w-full">
+          <TabsList className="grid grid-cols-3 w-full">
             <TabsTrigger value="openai">OpenAI</TabsTrigger>
             <TabsTrigger value="anthropic">Anthropic</TabsTrigger>
-            <TabsTrigger value="gemini">Gemini</TabsTrigger>
-            <TabsTrigger value="perplexity">Perplexity</TabsTrigger>
+            <TabsTrigger value="google">Google</TabsTrigger>
           </TabsList>
           
           <TabsContent value="openai" className="space-y-4 mt-4">
@@ -81,7 +105,7 @@ const ApiKeyManager: React.FC = () => {
           
           <TabsContent value="anthropic" className="space-y-4 mt-4">
             <div className="space-y-2">
-              <Label htmlFor="anthropic-key">Anthropic API Key</Label>
+              <Label htmlFor="anthropic-key">Anthropic API Key (Claude 3)</Label>
               <Input
                 id="anthropic-key"
                 type="password"
@@ -91,12 +115,25 @@ const ApiKeyManager: React.FC = () => {
               />
               <p className="text-xs text-gray-500">Provides access to Claude 3 model.</p>
             </div>
-            <Button onClick={handleSaveAnthropic} disabled={!anthropicKey}>Save Anthropic Key</Button>
+            <Button onClick={handleSaveAnthropic} disabled={!anthropicKey} className="mb-4">Save Claude 3 Key</Button>
+            
+            <div className="space-y-2">
+              <Label htmlFor="anthropic-claude35-key">Anthropic API Key (Claude 3.5)</Label>
+              <Input
+                id="anthropic-claude35-key"
+                type="password"
+                placeholder="sk-ant-..."
+                value={anthropicClaude35Key}
+                onChange={(e) => setAnthropicClaude35Key(e.target.value)}
+              />
+              <p className="text-xs text-gray-500">Provides access to Claude 3.5 model.</p>
+            </div>
+            <Button onClick={handleSaveAnthropicClaude35} disabled={!anthropicClaude35Key}>Save Claude 3.5 Key</Button>
           </TabsContent>
           
-          <TabsContent value="gemini" className="space-y-4 mt-4">
+          <TabsContent value="google" className="space-y-4 mt-4">
             <div className="space-y-2">
-              <Label htmlFor="gemini-key">Google AI API Key</Label>
+              <Label htmlFor="gemini-key">Google AI API Key (Gemini)</Label>
               <Input
                 id="gemini-key"
                 type="password"
@@ -106,8 +143,29 @@ const ApiKeyManager: React.FC = () => {
               />
               <p className="text-xs text-gray-500">Provides access to Gemini model.</p>
             </div>
-            <Button onClick={handleSaveGemini} disabled={!geminiKey}>Save Gemini Key</Button>
+            <Button onClick={handleSaveGemini} disabled={!geminiKey} className="mb-4">Save Gemini Key</Button>
+            
+            <div className="space-y-2">
+              <Label htmlFor="gemini-pro-exp-key">Google AI API Key (Gemini Pro Experimental)</Label>
+              <Input
+                id="gemini-pro-exp-key"
+                type="password"
+                placeholder="AIza..."
+                value={geminiProExpKey}
+                onChange={(e) => setGeminiProExpKey(e.target.value)}
+              />
+              <p className="text-xs text-gray-500">Provides access to Gemini Pro Experimental model.</p>
+            </div>
+            <Button onClick={handleSaveGeminiProExp} disabled={!geminiProExpKey}>Save Gemini Pro Experimental Key</Button>
           </TabsContent>
+        </Tabs>
+        
+        <Tabs defaultValue="perplexity" className="w-full mt-4">
+          <TabsList className="grid grid-cols-3 w-full">
+            <TabsTrigger value="perplexity">Perplexity</TabsTrigger>
+            <TabsTrigger value="other1">Deepseek/Grok</TabsTrigger>
+            <TabsTrigger value="other2">Qwen</TabsTrigger>
+          </TabsList>
           
           <TabsContent value="perplexity" className="space-y-4 mt-4">
             <div className="space-y-2">
@@ -122,6 +180,49 @@ const ApiKeyManager: React.FC = () => {
               <p className="text-xs text-gray-500">Provides access to Perplexity AI models.</p>
             </div>
             <Button onClick={handleSavePerplexity} disabled={!perplexityKey}>Save Perplexity Key</Button>
+          </TabsContent>
+          
+          <TabsContent value="other1" className="space-y-4 mt-4">
+            <div className="space-y-2">
+              <Label htmlFor="deepseek-key">Deepseek API Key</Label>
+              <Input
+                id="deepseek-key"
+                type="password"
+                placeholder="sk-..."
+                value={deepseekKey}
+                onChange={(e) => setDeepseekKey(e.target.value)}
+              />
+              <p className="text-xs text-gray-500">Provides access to Deepseek models. Will fallback to open-source version if not provided.</p>
+            </div>
+            <Button onClick={handleSaveDeepseek} disabled={!deepseekKey} className="mb-4">Save Deepseek Key</Button>
+            
+            <div className="space-y-2">
+              <Label htmlFor="grok-key">Grok API Key</Label>
+              <Input
+                id="grok-key"
+                type="password"
+                placeholder="grok-..."
+                value={grokKey}
+                onChange={(e) => setGrokKey(e.target.value)}
+              />
+              <p className="text-xs text-gray-500">Provides access to Grok model.</p>
+            </div>
+            <Button onClick={handleSaveGrok} disabled={!grokKey}>Save Grok Key</Button>
+          </TabsContent>
+          
+          <TabsContent value="other2" className="space-y-4 mt-4">
+            <div className="space-y-2">
+              <Label htmlFor="qwen-key">Qwen API Key</Label>
+              <Input
+                id="qwen-key"
+                type="password"
+                placeholder="qwen-..."
+                value={qwenKey}
+                onChange={(e) => setQwenKey(e.target.value)}
+              />
+              <p className="text-xs text-gray-500">Provides access to Alibaba Qwen models.</p>
+            </div>
+            <Button onClick={handleSaveQwen} disabled={!qwenKey}>Save Qwen Key</Button>
           </TabsContent>
         </Tabs>
         

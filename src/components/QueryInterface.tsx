@@ -15,7 +15,7 @@ const exampleQueries = {
 };
 
 const QueryInterface: React.FC = () => {
-  const { submitQuery, isLoading, query, responses } = useQueryContext();
+  const { submitQuery, isLoading, query, responses, consensusResponse } = useQueryContext();
   const [inputQuery, setInputQuery] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -29,22 +29,6 @@ const QueryInterface: React.FC = () => {
     setInputQuery(query);
     submitQuery(query);
   };
-
-  // Get the primary response (most verified or highest confidence)
-  const getPrimaryResponse = () => {
-    if (!responses.length) return null;
-    
-    const sortedResponses = [...responses].sort((a, b) => {
-      if (a.verified === b.verified) {
-        return b.confidence - a.confidence;
-      }
-      return a.verified ? -1 : 1;
-    });
-    
-    return sortedResponses[0];
-  };
-  
-  const primaryResponse = getPrimaryResponse();
 
   return (
     <motion.div
@@ -142,8 +126,8 @@ const QueryInterface: React.FC = () => {
         )}
       </AnimatePresence>
       
-      {/* The answer section - displayed prominently first */}
-      {primaryResponse && !isLoading && (
+      {/* Consensus Answer Section - The actual response field */}
+      {consensusResponse && !isLoading && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -155,16 +139,17 @@ const QueryInterface: React.FC = () => {
             <div className="flex justify-between items-start mb-4">
               <h2 className="text-xl font-semibold">Consensus Answer:</h2>
               <span className="text-sm text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
-                From {primaryResponse.source}
+                AI Verified Response
               </span>
             </div>
             <div className="prose prose-lg max-w-none">
-              <p className="text-gray-700 dark:text-gray-300 text-lg">{primaryResponse.content}</p>
+              <p className="text-gray-700 dark:text-gray-300 text-lg">{consensusResponse}</p>
             </div>
           </div>
         </motion.div>
       )}
       
+      {/* The individual AI responses section */}
       {responses.length > 0 && !isLoading && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
