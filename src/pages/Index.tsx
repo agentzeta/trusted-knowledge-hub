@@ -5,14 +5,16 @@ import Header from '../components/Header';
 import QueryInterface from '../components/QueryInterface';
 import ConsensusVisual from '../components/ConsensusVisual';
 import CommunityQueries from '../components/CommunityQueries';
-import { QueryProvider, useQueryContext } from '../context/QueryContext';
+import { useQueryContext } from '../context/QueryContext';
 import { Shield, CheckCircle } from 'lucide-react';
 
-const MainContent = () => {
+const Index = () => {
   const { responses, query } = useQueryContext();
   
   return (
     <div className="relative min-h-screen pt-20 pb-16 px-4 sm:px-6">
+      <Header />
+      
       <div className="blur-background">
         <div className="blur-circle bg-blue-300 w-[500px] h-[500px] top-[-100px] left-[-200px]" />
         <div className="blur-circle bg-purple-300 w-[400px] h-[400px] bottom-[-100px] right-[-150px]" />
@@ -64,15 +66,6 @@ const MainContent = () => {
         <CommunityQueries />
       </div>
     </div>
-  );
-};
-
-const Index = () => {
-  return (
-    <QueryProvider>
-      <Header />
-      <MainContent />
-    </QueryProvider>
   );
 };
 
