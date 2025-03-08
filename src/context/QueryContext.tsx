@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import { 
@@ -33,7 +32,6 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [consensusResponse, setConsensusResponse] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
   
-  // Load API keys from localStorage on initial render
   useEffect(() => {
     const storedKeys = localStorage.getItem(STORAGE_KEY);
     if (storedKeys) {
@@ -46,20 +44,17 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   }, []);
   
-  // Check for existing session and setup auth listener
   useEffect(() => {
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
       setUser(data.session?.user || null);
 
-      // Set up auth state listener
       const { data: authListener } = supabase.auth.onAuthStateChange(
         async (event, session) => {
           setUser(session?.user || null);
         }
       );
 
-      // Cleanup listener on unmount
       return () => {
         authListener.subscription.unsubscribe();
       };
@@ -72,7 +67,6 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     const updatedKeys = { ...apiKeys, [provider.toLowerCase()]: key };
     setApiKeys(updatedKeys);
     
-    // Persist to localStorage
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedKeys));
     
     toast({
@@ -82,7 +76,6 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     });
   };
 
-  // Save response to database
   const saveResponseToDatabase = async (
     queryText: string, 
     consensusText: string, 
@@ -91,7 +84,6 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     if (!user) return;
     
     try {
-      // Convert the sourceResponses to a plain object format that's compatible with JSONB
       const sourceResponsesJson = sourceResponses.map(resp => ({
         id: resp.id,
         content: resp.content,
@@ -124,7 +116,6 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setConsensusResponse(null);
     
     try {
-      // Collect promises for all API calls
       const apiPromises = [
         fetchFromOpenAI(queryText, apiKeys.openai || ''),
         fetchFromAnthropic(queryText, apiKeys.anthropic || ''),
@@ -135,31 +126,24 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         fetchFromDeepseek(queryText, apiKeys.deepseek || ''),
       ];
       
-      // Wait for all API calls to complete
       const apiResults = await Promise.all(apiPromises);
       
-      // Filter out null results (failed API calls or missing API keys)
       const validResponses = apiResults.filter(Boolean) as Response[];
       
-      // Fill in with mock responses for missing models
       const sourcesWithResponses = validResponses.map(r => r.source);
       const missingModels = AI_SOURCES.filter(source => 
         !sourcesWithResponses.includes(source)
       );
       
-      // Generate mock responses for missing models
       const mockResponses = missingModels.map(source => 
         getMockResponse(source, queryText)
       );
       
-      // Combine real and mock responses
       const allResponses = [...validResponses, ...mockResponses];
       
-      // Derive consensus response
       const derivedConsensus = deriveConsensusResponse(allResponses);
       setConsensusResponse(derivedConsensus);
       
-      // Save to database if user is logged in
       if (user) {
         saveResponseToDatabase(queryText, derivedConsensus, allResponses);
       }
@@ -173,12 +157,10 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         variant: "destructive",
       });
       
-      // Fallback to all mock responses on error
       const mockResponses = AI_SOURCES.map(source => 
         getMockResponse(source, queryText)
       );
       
-      // Derive consensus response from mock data
       const derivedConsensus = deriveConsensusResponse(mockResponses);
       setConsensusResponse(derivedConsensus);
       
@@ -187,7 +169,57 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       setIsLoading(false);
     }
   };
-  
+
+  const exportToGoogleDocs = async () => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in with Google to export to Google Docs",
+        duration: 3000,
+      });
+      return;
+    }
+
+    if (!query || !consensusResponse) {
+      toast({
+        title: "No Content to Export",
+        description: "Please run a query first to generate content for export",
+        duration: 3000,
+      });
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.functions.invoke('google-docs-export', {
+        body: {
+          query,
+          consensusResponse,
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Export Successful",
+        description: "Your query results have been exported to Google Docs",
+        duration: 3000,
+      });
+
+      if (data && data.documentUrl) {
+        window.open(data.documentUrl, '_blank');
+      }
+    } catch (error: any) {
+      toast({
+        title: "Export Failed",
+        description: error.message || "Failed to export to Google Docs",
+        variant: "destructive",
+        duration: 3000,
+      });
+    }
+  };
+
   return (
     <QueryContext.Provider value={{ 
       query, 
@@ -197,7 +229,8 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       setApiKey, 
       apiKeys,
       consensusResponse,
-      user
+      user,
+      exportToGoogleDocs
     }}>
       {children}
     </QueryContext.Provider>
@@ -212,5 +245,4 @@ export const useQueryContext = () => {
   return context;
 };
 
-// Fix the type re-export with 'export type'
 export type { Response };

@@ -2,34 +2,21 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
-import { FileText, LogIn, LogOut, User } from 'lucide-react';
+import { FileText, LogIn, LogOut, User, Upload } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
+import { useQueryContext } from '@/context/QueryContext';
 
 const GoogleAuth: React.FC = () => {
-  const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { user, query, consensusResponse } = useQueryContext();
 
   useEffect(() => {
     // Check for existing session
     const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      setUser(data.session?.user || null);
       setLoading(false);
-
-      // Set up auth state listener
-      const { data: authListener } = supabase.auth.onAuthStateChange(
-        async (event, session) => {
-          setUser(session?.user || null);
-        }
-      );
-
-      // Cleanup listener on unmount
-      return () => {
-        authListener.subscription.unsubscribe();
-      };
     };
 
     checkSession();
@@ -100,13 +87,45 @@ const GoogleAuth: React.FC = () => {
       return;
     }
 
-    toast({
-      title: "Google Docs Export",
-      description: "Preparing to export your query results to Google Docs...",
-      duration: 3000,
-    });
-    
-    // We'll implement the export functionality in a future step
+    if (!query || !consensusResponse) {
+      toast({
+        title: "No Content to Export",
+        description: "Please run a query first to generate content for export",
+        duration: 3000,
+      });
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.functions.invoke('google-docs-export', {
+        body: {
+          query,
+          consensusResponse,
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Export Successful",
+        description: "Your query results have been exported to Google Docs",
+        duration: 3000,
+      });
+
+      // Open the document in a new tab if the URL is returned
+      if (data && data.documentUrl) {
+        window.open(data.documentUrl, '_blank');
+      }
+    } catch (error: any) {
+      toast({
+        title: "Export Failed",
+        description: error.message || "Failed to export to Google Docs",
+        variant: "destructive",
+        duration: 3000,
+      });
+    }
   };
 
   return (
@@ -122,12 +141,12 @@ const GoogleAuth: React.FC = () => {
                   onClick={handleGoogleSignOut} 
                   size="icon" 
                   variant="outline" 
-                  className="bg-white hover:bg-gray-100"
+                  className="bg-white/80 backdrop-blur-sm hover:bg-gray-100 border-blue-200 shadow-md"
                 >
-                  <LogOut className="h-4 w-4 text-gray-800" />
+                  <LogOut className="h-4 w-4 text-blue-600" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="left">
+              <TooltipContent side="left" className="bg-blue-50 border-blue-200">
                 <p>Sign out</p>
               </TooltipContent>
             </Tooltip>
@@ -138,15 +157,32 @@ const GoogleAuth: React.FC = () => {
                   onClick={handleGoogleDocsExport} 
                   size="icon" 
                   variant="outline" 
-                  className="bg-white hover:bg-gray-100"
+                  className={`bg-white/80 backdrop-blur-sm hover:bg-gray-100 border-blue-200 shadow-md ${
+                    !query || !consensusResponse ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                  disabled={!query || !consensusResponse}
                 >
-                  <FileText className="h-4 w-4 text-gray-800" />
+                  <Upload className="h-4 w-4 text-blue-600" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="left">
+              <TooltipContent side="left" className="bg-blue-50 border-blue-200">
                 <p>Export to Google Docs</p>
               </TooltipContent>
             </Tooltip>
+            
+            <div className="flex items-center justify-center mt-1">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center shadow-md border-2 border-white">
+                {user.user_metadata?.avatar_url ? (
+                  <img 
+                    src={user.user_metadata.avatar_url} 
+                    alt="User avatar" 
+                    className="w-full h-full rounded-full object-cover"
+                  />
+                ) : (
+                  <User className="h-4 w-4 text-white" />
+                )}
+              </div>
+            </div>
           </>
         ) : (
           <Tooltip>
@@ -155,12 +191,12 @@ const GoogleAuth: React.FC = () => {
                 onClick={handleGoogleSignIn} 
                 size="icon" 
                 variant="outline" 
-                className="bg-white hover:bg-gray-100"
+                className="bg-white/80 backdrop-blur-sm hover:bg-gray-100 border-blue-200 shadow-md"
               >
-                <LogIn className="h-4 w-4 text-gray-800" />
+                <LogIn className="h-4 w-4 text-blue-600" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="left">
+            <TooltipContent side="left" className="bg-blue-50 border-blue-200">
               <p>Sign in with Google</p>
             </TooltipContent>
           </Tooltip>
