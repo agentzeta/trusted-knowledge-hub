@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQueryContext } from '../context/QueryContext';
@@ -16,6 +17,20 @@ const exampleQueries = {
   health: "Is coffee good for your health?",
   technology: "How do neural networks work?"
 };
+
+// Sample stored queries for search suggestions
+const storedQueries = [
+  { id: 1, query: "How does climate change affect coral reefs?" },
+  { id: 2, query: "What is quantum computing?" },
+  { id: 3, query: "How do vaccines work?" },
+  { id: 4, query: "Who was Nikola Tesla?" },
+  { id: 5, query: "What caused the 2008 financial crisis?" },
+  { id: 6, query: "How are black holes formed?" },
+  { id: 7, query: "What is the theory of relativity?" },
+  { id: 8, query: "How does machine learning work?" },
+  { id: 9, query: "What are the effects of meditation on the brain?" },
+  { id: 10, query: "How do electric cars work?" }
+];
 
 const QueryInterface: React.FC = () => {
   const { submitQuery, isLoading, query, responses, consensusResponse, user } = useQueryContext();
