@@ -57,13 +57,12 @@ const QuerySearchInput: React.FC<QuerySearchInputProps> = ({
         </Button>
       </form>
       
-      {showSuggestions && suggestions.length > 0 && (
-        <SearchSuggestions
-          suggestions={suggestions}
-          onSuggestionClick={handleSuggestionClick}
-          setShowSuggestions={setShowSuggestions}
-        />
-      )}
+      <SearchSuggestions
+        suggestions={suggestions}
+        onSuggestionClick={handleSuggestionClick}
+        isVisible={showSuggestions}
+        setShowSuggestions={setShowSuggestions}
+      />
     </motion.div>
   );
 };
