@@ -18,17 +18,15 @@ const ApiKeyManager: React.FC = () => {
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="icon" className="rounded-full">
-          <Settings className="h-4 w-4" />
-          <span className="sr-only">Settings</span>
-        </Button>
+      <DialogTrigger className="flex items-center gap-1">
+        <Settings className="h-4 w-4" />
+        <span>Settings</span>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>API Key Management</DialogTitle>
           <DialogDescription>
-            Add your API keys to connect to real AI models. Keys are stored locally in your browser and will persist across sessions.
+            Add your API keys to connect to real AI models and blockchain services. Keys are stored locally in your browser and will persist across sessions.
           </DialogDescription>
         </DialogHeader>
         

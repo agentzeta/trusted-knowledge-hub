@@ -1,13 +1,23 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useQueryContext } from '@/hooks/useQueryContext';
-import { Check, Loader2, Clock } from 'lucide-react';
+import { Check, Loader2, Clock, ExternalLink, Info } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { format } from 'date-fns';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const BlockchainVerification: React.FC = () => {
   const { blockchainReference, attestationId, isRecordingOnChain, responses } = useQueryContext();
+  const [showFlareExplorer, setShowFlareExplorer] = useState(false);
+  const [showEASExplorer, setShowEASExplorer] = useState(false);
   
   // Get the timestamp from the first response (all responses have same timestamp)
   const timestamp = responses.length > 0 ? responses[0].timestamp : null;
@@ -22,6 +32,78 @@ const BlockchainVerification: React.FC = () => {
   const openEASExplorer = (attestId: string) => {
     window.open(`https://attestation.flare.network/attestation/${attestId}`, '_blank');
   };
+
+  const FlareExplorerDialog = ({ txHash }: { txHash: string }) => (
+    <Dialog open={showFlareExplorer} onOpenChange={setShowFlareExplorer}>
+      <DialogContent className="sm:max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle>Flare Blockchain Transaction</DialogTitle>
+          <DialogDescription>
+            Transaction details for your consensus response on the Flare blockchain.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="mt-4">
+          <h3 className="text-sm font-medium mb-2">Transaction Hash:</h3>
+          <p className="text-xs bg-gray-100 p-2 rounded break-all">{txHash}</p>
+          
+          <div className="mt-4">
+            <p className="text-sm text-gray-600 mb-2">
+              This transaction contains a verifiable record of your consensus query and response, 
+              permanently stored on the Flare blockchain.
+            </p>
+            
+            <div className="flex justify-between mt-4">
+              <Button variant="outline" onClick={() => setShowFlareExplorer(false)}>
+                Close
+              </Button>
+              <Button 
+                onClick={() => openFlareExplorer(txHash)}
+                className="flex items-center gap-1"
+              >
+                View on Flare Explorer <ExternalLink className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+
+  const EASExplorerDialog = ({ attestId }: { attestId: string }) => (
+    <Dialog open={showEASExplorer} onOpenChange={setShowEASExplorer}>
+      <DialogContent className="sm:max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle>Ethereum Attestation Service</DialogTitle>
+          <DialogDescription>
+            Attestation details for your consensus response.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="mt-4">
+          <h3 className="text-sm font-medium mb-2">Attestation ID:</h3>
+          <p className="text-xs bg-gray-100 p-2 rounded break-all">{attestId}</p>
+          
+          <div className="mt-4">
+            <p className="text-sm text-gray-600 mb-2">
+              This attestation verifies the authenticity and timestamp of your AI consensus response
+              using the Ethereum Attestation Service on the Flare network.
+            </p>
+            
+            <div className="flex justify-between mt-4">
+              <Button variant="outline" onClick={() => setShowEASExplorer(false)}>
+                Close
+              </Button>
+              <Button 
+                onClick={() => openEASExplorer(attestId)}
+                className="flex items-center gap-1"
+              >
+                View on EAS Explorer <ExternalLink className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
   
   if (isRecordingOnChain) {
     return (
@@ -60,7 +142,7 @@ const BlockchainVerification: React.FC = () => {
           <div className="p-3 rounded-md bg-blue-50 border border-blue-100 mb-3">
             <div className="flex items-center">
               <Clock className="h-4 w-4 text-blue-500 mr-2" />
-              <span className="text-sm font-medium">Timestamp</span>
+              <span className="text-sm font-medium">Consensus Timestamp</span>
             </div>
             <p className="text-xs text-gray-500 mt-1">{formattedDate}</p>
           </div>
@@ -73,16 +155,28 @@ const BlockchainVerification: React.FC = () => {
                 <Check className="h-4 w-4 text-green-500 mr-1" />
                 Flare Blockchain
               </span>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="text-xs text-blue-600 p-0 h-auto" 
-                onClick={() => openFlareExplorer(blockchainReference)}
-              >
-                View on Explorer
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-xs text-blue-600 p-0 h-auto" 
+                  onClick={() => setShowFlareExplorer(true)}
+                >
+                  View Details
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-xs text-blue-600 p-0 h-auto flex items-center" 
+                  onClick={() => openFlareExplorer(blockchainReference)}
+                >
+                  <ExternalLink className="w-3 h-3 mr-1" />
+                  Explorer
+                </Button>
+              </div>
             </div>
-            <p className="text-xs text-gray-500 break-all">{blockchainReference}</p>
+            <p className="text-xs text-gray-500 break-all">{blockchainReference.substring(0, 20)}...</p>
+            <FlareExplorerDialog txHash={blockchainReference} />
           </div>
         )}
         
@@ -93,16 +187,28 @@ const BlockchainVerification: React.FC = () => {
                 <Check className="h-4 w-4 text-green-500 mr-1" />
                 EAS Attestation
               </span>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="text-xs text-blue-600 p-0 h-auto" 
-                onClick={() => openEASExplorer(attestationId)}
-              >
-                View Attestation
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-xs text-blue-600 p-0 h-auto" 
+                  onClick={() => setShowEASExplorer(true)}
+                >
+                  View Details
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-xs text-blue-600 p-0 h-auto flex items-center" 
+                  onClick={() => openEASExplorer(attestationId)}
+                >
+                  <ExternalLink className="w-3 h-3 mr-1" />
+                  Explorer
+                </Button>
+              </div>
             </div>
-            <p className="text-xs text-gray-500 break-all">{attestationId}</p>
+            <p className="text-xs text-gray-500 break-all">{attestationId.substring(0, 20)}...</p>
+            <EASExplorerDialog attestId={attestationId} />
           </div>
         )}
         

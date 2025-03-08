@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { LogIn } from 'lucide-react';
+import { LogIn, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ApiKeyManager from './ApiKeyManager';
 
@@ -25,7 +25,14 @@ const QueryHeader: React.FC<QueryHeaderProps> = ({ handleGoogleSignIn, user }) =
             <span>Sign in</span>
           </Button>
         )}
-        <ApiKeyManager />
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex items-center gap-1"
+          asChild
+        >
+          <ApiKeyManager />
+        </Button>
       </div>
     </div>
   );
