@@ -6,7 +6,7 @@ import QueryInterface from '../components/QueryInterface';
 import ConsensusVisual from '../components/ConsensusVisual';
 import CommunityQueries from '../components/CommunityQueries';
 import { useQueryContext } from '../context/QueryContext';
-import { Shield, CheckCircle } from 'lucide-react';
+import { Shield } from 'lucide-react';
 
 const Index = () => {
   const { responses, query } = useQueryContext();

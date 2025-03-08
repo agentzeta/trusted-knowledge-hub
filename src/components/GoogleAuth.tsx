@@ -11,7 +11,7 @@ import { useQueryContext } from '@/context/QueryContext';
 const GoogleAuth: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const { user, query, consensusResponse } = useQueryContext();
+  const { user, query, consensusResponse, exportToGoogleDocs } = useQueryContext();
 
   useEffect(() => {
     // Check for existing session
@@ -97,26 +97,10 @@ const GoogleAuth: React.FC = () => {
     }
 
     try {
-      const { data, error } = await supabase.functions.invoke('google-docs-export', {
-        body: {
-          query,
-          consensusResponse,
-        }
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      toast({
-        title: "Export Successful",
-        description: "Your query results have been exported to Google Docs",
-        duration: 3000,
-      });
-
-      // Open the document in a new tab if the URL is returned
-      if (data && data.documentUrl) {
-        window.open(data.documentUrl, '_blank');
+      if (exportToGoogleDocs) {
+        await exportToGoogleDocs();
+      } else {
+        throw new Error("Export function not available");
       }
     } catch (error: any) {
       toast({

@@ -31,5 +31,5 @@ export interface QueryContextType {
   apiKeys: ApiKeys;
   consensusResponse: string | null;
   user: any;
-  exportToGoogleDocs?: () => Promise<void>;
+  exportToGoogleDocs: () => Promise<void>;
 }
