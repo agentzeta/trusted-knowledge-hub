@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, ReactNode, useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import { QueryContextType, ApiKeys, Response } from '../types/query';
@@ -7,6 +8,7 @@ import { saveResponseToDatabase } from '../services/databaseService';
 import { exportToGoogleDocsService } from '../services/exportService';
 import { useSupabaseAuth } from '../hooks/useSupabaseAuth';
 import { recordOnFlareBlockchain, createAttestation } from '../services/blockchainService';
+import { verifyResponses } from '../utils/consensusUtils';
 
 const STORAGE_KEY = 'ai_consensus_api_keys';
 const WALLET_KEY = 'ai_consensus_wallet_key';
@@ -79,10 +81,13 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       
       const { allResponses, derivedConsensus } = result;
       setConsensusResponse(derivedConsensus);
-      setResponses(allResponses);
+      
+      // Verify responses based on consensus
+      const verifiedResponses = verifyResponses(allResponses, derivedConsensus);
+      setResponses(verifiedResponses);
 
       if (user) {
-        await saveResponseToDatabase(user.id, queryText, derivedConsensus, allResponses);
+        await saveResponseToDatabase(user.id, queryText, derivedConsensus, verifiedResponses);
       }
       
       if (privateKey) {
@@ -108,7 +113,7 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
               user.id, 
               queryText, 
               derivedConsensus, 
-              allResponses,
+              verifiedResponses,
               txHash,
               attestationUID
             );

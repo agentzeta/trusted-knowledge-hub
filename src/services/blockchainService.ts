@@ -1,7 +1,6 @@
 
 import { ethers } from 'ethers';
 import { SchemaEncoder } from '@ethereum-attestation-service/eas-sdk';
-import { EAS } from '@ethereum-attestation-service/eas-sdk';
 
 // Flare network configuration
 const FLARE_RPC_URL = 'https://flare-api.flare.network/ext/C/rpc';

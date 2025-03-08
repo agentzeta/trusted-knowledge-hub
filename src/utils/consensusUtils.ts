@@ -102,6 +102,27 @@ const calculateConsensusConfidence = (
   return (clusterSizeFactor * 0.7) + (avgConfidence * 0.3);
 };
 
+// New function to verify responses based on consensus
+export const verifyResponses = (
+  responses: Response[], 
+  consensusText: string,
+  verificationThreshold: number = 0.6
+): Response[] => {
+  return responses.map(response => {
+    // Calculate similarity with consensus
+    const similarity = calculateJaccardSimilarity(response.content, consensusText);
+    
+    // Determine verification status based on similarity and confidence
+    const isVerified = similarity >= verificationThreshold;
+    
+    // Return a new object with updated verification status
+    return {
+      ...response,
+      verified: isVerified
+    };
+  });
+};
+
 // Get consensus response from all AI responses with enhanced logic
 export const deriveConsensusResponse = (allResponses: Response[]): string => {
   if (allResponses.length === 0) return "No responses available";
