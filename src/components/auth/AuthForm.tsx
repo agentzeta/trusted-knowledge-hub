@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,11 +10,9 @@ import { Loader2 } from 'lucide-react';
 const AuthForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { signInWithGoogle, authLoading } = useSupabaseAuth();
+  const { signInWithGoogle, authLoading, signIn, signUp } = useSupabaseAuth();
   const [isLoading, setIsLoading] = useState(false);
   
-  const { supabase } = useSupabaseAuth();
-
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -31,10 +28,7 @@ const AuthForm = () => {
     setIsLoading(true);
     
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { error } = await signIn(email, password);
       
       if (error) throw error;
       
@@ -68,13 +62,7 @@ const AuthForm = () => {
     setIsLoading(true);
     
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: window.location.origin,
-        }
-      });
+      const { error } = await signUp(email, password);
       
       if (error) throw error;
       

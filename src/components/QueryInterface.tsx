@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useQueryContext } from '../hooks/useQueryContext';
@@ -9,7 +8,6 @@ import ExampleQueriesSection from './ExampleQueriesSection';
 import UserAuthStatus from './UserAuthStatus';
 import QueryResponses from './QueryResponses';
 
-// Sample stored queries for search suggestions
 const storedQueries = [
   { id: 1, query: "How does climate change affect coral reefs?" },
   { id: 2, query: "What is quantum computing?" },
@@ -62,6 +60,14 @@ const QueryInterface: React.FC = () => {
     setShowSuggestions(false);
   };
 
+  const handleGoogleSignIn = async () => {
+    try {
+      await signInWithGoogle();
+    } catch (error: any) {
+      // Error is already handled in the hook
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -70,7 +76,7 @@ const QueryInterface: React.FC = () => {
       className="w-full max-w-3xl mx-auto mt-8"
     >
       <QueryHeader
-        handleGoogleSignIn={signInWithGoogle}
+        handleGoogleSignIn={handleGoogleSignIn}
         user={user}
       />
       
