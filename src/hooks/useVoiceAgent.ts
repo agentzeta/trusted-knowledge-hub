@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQueryContext } from './useQueryContext';
 import { useSpeechRecognition } from './voice/useSpeechRecognition';
 import { useSpeechSynthesis } from './voice/useSpeechSynthesis';
@@ -9,7 +9,19 @@ import { toast } from '@/components/ui/use-toast';
 export const useVoiceAgent = () => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isListening, setIsListening] = useState(false);
-  const [voiceId, setVoiceId] = useState("9BWtsMINqrJLrRacOk9x"); // Default Aria voice
+  const [voiceId, setVoiceId] = useState(() => {
+    try {
+      const savedPrefs = localStorage.getItem('voiceAgentPreferences');
+      if (savedPrefs) {
+        const prefs = JSON.parse(savedPrefs);
+        return prefs.selectedVoiceId || "9BWtsMINqrJLrRacOk9x"; // Default Aria voice
+      }
+    } catch (e) {
+      console.error("Error loading voice preference:", e);
+    }
+    return "9BWtsMINqrJLrRacOk9x"; // Default Aria voice
+  });
+  
   const { consensusResponse } = useQueryContext();
   
   // Create speech synthesis hooks

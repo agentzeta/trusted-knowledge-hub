@@ -8,10 +8,10 @@ import {
   fetchFromGemini, 
   fetchFromGeminiProExp, 
   fetchFromPerplexity, 
-  fetchFromDeepseek, 
-  getMockResponse 
+  fetchFromDeepseek
 } from './modelService';
 import { deriveConsensusResponse } from '../utils/consensusUtils';
+import { toast } from '@/components/ui/use-toast';
 
 export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
   console.log('Fetching responses with API keys:', Object.keys(apiKeys).filter(k => !!apiKeys[k as keyof ApiKeys]));
@@ -60,6 +60,15 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
   
   console.log(`Attempting to fetch from ${apiPromises.length} LLMs`);
   
+  if (apiPromises.length === 0) {
+    toast({
+      title: "No API Keys Configured",
+      description: "Please add API keys in the settings to use AI models",
+      variant: "destructive",
+    });
+    return { allResponses: [], derivedConsensus: "No API keys configured. Please add API keys in the settings to use AI models." };
+  }
+  
   // Execute all API promises
   const apiResults = await Promise.allSettled(apiPromises);
   
@@ -74,32 +83,19 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
   const sourcesWithResponses = validResponses.map(r => r.source);
   console.log('Sources with responses:', sourcesWithResponses);
   
-  // Only create mock responses for sources we attempted but failed, and only if we have no valid responses
-  let mockResponses: Response[] = [];
   if (validResponses.length === 0) {
-    console.log('No valid API responses, using mock responses');
-    // Get sources that were attempted but failed
-    const attemptedSources = Array.from(attemptedApis.entries())
-      .filter(([_, wasAttempted]) => wasAttempted)
-      .map(([source, _]) => source);
-    
-    // Use at least the DeepSeek mock if nothing else
-    const sourcesToMock = attemptedSources.length > 0 ? attemptedSources : ['DeepSeek Coder'];
-    
-    mockResponses = sourcesToMock.map(source => 
-      getMockResponse(source, queryText)
-    );
+    toast({
+      title: "No Valid Responses",
+      description: "All API requests failed. Please check your API keys and try again.",
+      variant: "destructive",
+    });
+    return { 
+      allResponses: [], 
+      derivedConsensus: "All API requests failed. Please check your API keys and try again." 
+    };
   }
   
-  const allResponses = [...validResponses, ...mockResponses];
+  const derivedConsensus = deriveConsensusResponse(validResponses);
   
-  if (allResponses.length === 0) {
-    console.error('No responses were generated, either real or mock');
-    // If somehow we still have no responses, create at least one mock response
-    allResponses.push(getMockResponse('DeepSeek Coder', queryText));
-  }
-  
-  const derivedConsensus = deriveConsensusResponse(allResponses);
-  
-  return { allResponses, derivedConsensus };
+  return { allResponses: validResponses, derivedConsensus };
 };
