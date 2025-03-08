@@ -17,7 +17,7 @@ import VoiceSettings from '../components/voice/VoiceSettings';
 import { Button } from '@/components/ui/button';
 
 const TruthfulLogo = () => (
-  <div className="p-2 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg shadow-md">
+  <div className="p-2 bg-gradient-to-r from-indigo-500 to-blue-600 rounded-lg shadow-md">
     <div className="text-xl font-bold text-white flex items-center gap-2">
       <Shield className="w-6 h-6" />
       <span>Truthful</span>
@@ -28,15 +28,15 @@ const TruthfulLogo = () => (
 const AgentVeritasLogo = () => (
   <div className="flex items-center gap-2">
     <div className="relative">
-      <div className="flex items-center justify-center bg-gradient-to-r from-purple-400 to-indigo-600 rounded-full p-1">
+      <div className="flex items-center justify-center bg-gradient-to-r from-purple-500 to-pink-500 rounded-full p-1">
         <AgentVeritasAvatar size="lg" />
       </div>
-      <div className="absolute -bottom-1 -right-1 bg-indigo-600 rounded-full p-1 border-2 border-white">
+      <div className="absolute -bottom-1 -right-1 bg-pink-600 rounded-full p-1 border-2 border-white">
         <Shield className="w-3 h-3 text-white" />
       </div>
     </div>
     <div>
-      <div className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500">
+      <div className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-pink-500">
         Agent Veritas
       </div>
     </div>
@@ -74,15 +74,15 @@ const Index = () => {
             Powered by Flare Data Connector
           </motion.div>
           
-          <div className="flex flex-col items-center justify-center mb-4 gap-2">
+          <div className="flex flex-col items-center justify-center mb-4 gap-6">
             <TruthfulLogo />
             <div className="mt-3">
               <AgentVeritasLogo />
             </div>
           </div>
           
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Verifiable AI knowledge you can trust
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            Verifiable knowledge you can trust from AI - powered by Consensus Learning
           </p>
         </motion.div>
         

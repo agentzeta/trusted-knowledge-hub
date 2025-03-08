@@ -21,8 +21,8 @@ const VoiceAgentButtonUI: React.FC<VoiceAgentButtonUIProps> = ({
 }) => {
   // Different color schemes based on button type
   const defaultClass = type === 'voice' 
-    ? "rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white" 
-    : "rounded-full bg-gradient-to-r from-blue-500 via-teal-500 to-green-500 text-white";
+    ? "rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white" 
+    : "rounded-full bg-gradient-to-r from-cyan-500 to-teal-500 text-white";
   
   return (
     <Button
