@@ -91,13 +91,23 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     if (!user) return;
     
     try {
+      // Convert the sourceResponses to a plain object format that's compatible with JSONB
+      const sourceResponsesJson = sourceResponses.map(resp => ({
+        id: resp.id,
+        content: resp.content,
+        source: resp.source,
+        verified: resp.verified,
+        timestamp: resp.timestamp,
+        confidence: resp.confidence
+      }));
+      
       const { error } = await supabase
         .from('consensus_responses')
         .insert({
           user_id: user.id,
           query: queryText,
           consensus_response: consensusText,
-          source_responses: sourceResponses,
+          source_responses: sourceResponsesJson,
         });
         
       if (error) {
