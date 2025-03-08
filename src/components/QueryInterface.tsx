@@ -1,11 +1,12 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQueryContext } from '../context/QueryContext';
 import { Search, LogIn } from 'lucide-react';
 import ApiKeyManager from './ApiKeyManager';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
+import SearchSuggestions from './SearchSuggestions';
+import useClickOutside from '../hooks/useClickOutside';
 
 // Example queries by category
 const exampleQueries = {
@@ -19,6 +20,27 @@ const exampleQueries = {
 const QueryInterface: React.FC = () => {
   const { submitQuery, isLoading, query, responses, consensusResponse, user } = useQueryContext();
   const [inputQuery, setInputQuery] = useState('');
+  const [suggestions, setSuggestions] = useState<typeof storedQueries>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  useClickOutside(searchContainerRef, () => {
+    setShowSuggestions(false);
+  });
+
+  useEffect(() => {
+    if (inputQuery.trim() && inputQuery.length > 2) {
+      const filteredSuggestions = storedQueries.filter(q => 
+        q.query.toLowerCase().includes(inputQuery.toLowerCase())
+      ).slice(0, 5);
+      
+      setSuggestions(filteredSuggestions);
+      setShowSuggestions(true);
+    } else {
+      setSuggestions([]);
+      setShowSuggestions(false);
+    }
+  }, [inputQuery]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,6 +54,12 @@ const QueryInterface: React.FC = () => {
     submitQuery(query);
   };
 
+  const handleSuggestionClick = (query: string) => {
+    setInputQuery(query);
+    submitQuery(query);
+    setShowSuggestions(false);
+  };
+
   const handleGoogleSignIn = async () => {
     try {
       await supabase.auth.signInWithOAuth({
@@ -43,6 +71,12 @@ const QueryInterface: React.FC = () => {
       });
     } catch (error) {
       console.error('Sign in error:', error);
+    }
+  };
+
+  const handleInputFocus = () => {
+    if (inputQuery.trim().length > 2) {
+      setShowSuggestions(true);
     }
   };
 
@@ -71,7 +105,7 @@ const QueryInterface: React.FC = () => {
         </div>
       </div>
       
-      <div className="relative card-shadow hover-card-shadow rounded-2xl glass p-1 transition-all duration-300">
+      <div className="relative card-shadow hover-card-shadow rounded-2xl glass p-1 transition-all duration-300" ref={searchContainerRef}>
         <form onSubmit={handleSubmit} className="relative">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
             <Search className="h-5 w-5 text-gray-400" />
@@ -81,6 +115,7 @@ const QueryInterface: React.FC = () => {
             type="text"
             value={inputQuery}
             onChange={(e) => setInputQuery(e.target.value)}
+            onFocus={handleInputFocus}
             placeholder="Ask any question to get AI consensus..."
             className="block w-full bg-transparent border-0 py-4 pl-12 pr-24 text-sm sm:text-base focus:ring-0 focus:outline-none placeholder:text-gray-400"
             disabled={isLoading}
@@ -109,9 +144,14 @@ const QueryInterface: React.FC = () => {
             </motion.button>
           </div>
         </form>
+        
+        <SearchSuggestions 
+          suggestions={suggestions} 
+          onSuggestionClick={handleSuggestionClick} 
+          isVisible={showSuggestions}
+        />
       </div>
       
-      {/* Example queries */}
       <div className="mt-4 mb-6">
         <p className="text-sm text-gray-500 mb-2">Try an example query:</p>
         <motion.div 
@@ -135,7 +175,6 @@ const QueryInterface: React.FC = () => {
         </motion.div>
       </div>
       
-      {/* User login status indicator */}
       {user && (
         <div className="mt-2 mb-4">
           <div className="text-sm bg-green-50 text-green-600 px-3 py-1 rounded-full inline-flex items-center">
@@ -165,7 +204,6 @@ const QueryInterface: React.FC = () => {
         )}
       </AnimatePresence>
       
-      {/* AI Answer Section */}
       {consensusResponse && !isLoading && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -188,7 +226,6 @@ const QueryInterface: React.FC = () => {
         </motion.div>
       )}
       
-      {/* The individual AI responses section */}
       {responses.length > 0 && !isLoading && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
