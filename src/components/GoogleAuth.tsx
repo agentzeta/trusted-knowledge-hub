@@ -99,6 +99,11 @@ const GoogleAuth: React.FC = () => {
     try {
       if (exportToGoogleDocs) {
         await exportToGoogleDocs();
+        toast({
+          title: "Export Successful",
+          description: "Your query results have been exported to Google Docs",
+          duration: 3000,
+        });
       } else {
         throw new Error("Export function not available");
       }

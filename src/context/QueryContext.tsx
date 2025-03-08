@@ -212,6 +212,7 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         window.open(data.documentUrl, '_blank');
       }
     } catch (error: any) {
+      console.error('Google Docs export error:', error);
       toast({
         title: "Export Failed",
         description: error.message || "Failed to export to Google Docs",

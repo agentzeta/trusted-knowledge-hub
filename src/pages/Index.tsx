@@ -7,6 +7,7 @@ import ConsensusVisual from '../components/ConsensusVisual';
 import CommunityQueries from '../components/CommunityQueries';
 import { useQueryContext } from '../context/QueryContext';
 import { Shield } from 'lucide-react';
+import GoogleAuth from '../components/GoogleAuth';
 
 const Index = () => {
   const { responses, query } = useQueryContext();
@@ -14,6 +15,7 @@ const Index = () => {
   return (
     <div className="relative min-h-screen pt-20 pb-16 px-4 sm:px-6">
       <Header />
+      <GoogleAuth />
       
       <div className="blur-background">
         <div className="blur-circle bg-blue-300 w-[500px] h-[500px] top-[-100px] left-[-200px]" />
