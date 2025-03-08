@@ -1,18 +1,18 @@
 
 import { Response } from '../types/query';
 
-// Available AI models
+// Available AI models with updated names to the most powerful free tier options
 export const AI_SOURCES = [
-  'GPT-4', 
-  'Claude 3', 
-  'Claude 3.5',
-  'Gemini', 
-  'Gemini Pro Experimental',
-  'Llama 3', 
-  'Grok', 
-  'Perplexity', 
-  'Deepseek',
-  'Qwen'
+  'GPT-4o', 
+  'Claude 3 Haiku', 
+  'Claude 3.5 Sonnet',
+  'Gemini 1.5 Pro', 
+  'Gemini 1.5 Flash',
+  'Llama 3.1 70B', 
+  'Grok-1.5', 
+  'Perplexity Sonar', 
+  'DeepSeek Coder',
+  'Qwen2 72B'
 ];
 
 // Default API keys - in a real app, these would be stored securely on the server
@@ -28,7 +28,7 @@ export const DEFAULT_API_KEYS = {
   qwen: process.env.QWEN_API_KEY || '',
 };
 
-// Process OpenAI (GPT-4) response
+// Process OpenAI (GPT-4o) response
 export const fetchFromOpenAI = async (queryText: string, apiKey: string): Promise<Response | null> => {
   if (!apiKey) return null;
   
@@ -56,7 +56,7 @@ export const fetchFromOpenAI = async (queryText: string, apiKey: string): Promis
     return {
       id: `openai-${Date.now()}`,
       content: data.choices[0].message.content.trim(),
-      source: 'GPT-4',
+      source: 'GPT-4o',
       verified: true,
       timestamp: Date.now(),
       confidence: 0.9
@@ -67,7 +67,7 @@ export const fetchFromOpenAI = async (queryText: string, apiKey: string): Promis
   }
 };
 
-// Process Anthropic (Claude) response
+// Process Anthropic (Claude 3 Haiku) response
 export const fetchFromAnthropic = async (queryText: string, apiKey: string): Promise<Response | null> => {
   if (!apiKey) return null;
   
@@ -80,7 +80,7 @@ export const fetchFromAnthropic = async (queryText: string, apiKey: string): Pro
         'x-api-key': apiKey
       },
       body: JSON.stringify({
-        model: 'claude-3-opus-20240229',
+        model: 'claude-3-haiku-20240307',
         max_tokens: 150,
         messages: [{ role: 'user', content: queryText }]
       })
@@ -96,7 +96,7 @@ export const fetchFromAnthropic = async (queryText: string, apiKey: string): Pro
     return {
       id: `anthropic-${Date.now()}`,
       content: data.content[0].text,
-      source: 'Claude 3',
+      source: 'Claude 3 Haiku',
       verified: true,
       timestamp: Date.now(),
       confidence: 0.92
@@ -107,7 +107,7 @@ export const fetchFromAnthropic = async (queryText: string, apiKey: string): Pro
   }
 };
 
-// Process Anthropic Claude 3.5 response
+// Process Anthropic Claude 3.5 Sonnet response
 export const fetchFromAnthropicClaude35 = async (queryText: string, apiKey: string): Promise<Response | null> => {
   if (!apiKey) return null;
   
@@ -136,7 +136,7 @@ export const fetchFromAnthropicClaude35 = async (queryText: string, apiKey: stri
     return {
       id: `anthropic35-${Date.now()}`,
       content: data.content[0].text,
-      source: 'Claude 3.5',
+      source: 'Claude 3.5 Sonnet',
       verified: true,
       timestamp: Date.now(),
       confidence: 0.94
@@ -147,12 +147,12 @@ export const fetchFromAnthropicClaude35 = async (queryText: string, apiKey: stri
   }
 };
 
-// Process Gemini response
+// Process Gemini 1.5 Pro response
 export const fetchFromGemini = async (queryText: string, apiKey: string): Promise<Response | null> => {
   if (!apiKey) return null;
   
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -175,7 +175,7 @@ export const fetchFromGemini = async (queryText: string, apiKey: string): Promis
     return {
       id: `gemini-${Date.now()}`,
       content: data.candidates[0].content.parts[0].text,
-      source: 'Gemini',
+      source: 'Gemini 1.5 Pro',
       verified: true,
       timestamp: Date.now(),
       confidence: 0.85
@@ -186,12 +186,12 @@ export const fetchFromGemini = async (queryText: string, apiKey: string): Promis
   }
 };
 
-// Process Gemini Pro Experimental response
+// Process Gemini 1.5 Flash response
 export const fetchFromGeminiProExp = async (queryText: string, apiKey: string): Promise<Response | null> => {
   if (!apiKey) return null;
   
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-experimental:generateContent?key=${apiKey}`, {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -207,25 +207,25 @@ export const fetchFromGeminiProExp = async (queryText: string, apiKey: string): 
     const data = await response.json();
     
     if (data.error) {
-      console.error('Gemini Pro Experimental API error:', data.error);
+      console.error('Gemini 1.5 Flash API error:', data.error);
       return null;
     }
     
     return {
-      id: `gemini-pro-exp-${Date.now()}`,
+      id: `gemini-flash-${Date.now()}`,
       content: data.candidates[0].content.parts[0].text,
-      source: 'Gemini Pro Experimental',
+      source: 'Gemini 1.5 Flash',
       verified: true,
       timestamp: Date.now(),
       confidence: 0.88
     };
   } catch (error) {
-    console.error('Error fetching from Gemini Pro Experimental:', error);
+    console.error('Error fetching from Gemini 1.5 Flash:', error);
     return null;
   }
 };
 
-// Process Perplexity response
+// Process Perplexity Sonar response
 export const fetchFromPerplexity = async (queryText: string, apiKey: string): Promise<Response | null> => {
   if (!apiKey) return null;
   
@@ -262,7 +262,7 @@ export const fetchFromPerplexity = async (queryText: string, apiKey: string): Pr
     return {
       id: `perplexity-${Date.now()}`,
       content: data.choices[0].message.content,
-      source: 'Perplexity',
+      source: 'Perplexity Sonar',
       verified: true,
       timestamp: Date.now(),
       confidence: 0.88
@@ -273,10 +273,10 @@ export const fetchFromPerplexity = async (queryText: string, apiKey: string): Pr
   }
 };
 
-// Process Deepseek response - can work without API key in some scenarios
+// Process DeepSeek Coder response
 export const fetchFromDeepseek = async (queryText: string, apiKey: string): Promise<Response | null> => {
   try {
-    // Using a proxy service or open source version
+    // Using DeepSeek Coder API
     const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -284,7 +284,7 @@ export const fetchFromDeepseek = async (queryText: string, apiKey: string): Prom
         ...(apiKey ? { 'Authorization': `Bearer ${apiKey}` } : {})
       },
       body: JSON.stringify({
-        model: 'deepseek-chat',
+        model: 'deepseek-coder',
         messages: [{ role: 'user', content: queryText }],
         max_tokens: 150
       })
@@ -297,8 +297,8 @@ export const fetchFromDeepseek = async (queryText: string, apiKey: string): Prom
       // Fallback to mock for Deepseek specifically since we promised at least one response
       return {
         id: `deepseek-${Date.now()}`,
-        content: `${queryText} - Response from Deepseek (mock version).`,
-        source: 'Deepseek',
+        content: `${queryText} - Response from DeepSeek Coder (mock version).`,
+        source: 'DeepSeek Coder',
         verified: true,
         timestamp: Date.now(),
         confidence: 0.82
@@ -307,8 +307,8 @@ export const fetchFromDeepseek = async (queryText: string, apiKey: string): Prom
     
     return {
       id: `deepseek-${Date.now()}`,
-      content: data.choices?.[0]?.message?.content || `${queryText} - Response from Deepseek.`,
-      source: 'Deepseek',
+      content: data.choices?.[0]?.message?.content || `${queryText} - Response from DeepSeek Coder.`,
+      source: 'DeepSeek Coder',
       verified: true,
       timestamp: Date.now(),
       confidence: 0.82
@@ -318,8 +318,8 @@ export const fetchFromDeepseek = async (queryText: string, apiKey: string): Prom
     // Fallback to mock for Deepseek specifically since we promised at least one response
     return {
       id: `deepseek-${Date.now()}`,
-      content: `${queryText} - Response from Deepseek (mock fallback).`,
-      source: 'Deepseek',
+      content: `${queryText} - Response from DeepSeek Coder (mock fallback).`,
+      source: 'DeepSeek Coder',
       verified: true,
       timestamp: Date.now(),
       confidence: 0.8

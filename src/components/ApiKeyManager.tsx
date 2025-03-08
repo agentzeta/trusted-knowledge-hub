@@ -77,7 +77,7 @@ const ApiKeyManager: React.FC = () => {
         <DialogHeader>
           <DialogTitle>API Key Management</DialogTitle>
           <DialogDescription>
-            Add your API keys to connect to real AI models. Your keys are stored locally in your browser.
+            Add your API keys to connect to real AI models. Keys are stored locally in your browser and will persist across sessions.
           </DialogDescription>
         </DialogHeader>
         
@@ -90,7 +90,7 @@ const ApiKeyManager: React.FC = () => {
           
           <TabsContent value="openai" className="space-y-4 mt-4">
             <div className="space-y-2">
-              <Label htmlFor="openai-key">OpenAI API Key (for GPT-4)</Label>
+              <Label htmlFor="openai-key">OpenAI API Key (for GPT-4o)</Label>
               <Input
                 id="openai-key"
                 type="password"
@@ -105,7 +105,7 @@ const ApiKeyManager: React.FC = () => {
           
           <TabsContent value="anthropic" className="space-y-4 mt-4">
             <div className="space-y-2">
-              <Label htmlFor="anthropic-key">Anthropic API Key (Claude 3)</Label>
+              <Label htmlFor="anthropic-key">Anthropic API Key (Claude 3 Haiku)</Label>
               <Input
                 id="anthropic-key"
                 type="password"
@@ -113,12 +113,12 @@ const ApiKeyManager: React.FC = () => {
                 value={anthropicKey}
                 onChange={(e) => setAnthropicKey(e.target.value)}
               />
-              <p className="text-xs text-gray-500">Provides access to Claude 3 model.</p>
+              <p className="text-xs text-gray-500">Provides access to Claude 3 Haiku model.</p>
             </div>
-            <Button onClick={handleSaveAnthropic} disabled={!anthropicKey} className="mb-4">Save Claude 3 Key</Button>
+            <Button onClick={handleSaveAnthropic} disabled={!anthropicKey} className="mb-4">Save Claude 3 Haiku Key</Button>
             
             <div className="space-y-2">
-              <Label htmlFor="anthropic-claude35-key">Anthropic API Key (Claude 3.5)</Label>
+              <Label htmlFor="anthropic-claude35-key">Anthropic API Key (Claude 3.5 Sonnet)</Label>
               <Input
                 id="anthropic-claude35-key"
                 type="password"
@@ -126,14 +126,14 @@ const ApiKeyManager: React.FC = () => {
                 value={anthropicClaude35Key}
                 onChange={(e) => setAnthropicClaude35Key(e.target.value)}
               />
-              <p className="text-xs text-gray-500">Provides access to Claude 3.5 model.</p>
+              <p className="text-xs text-gray-500">Provides access to Claude 3.5 Sonnet model.</p>
             </div>
-            <Button onClick={handleSaveAnthropicClaude35} disabled={!anthropicClaude35Key}>Save Claude 3.5 Key</Button>
+            <Button onClick={handleSaveAnthropicClaude35} disabled={!anthropicClaude35Key}>Save Claude 3.5 Sonnet Key</Button>
           </TabsContent>
           
           <TabsContent value="google" className="space-y-4 mt-4">
             <div className="space-y-2">
-              <Label htmlFor="gemini-key">Google AI API Key (Gemini)</Label>
+              <Label htmlFor="gemini-key">Google AI API Key (Gemini 1.5 Pro)</Label>
               <Input
                 id="gemini-key"
                 type="password"
@@ -141,12 +141,12 @@ const ApiKeyManager: React.FC = () => {
                 value={geminiKey}
                 onChange={(e) => setGeminiKey(e.target.value)}
               />
-              <p className="text-xs text-gray-500">Provides access to Gemini model.</p>
+              <p className="text-xs text-gray-500">Provides access to Gemini 1.5 Pro model.</p>
             </div>
-            <Button onClick={handleSaveGemini} disabled={!geminiKey} className="mb-4">Save Gemini Key</Button>
+            <Button onClick={handleSaveGemini} disabled={!geminiKey} className="mb-4">Save Gemini 1.5 Pro Key</Button>
             
             <div className="space-y-2">
-              <Label htmlFor="gemini-pro-exp-key">Google AI API Key (Gemini Pro Experimental)</Label>
+              <Label htmlFor="gemini-pro-exp-key">Google AI API Key (Gemini 1.5 Flash)</Label>
               <Input
                 id="gemini-pro-exp-key"
                 type="password"
@@ -154,16 +154,16 @@ const ApiKeyManager: React.FC = () => {
                 value={geminiProExpKey}
                 onChange={(e) => setGeminiProExpKey(e.target.value)}
               />
-              <p className="text-xs text-gray-500">Provides access to Gemini Pro Experimental model.</p>
+              <p className="text-xs text-gray-500">Provides access to Gemini 1.5 Flash model.</p>
             </div>
-            <Button onClick={handleSaveGeminiProExp} disabled={!geminiProExpKey}>Save Gemini Pro Experimental Key</Button>
+            <Button onClick={handleSaveGeminiProExp} disabled={!geminiProExpKey}>Save Gemini 1.5 Flash Key</Button>
           </TabsContent>
         </Tabs>
         
         <Tabs defaultValue="perplexity" className="w-full mt-4">
           <TabsList className="grid grid-cols-3 w-full">
             <TabsTrigger value="perplexity">Perplexity</TabsTrigger>
-            <TabsTrigger value="other1">Deepseek/Grok</TabsTrigger>
+            <TabsTrigger value="other1">DeepSeek/Grok</TabsTrigger>
             <TabsTrigger value="other2">Qwen</TabsTrigger>
           </TabsList>
           
@@ -177,14 +177,14 @@ const ApiKeyManager: React.FC = () => {
                 value={perplexityKey}
                 onChange={(e) => setPerplexityKey(e.target.value)}
               />
-              <p className="text-xs text-gray-500">Provides access to Perplexity AI models.</p>
+              <p className="text-xs text-gray-500">Provides access to Perplexity AI models (Llama 3.1 Sonar).</p>
             </div>
             <Button onClick={handleSavePerplexity} disabled={!perplexityKey}>Save Perplexity Key</Button>
           </TabsContent>
           
           <TabsContent value="other1" className="space-y-4 mt-4">
             <div className="space-y-2">
-              <Label htmlFor="deepseek-key">Deepseek API Key</Label>
+              <Label htmlFor="deepseek-key">DeepSeek API Key</Label>
               <Input
                 id="deepseek-key"
                 type="password"
@@ -192,9 +192,9 @@ const ApiKeyManager: React.FC = () => {
                 value={deepseekKey}
                 onChange={(e) => setDeepseekKey(e.target.value)}
               />
-              <p className="text-xs text-gray-500">Provides access to Deepseek models. Will fallback to open-source version if not provided.</p>
+              <p className="text-xs text-gray-500">Provides access to DeepSeek Coder model.</p>
             </div>
-            <Button onClick={handleSaveDeepseek} disabled={!deepseekKey} className="mb-4">Save Deepseek Key</Button>
+            <Button onClick={handleSaveDeepseek} disabled={!deepseekKey} className="mb-4">Save DeepSeek Key</Button>
             
             <div className="space-y-2">
               <Label htmlFor="grok-key">Grok API Key</Label>
@@ -205,7 +205,7 @@ const ApiKeyManager: React.FC = () => {
                 value={grokKey}
                 onChange={(e) => setGrokKey(e.target.value)}
               />
-              <p className="text-xs text-gray-500">Provides access to Grok model.</p>
+              <p className="text-xs text-gray-500">Provides access to Grok-1.5 model.</p>
             </div>
             <Button onClick={handleSaveGrok} disabled={!grokKey}>Save Grok Key</Button>
           </TabsContent>
@@ -220,7 +220,7 @@ const ApiKeyManager: React.FC = () => {
                 value={qwenKey}
                 onChange={(e) => setQwenKey(e.target.value)}
               />
-              <p className="text-xs text-gray-500">Provides access to Alibaba Qwen models.</p>
+              <p className="text-xs text-gray-500">Provides access to Alibaba Qwen2 72B model.</p>
             </div>
             <Button onClick={handleSaveQwen} disabled={!qwenKey}>Save Qwen Key</Button>
           </TabsContent>

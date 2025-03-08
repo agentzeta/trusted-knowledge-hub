@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import { 
   ApiKeys, 
@@ -20,6 +20,8 @@ import {
 } from '../services/modelService';
 import { deriveConsensusResponse } from '../utils/consensusUtils';
 
+const STORAGE_KEY = 'ai_consensus_api_keys';
+
 const QueryContext = createContext<QueryContextType | undefined>(undefined);
 
 export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -29,11 +31,29 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [apiKeys, setApiKeys] = useState<ApiKeys>(DEFAULT_API_KEYS);
   const [consensusResponse, setConsensusResponse] = useState<string | null>(null);
   
+  // Load API keys from localStorage on initial render
+  useEffect(() => {
+    const storedKeys = localStorage.getItem(STORAGE_KEY);
+    if (storedKeys) {
+      try {
+        const parsedKeys = JSON.parse(storedKeys);
+        setApiKeys(parsedKeys);
+      } catch (error) {
+        console.error('Error parsing stored API keys:', error);
+      }
+    }
+  }, []);
+  
   const setApiKey = (provider: string, key: string) => {
-    setApiKeys(prev => ({ ...prev, [provider.toLowerCase()]: key }));
+    const updatedKeys = { ...apiKeys, [provider.toLowerCase()]: key };
+    setApiKeys(updatedKeys);
+    
+    // Persist to localStorage
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedKeys));
+    
     toast({
       title: "API Key Saved",
-      description: `${provider} API key has been saved.`,
+      description: `${provider} API key has been saved and will persist across sessions.`,
       duration: 3000,
     });
   };
@@ -128,4 +148,3 @@ export const useQueryContext = () => {
 
 // Fix the type re-export with 'export type'
 export type { Response };
-
