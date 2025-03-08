@@ -9,6 +9,7 @@ import CommunityQueries from '../components/CommunityQueries';
 import { useQueryContext } from '../hooks/useQueryContext';
 import { Shield } from 'lucide-react';
 import GoogleAuth from '../components/GoogleAuth';
+import VoiceAgentButton from '../components/VoiceAgentButton';
 
 const Index = () => {
   const { responses, query } = useQueryContext();
@@ -17,6 +18,7 @@ const Index = () => {
     <div className="relative min-h-screen pt-20 pb-16 px-4 sm:px-6">
       <Header />
       <GoogleAuth />
+      <VoiceAgentButton />
       
       <div className="blur-background">
         <div className="blur-circle bg-blue-300 w-[500px] h-[500px] top-[-100px] left-[-200px]" />

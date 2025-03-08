@@ -60,9 +60,6 @@ export const useSupabaseAuth = () => {
         
         throw error;
       }
-      
-      // We're not returning data anymore, just handling the OAuth flow
-      // The actual auth state change will be captured by the listener
     } catch (error) {
       console.error('Sign in error:', error);
       throw error;
@@ -75,7 +72,12 @@ export const useSupabaseAuth = () => {
     try {
       setAuthLoading(true);
       await supabase.auth.signOut();
-    } catch (error) {
+      toast({
+        title: "Signed Out",
+        description: "You have been successfully signed out",
+        duration: 3000,
+      });
+    } catch (error: any) {
       console.error('Sign out error:', error);
       toast({
         title: "Sign Out Error",
@@ -94,6 +96,7 @@ export const useSupabaseAuth = () => {
     authLoading,
     signInWithGoogle,
     signOut,
-    isAuthenticated: !!user
+    isAuthenticated: !!user,
+    supabase
   };
 };
