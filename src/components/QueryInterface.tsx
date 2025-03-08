@@ -52,7 +52,7 @@ const QueryInterface: React.FC = () => {
             type="text"
             value={inputQuery}
             onChange={(e) => setInputQuery(e.target.value)}
-            placeholder="Ask a question to verify with AI consensus..."
+            placeholder="Ask any question to get AI consensus..."
             className="block w-full bg-transparent border-0 py-4 pl-12 pr-24 text-sm sm:text-base focus:ring-0 focus:outline-none placeholder:text-gray-400"
             disabled={isLoading}
           />
@@ -72,10 +72,10 @@ const QueryInterface: React.FC = () => {
               {isLoading ? (
                 <div className="flex items-center space-x-2">
                   <div className="h-4 w-4 border-t-2 border-r-2 border-white rounded-full animate-spin" />
-                  <span>Verifying</span>
+                  <span>Getting Answers</span>
                 </div>
               ) : (
-                'Verify'
+                'Get Answer'
               )}
             </motion.button>
           </div>
@@ -115,7 +115,7 @@ const QueryInterface: React.FC = () => {
             className="mt-6 text-center text-sm text-gray-500"
           >
             <div className="flex flex-col items-center space-y-2">
-              <p>Consulting multiple AI models for verification...</p>
+              <p>Consulting multiple AI models...</p>
               <div className="flex space-x-2 mt-2">
                 <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" style={{ animationDelay: '0ms' }} />
                 <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" style={{ animationDelay: '300ms' }} />
@@ -126,7 +126,7 @@ const QueryInterface: React.FC = () => {
         )}
       </AnimatePresence>
       
-      {/* Consensus Answer Section - The actual response field */}
+      {/* AI Answer Section */}
       {consensusResponse && !isLoading && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -137,13 +137,13 @@ const QueryInterface: React.FC = () => {
         >
           <div className="p-6">
             <div className="flex justify-between items-start mb-4">
-              <h2 className="text-xl font-semibold">Consensus Answer:</h2>
+              <h2 className="text-xl font-semibold">AI Response:</h2>
               <span className="text-sm text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
-                AI Verified Response
+                Multi-Model Consensus
               </span>
             </div>
             <div className="prose prose-lg max-w-none">
-              <p className="text-gray-700 dark:text-gray-300 text-lg">{consensusResponse}</p>
+              <p className="text-gray-700 dark:text-gray-300 text-lg whitespace-pre-line">{consensusResponse}</p>
             </div>
           </div>
         </motion.div>
@@ -169,7 +169,7 @@ const QueryInterface: React.FC = () => {
                       {response.verified ? 'Verified' : 'Pending'}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">{response.content}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-line">{response.content}</p>
                 </div>
               ))}
             </div>
