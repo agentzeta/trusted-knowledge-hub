@@ -1,7 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { MessageSquare, Mic, Video } from 'lucide-react';
+import { MessageSquare, Mic, Video, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AgentVeritasAvatar from './AgentVeritasAvatar';
 import { useVoiceAgent } from '@/hooks/useVoiceAgent';
@@ -21,6 +21,13 @@ const WelcomeGreeting: React.FC<WelcomeGreetingProps> = ({
   const [expanded, setExpanded] = useState(false);
   const { speakResponse, isSpeaking } = useVoiceAgent();
   
+  useEffect(() => {
+    // Automatically speak a greeting when the component is mounted
+    if (!isSpeaking) {
+      speakResponse("Hello from Agent Veritas. Would you rather speak to me, or use text in the chat?");
+    }
+  }, []);
+
   const handleExpandClick = () => {
     if (!expanded) {
       speakResponse("Hello, would you rather speak to our Agent, or use text in the chat?");
@@ -37,7 +44,9 @@ const WelcomeGreeting: React.FC<WelcomeGreetingProps> = ({
     >
       <div className="p-4">
         <div className="flex items-center gap-3" onClick={handleExpandClick}>
-          <AgentVeritasAvatar withPulse={!expanded} />
+          <div className="flex items-center justify-center bg-gradient-to-r from-purple-400 to-indigo-600 rounded-full w-10 h-10">
+            <AgentVeritasAvatar withPulse={!expanded} />
+          </div>
           <div className="flex-1">
             <h3 className="text-lg font-medium">Hello from Agent Veritas</h3>
             <p className="text-gray-500">Would you rather speak to our Agent, or use text in the chat?</p>

@@ -24,36 +24,43 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
   const apiPromises = [];
   
   if (apiKeys.openai) {
+    console.log('Adding OpenAI API call');
     apiPromises.push(fetchFromOpenAI(queryText, apiKeys.openai));
     attemptedApis.set('GPT-4o', true);
   }
   
   if (apiKeys.anthropic) {
+    console.log('Adding Anthropic API call');
     apiPromises.push(fetchFromAnthropic(queryText, apiKeys.anthropic));
     attemptedApis.set('Claude 3 Haiku', true);
   }
   
   if (apiKeys.anthropicClaude35) {
+    console.log('Adding Anthropic Claude 3.5 API call');
     apiPromises.push(fetchFromAnthropicClaude35(queryText, apiKeys.anthropicClaude35));
     attemptedApis.set('Claude 3.5 Sonnet', true);
   }
   
   if (apiKeys.gemini) {
+    console.log('Adding Gemini API call');
     apiPromises.push(fetchFromGemini(queryText, apiKeys.gemini));
     attemptedApis.set('Gemini 1.5 Pro', true);
   }
   
   if (apiKeys.geminiProExperimental) {
+    console.log('Adding Gemini Pro Experimental API call');
     apiPromises.push(fetchFromGeminiProExp(queryText, apiKeys.geminiProExperimental));
     attemptedApis.set('Gemini 1.5 Flash', true);
   }
   
   if (apiKeys.perplexity) {
+    console.log('Adding Perplexity API call');
     apiPromises.push(fetchFromPerplexity(queryText, apiKeys.perplexity));
     attemptedApis.set('Perplexity Sonar', true);
   }
   
   if (apiKeys.deepseek) {
+    console.log('Adding DeepSeek API call');
     apiPromises.push(fetchFromDeepseek(queryText, apiKeys.deepseek));
     attemptedApis.set('DeepSeek Coder', true);
   }
@@ -71,6 +78,15 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
   
   // Execute all API promises
   const apiResults = await Promise.allSettled(apiPromises);
+  
+  // Debug information about API responses
+  apiResults.forEach((result, index) => {
+    if (result.status === 'fulfilled') {
+      console.log(`API response ${index+1} successful:`, result.value?.source);
+    } else {
+      console.error(`API response ${index+1} failed:`, result.reason);
+    }
+  });
   
   // Filter successful responses only
   const validResponses = apiResults

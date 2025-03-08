@@ -9,18 +9,7 @@ import { toast } from '@/components/ui/use-toast';
 export const useVoiceAgent = () => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isListening, setIsListening] = useState(false);
-  const [voiceId, setVoiceId] = useState(() => {
-    try {
-      const savedPrefs = localStorage.getItem('voiceAgentPreferences');
-      if (savedPrefs) {
-        const prefs = JSON.parse(savedPrefs);
-        return prefs.selectedVoiceId || "9BWtsMINqrJLrRacOk9x"; // Default Aria voice
-      }
-    } catch (e) {
-      console.error("Error loading voice preference:", e);
-    }
-    return "9BWtsMINqrJLrRacOk9x"; // Default Aria voice
-  });
+  const [voiceId, setVoiceId] = useState("FGY2WhTYpPnrIDTdsKH5"); // Default to Laura (calm female voice)
   
   const { consensusResponse } = useQueryContext();
   

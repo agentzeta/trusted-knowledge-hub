@@ -1,24 +1,33 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useVoiceAgent } from './useVoiceAgent';
 
 export const useVoiceButtonControl = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const { isListening, isSpeaking, startListening, stopListening } = useVoiceAgent();
+  const { isListening, isSpeaking, startListening, stopListening, speakResponse } = useVoiceAgent();
 
   const handleButtonClick = () => {
     if (!isDialogOpen) {
-      if (!isListening && !isSpeaking) {
-        startListening(); // Start listening immediately when button is clicked
-      }
       setIsDialogOpen(true);
+      
+      // Start the conversation with a greeting
+      setTimeout(() => {
+        speakResponse("Hello, I'm Agent Veritas. Let me help you explore some facts today. What would you like to know about?");
+        startListening(); // Start listening after the greeting
+      }, 500);
     }
   };
 
   const handleDialogOpenChange = (open: boolean) => {
     setIsDialogOpen(open);
-    if (!open && isListening) {
-      stopListening();
+    
+    if (!open) {
+      if (isListening) {
+        stopListening();
+      }
+      
+      // If the dialog is closing, speak a farewell message
+      speakResponse("Thank you for chatting with Agent Veritas. Feel free to ask more questions anytime!");
     }
   };
 

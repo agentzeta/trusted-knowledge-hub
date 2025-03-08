@@ -17,7 +17,7 @@ import VoiceSettings from '../components/voice/VoiceSettings';
 import { Button } from '@/components/ui/button';
 
 const TruthfulLogo = () => (
-  <div className="p-2 bg-gradient-to-r from-blue-400 to-purple-600 rounded-lg shadow-md">
+  <div className="p-2 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg shadow-md">
     <div className="text-xl font-bold text-white flex items-center gap-2">
       <Shield className="w-6 h-6" />
       <span>Truthful</span>
@@ -28,8 +28,10 @@ const TruthfulLogo = () => (
 const AgentVeritasLogo = () => (
   <div className="flex items-center gap-2">
     <div className="relative">
-      <AgentVeritasAvatar size="lg" />
-      <div className="absolute -bottom-1 -right-1 bg-blue-500 rounded-full p-1 border-2 border-white">
+      <div className="flex items-center justify-center bg-gradient-to-r from-purple-400 to-indigo-600 rounded-full p-1">
+        <AgentVeritasAvatar size="lg" />
+      </div>
+      <div className="absolute -bottom-1 -right-1 bg-indigo-600 rounded-full p-1 border-2 border-white">
         <Shield className="w-3 h-3 text-white" />
       </div>
     </div>
@@ -82,17 +84,6 @@ const Index = () => {
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Verifiable AI knowledge you can trust
           </p>
-          
-          <div className="mt-4">
-            <VoiceSettings
-              trigger={
-                <Button variant="outline" size="sm" className="flex items-center gap-2">
-                  <Settings className="h-4 w-4" />
-                  <span>Voice Settings</span>
-                </Button>
-              }
-            />
-          </div>
         </motion.div>
         
         <QueryInterface />
