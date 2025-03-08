@@ -19,18 +19,18 @@ interface QueryContextType {
 
 const QueryContext = createContext<QueryContextType | undefined>(undefined);
 
-// Mock AI sources
-const AI_SOURCES = ['GPT-4', 'Claude 3', 'Gemini', 'Llama 3'];
+// Expanded AI sources
+const AI_SOURCES = ['GPT-4', 'Claude 3', 'Gemini', 'Llama 3', 'Grok', 'Perplexity', 'Deepseek'];
 
 // Fake data for demonstration purposes
 const generateMockResponses = (query: string): Response[] => {
   return AI_SOURCES.map((source, index) => {
-    // Change the response slightly based on the source
-    const content = `The answer to "${query}" based on verified data is that ${
+    // Create a more specific response based on the source and query
+    const content = `The answer to "${query}" is that ${
       index % 2 === 0
-        ? 'consensus indicates this is accurate according to multiple reliable sources.'
-        : 'while there are multiple viewpoints, the predominant evidence suggests this conclusion.'
-    }`;
+        ? 'according to multiple reliable sources, this can be confirmed as accurate.'
+        : 'research indicates this is generally true, though there are some nuanced perspectives to consider.'
+    } ${source} has high confidence in this assessment based on available data.`;
     
     return {
       id: `${Date.now()}-${index}`,

@@ -4,6 +4,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useQueryContext } from '../context/QueryContext';
 import { Search } from 'lucide-react';
 
+// Example queries by category
+const exampleQueries = {
+  science: "What causes northern lights?",
+  history: "Who built the Great Wall of China?",
+  politics: "How does the Electoral College work?",
+  health: "Is coffee good for your health?",
+  technology: "How do neural networks work?"
+};
+
 const QueryInterface: React.FC = () => {
   const { submitQuery, isLoading, query, responses } = useQueryContext();
   const [inputQuery, setInputQuery] = useState('');
@@ -13,6 +22,11 @@ const QueryInterface: React.FC = () => {
     if (inputQuery.trim()) {
       submitQuery(inputQuery.trim());
     }
+  };
+
+  const handleExampleClick = (query: string) => {
+    setInputQuery(query);
+    submitQuery(query);
   };
 
   // Get the primary response (most verified or highest confidence)
@@ -78,6 +92,27 @@ const QueryInterface: React.FC = () => {
         </form>
       </div>
       
+      {/* Example queries */}
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.3 }}
+        className="flex flex-wrap justify-center gap-2 mt-4"
+      >
+        {Object.entries(exampleQueries).map(([category, queryText]) => (
+          <motion.button
+            key={category}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => handleExampleClick(queryText)}
+            className="px-3 py-1.5 text-xs bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full border border-white/20 text-gray-700 dark:text-gray-200 transition-all"
+            disabled={isLoading}
+          >
+            {category}
+          </motion.button>
+        ))}
+      </motion.div>
+      
       <AnimatePresence>
         {isLoading && (
           <motion.div
@@ -98,7 +133,8 @@ const QueryInterface: React.FC = () => {
         )}
       </AnimatePresence>
       
-      {responses.length > 0 && !isLoading && (
+      {/* The answer section - displayed prominently first */}
+      {primaryResponse && !isLoading && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -106,24 +142,27 @@ const QueryInterface: React.FC = () => {
           transition={{ duration: 0.5 }}
           className="mt-8 rounded-xl glass card-shadow"
         >
-          <div className="p-6 border-b border-gray-100 dark:border-gray-800">
-            <h2 className="text-xl font-semibold mb-4">Verified Answer:</h2>
+          <div className="p-6">
+            <h2 className="text-xl font-semibold mb-3">Answer:</h2>
             <div className="prose prose-lg max-w-none">
-              <p className="text-gray-700 dark:text-gray-300 text-lg">{primaryResponse?.content}</p>
-            </div>
-            <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center text-sm text-gray-500">
-              <span>Source: {primaryResponse?.source}</span>
-              <span className="mx-2">•</span>
-              <span className={primaryResponse?.verified ? "text-green-600 font-medium" : "text-amber-600 font-medium"}>
-                {primaryResponse?.verified ? 'Verified' : 'Pending verification'}
-              </span>
+              <p className="text-gray-700 dark:text-gray-300 text-lg">{primaryResponse.content}</p>
             </div>
           </div>
-          
+        </motion.div>
+      )}
+      
+      {responses.length > 0 && !isLoading && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="mt-6 rounded-xl glass card-shadow"
+        >
           <div className="p-6">
-            <h3 className="text-lg font-medium mb-4">All AI Model Responses:</h3>
+            <h3 className="text-lg font-medium mb-4">Verification Results:</h3>
             <div className="space-y-4">
-              {responses.map((response, idx) => (
+              {responses.map((response) => (
                 <div key={response.id} className="p-4 rounded-lg bg-white/50 dark:bg-gray-800/50">
                   <div className="flex justify-between items-start mb-2">
                     <span className="font-medium">{response.source}</span>

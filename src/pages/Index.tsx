@@ -44,7 +44,13 @@ const MainContent = () => {
         <QueryInterface />
         
         {responses.length > 0 && (
-          <ConsensusVisual responses={responses} />
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+          >
+            <ConsensusVisual responses={responses} />
+          </motion.div>
         )}
       </div>
     </div>
