@@ -2,6 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { Shield, CheckCircle } from 'lucide-react';
 
 const Header: React.FC = () => {
   return (
@@ -14,10 +15,10 @@ const Header: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
           <Link to="/" className="flex items-center space-x-2">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-              <span className="text-white font-semibold text-lg">V</span>
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+              <Shield className="text-white w-5 h-5" />
             </div>
-            <span className="font-semibold text-lg tracking-tight">Verifiable Knowledge</span>
+            <span className="font-semibold text-lg tracking-tight">Truthful</span>
           </Link>
           
           <nav className="flex items-center space-x-8">

@@ -4,7 +4,9 @@ import { motion } from 'framer-motion';
 import Header from '../components/Header';
 import QueryInterface from '../components/QueryInterface';
 import ConsensusVisual from '../components/ConsensusVisual';
+import CommunityQueries from '../components/CommunityQueries';
 import { QueryProvider, useQueryContext } from '../context/QueryContext';
+import { Shield, CheckCircle } from 'lucide-react';
 
 const MainContent = () => {
   const { responses, query } = useQueryContext();
@@ -32,12 +34,17 @@ const MainContent = () => {
             Powered by Flare Data Connector
           </motion.div>
           
-          <h1 className="text-4xl font-bold tracking-tight mb-4">
-            Verifiable AI Knowledge
-          </h1>
+          <div className="flex items-center justify-center mb-4">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center mr-3">
+              <Shield className="text-white w-6 h-6" />
+            </div>
+            <h1 className="text-4xl font-bold tracking-tight">
+              Truthful
+            </h1>
+          </div>
           
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Consensus-verified AI responses you can trust, secured by decentralized validation.
+            Truthful - Verifiable AI knowledge you can trust
           </p>
         </motion.div>
         
@@ -53,6 +60,8 @@ const MainContent = () => {
             <ConsensusVisual responses={responses} />
           </motion.div>
         )}
+
+        <CommunityQueries />
       </div>
     </div>
   );
