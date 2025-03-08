@@ -3,7 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Check, AlertTriangle } from 'lucide-react';
 import VerificationBadge from './VerificationBadge';
-import { type Response } from '../context/QueryContext';
+import { Response } from '../types/query';
 
 interface ResponseCardProps {
   response: Response;

@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useQueryContext } from '@/context/QueryContext';
+import { useQueryContext } from '@/hooks/useQueryContext';
 
 const OpenAIKeyForm: React.FC = () => {
   const { setApiKey, apiKeys } = useQueryContext();

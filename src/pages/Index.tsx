@@ -5,7 +5,7 @@ import Header from '../components/Header';
 import QueryInterface from '../components/QueryInterface';
 import ConsensusVisual from '../components/ConsensusVisual';
 import CommunityQueries from '../components/CommunityQueries';
-import { useQueryContext } from '../context/QueryContext';
+import { useQueryContext } from '../hooks/useQueryContext';
 import { Shield } from 'lucide-react';
 import GoogleAuth from '../components/GoogleAuth';
 

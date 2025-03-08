@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Response } from '../context/QueryContext';
+import { Response } from '../types/query';
 
 interface QueryResponsesProps {
   isLoading: boolean;

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { type Response } from '../context/QueryContext';
+import { Response } from '../types/query';
 
 interface ConsensusVisualProps {
   responses: Response[];
