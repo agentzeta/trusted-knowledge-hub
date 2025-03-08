@@ -1,23 +1,19 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Video, 
-  Mic, 
-  VideoOff, 
-  MicOff, 
-  Play, 
-  Square, 
-  Save,
-  X,
-  MessageSquare
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useVoiceAgent } from '@/hooks/useVoiceAgent';
 import { useQueryContext } from '@/hooks/useQueryContext';
 import { toast } from '@/components/ui/use-toast';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
-import AgentVeritasAvatar from './AgentVeritasAvatar';
+
+// Import the newly created components
+import InitialModeSelection from './voice/InitialModeSelection';
+import VideoModeChoice from './voice/VideoModeChoice';
+import VoiceChatInterface from './voice/VoiceChatInterface';
+import VideoRecordingInterface from './voice/VideoRecordingInterface';
+import VideoPlaybackInterface from './voice/VideoPlaybackInterface';
+import VoiceVideoAgentHeader from './voice/VoiceVideoAgentHeader';
 
 interface VoiceVideoAgentProps {
   initialMode?: 'voice' | 'video';
@@ -40,7 +36,6 @@ export const VoiceVideoAgent: React.FC<VoiceVideoAgentProps> = ({
   const [agentResponding, setAgentResponding] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
   const { 
     speakResponse, 
     isSpeaking, 
@@ -269,32 +264,11 @@ export const VoiceVideoAgent: React.FC<VoiceVideoAgentProps> = ({
     setTimeout(() => handleOpenChange(false), 1000);
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    processUserInput(userInput);
-    setUserInput('');
-  };
-
   return (
     <>
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
         <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle className="text-center flex items-center justify-center gap-2">
-              <AgentVeritasAvatar size="sm" />
-              <span>
-                {mode === 'initial' && "Agent Veritas"}
-                {mode === 'voice' && "Voice Chat with Agent Veritas"}
-                {(mode === 'video' || mode === 'recording') && "Video Chat with Agent Veritas"}
-                {mode === 'playback' && "Review Your Recording"}
-              </span>
-              {isListening && (
-                <span className="ml-2 text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full animate-pulse">
-                  Listening...
-                </span>
-              )}
-            </DialogTitle>
-          </DialogHeader>
+          <VoiceVideoAgentHeader mode={mode} isListening={isListening} />
           
           <AnimatePresence mode="wait">
             {mode === 'initial' && (
@@ -303,47 +277,12 @@ export const VoiceVideoAgent: React.FC<VoiceVideoAgentProps> = ({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="p-6 text-center"
               >
-                <p className="mb-6">{agentScript[0]}</p>
-                <form onSubmit={handleFormSubmit} className="mb-4">
-                  <input
-                    ref={inputRef}
-                    type="text"
-                    value={userInput}
-                    onChange={(e) => setUserInput(e.target.value)}
-                    placeholder="Type your response..."
-                    className="w-full px-4 py-2 mb-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    autoFocus
-                  />
-                </form>
-                <div className="flex justify-center gap-4">
-                  <Button 
-                    onClick={() => processUserInput('speak to agent')}
-                    className="flex items-center gap-2"
-                    variant="outline"
-                  >
-                    <Mic className="h-4 w-4" />
-                    Voice Chat
-                  </Button>
-                  <Button 
-                    onClick={() => processUserInput('use text')}
-                    className="flex items-center gap-2"
-                  >
-                    <MessageSquare className="h-4 w-4" />
-                    Text Chat
-                  </Button>
-                </div>
-                {!isListening && (
-                  <p className="mt-4 text-sm text-gray-500">
-                    You can also speak your response. Click the microphone button or say "speak to agent" or "use text chat".
-                  </p>
-                )}
-                {isListening && (
-                  <p className="mt-4 text-sm text-green-500 animate-pulse">
-                    I'm listening... Say "speak to agent" or "use text chat".
-                  </p>
-                )}
+                <InitialModeSelection 
+                  agentScript={agentScript} 
+                  isListening={isListening}
+                  onModeSelect={processUserInput}
+                />
               </motion.div>
             )}
             
@@ -353,37 +292,11 @@ export const VoiceVideoAgent: React.FC<VoiceVideoAgentProps> = ({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="p-6 text-center"
               >
-                <p className="mb-6">{agentScript[1]}</p>
-                <form onSubmit={handleFormSubmit} className="mb-4">
-                  <input
-                    ref={inputRef}
-                    type="text"
-                    value={userInput}
-                    onChange={(e) => setUserInput(e.target.value)}
-                    placeholder="Type your response..."
-                    className="w-full px-4 py-2 mb-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    autoFocus
-                  />
-                </form>
-                <div className="flex justify-center gap-4">
-                  <Button 
-                    onClick={() => processUserInput('just voice')}
-                    className="flex items-center gap-2"
-                    variant="outline"
-                  >
-                    <Mic className="h-4 w-4" />
-                    Just Voice
-                  </Button>
-                  <Button 
-                    onClick={() => processUserInput('with video')}
-                    className="flex items-center gap-2"
-                  >
-                    <Video className="h-4 w-4" />
-                    With Video
-                  </Button>
-                </div>
+                <VideoModeChoice 
+                  agentScript={agentScript}
+                  onModeSelect={processUserInput}
+                />
               </motion.div>
             )}
             
@@ -393,36 +306,14 @@ export const VoiceVideoAgent: React.FC<VoiceVideoAgentProps> = ({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="p-6"
               >
-                <div className="text-center mb-6">
-                  <p>{agentScript[2]}</p>
-                </div>
-                
-                <div className="flex flex-col items-center gap-4">
-                  <form onSubmit={handleFormSubmit} className="w-full">
-                    <div className="w-full max-w-md mb-2">
-                      <input 
-                        ref={inputRef}
-                        type="text" 
-                        value={userInput}
-                        onChange={(e) => setUserInput(e.target.value)}
-                        placeholder="Type your question here..."
-                        className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        autoFocus
-                      />
-                    </div>
-                    
-                    <div className="flex justify-center gap-4">
-                      <Button onClick={() => setIsOpen(false)} variant="outline">
-                        Close
-                      </Button>
-                      <Button type="submit" disabled={isLoading || agentResponding}>
-                        {isLoading || agentResponding ? 'Processing...' : 'Ask Question'}
-                      </Button>
-                    </div>
-                  </form>
-                </div>
+                <VoiceChatInterface 
+                  agentScript={agentScript}
+                  onSubmitQuery={submitUserQuery}
+                  onClose={() => setIsOpen(false)}
+                  isLoading={isLoading}
+                  agentResponding={agentResponding}
+                />
               </motion.div>
             )}
             
@@ -432,69 +323,21 @@ export const VoiceVideoAgent: React.FC<VoiceVideoAgentProps> = ({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="p-6"
               >
-                <div className="relative mb-4 rounded-lg overflow-hidden bg-black">
-                  <video 
-                    ref={videoRef} 
-                    className="w-full h-64 object-cover" 
-                    autoPlay 
-                    muted 
-                    playsInline
-                  />
-                  {isRecording && (
-                    <div className="absolute top-2 right-2 flex items-center bg-red-500 text-white px-2 py-1 rounded-full text-xs">
-                      <span className="animate-pulse mr-1">●</span> Recording
-                    </div>
-                  )}
-                </div>
-                
-                <div className="text-center mb-4">
-                  <p>{agentScript[2]}</p>
-                </div>
-                
-                <div className="flex justify-center gap-4">
-                  {!isRecording ? (
-                    <Button 
-                      onClick={startRecording}
-                      className="bg-red-500 hover:bg-red-600 text-white"
-                    >
-                      Start Recording
-                    </Button>
-                  ) : (
-                    <Button 
-                      onClick={stopRecording}
-                      variant="destructive"
-                    >
-                      Stop Recording
-                    </Button>
-                  )}
-                  
-                  <Button 
-                    onClick={() => {
-                      cleanupMedia();
-                      setIsOpen(false);
-                    }}
-                    variant="outline"
-                  >
-                    Cancel
-                  </Button>
-                </div>
-                
-                <form onSubmit={handleFormSubmit} className="mt-4">
-                  <input 
-                    type="text" 
-                    value={userInput}
-                    onChange={(e) => setUserInput(e.target.value)}
-                    placeholder="Type your question here..."
-                    className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <div className="flex justify-center mt-2">
-                    <Button type="submit" disabled={isLoading || agentResponding}>
-                      {isLoading || agentResponding ? 'Processing...' : 'Ask Question'}
-                    </Button>
-                  </div>
-                </form>
+                <VideoRecordingInterface 
+                  agentScript={agentScript}
+                  videoRef={videoRef}
+                  isRecording={isRecording}
+                  onStartRecording={startRecording}
+                  onStopRecording={stopRecording}
+                  onCancel={() => {
+                    cleanupMedia();
+                    setIsOpen(false);
+                  }}
+                  onSubmitQuery={submitUserQuery}
+                  isLoading={isLoading}
+                  agentResponding={agentResponding}
+                />
               </motion.div>
             )}
             
@@ -504,36 +347,16 @@ export const VoiceVideoAgent: React.FC<VoiceVideoAgentProps> = ({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="p-6"
               >
-                <div className="relative mb-4 rounded-lg overflow-hidden bg-black">
-                  <video 
-                    src={recordedVideo || undefined} 
-                    className="w-full h-64 object-cover" 
-                    controls
-                  />
-                </div>
-                
-                <div className="flex justify-center gap-4">
-                  <Button 
-                    onClick={() => {
-                      setRecordedVideo(null);
-                      setRecordedChunks([]);
-                      setMode('recording');
-                    }}
-                    variant="outline"
-                    className="flex items-center gap-2"
-                  >
-                    <X className="h-4 w-4" /> Discard
-                  </Button>
-                  
-                  <Button 
-                    onClick={saveRecording}
-                    className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white"
-                  >
-                    <Save className="h-4 w-4" /> Save Recording
-                  </Button>
-                </div>
+                <VideoPlaybackInterface 
+                  recordedVideo={recordedVideo}
+                  onDiscard={() => {
+                    setRecordedVideo(null);
+                    setRecordedChunks([]);
+                    setMode('recording');
+                  }}
+                  onSave={saveRecording}
+                />
               </motion.div>
             )}
           </AnimatePresence>
