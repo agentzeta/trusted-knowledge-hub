@@ -1,13 +1,81 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import React from 'react';
+import { motion } from 'framer-motion';
+import Header from '../components/Header';
+import QueryInterface from '../components/QueryInterface';
+import ResponseCard from '../components/ResponseCard';
+import ConsensusVisual from '../components/ConsensusVisual';
+import { QueryProvider, useQueryContext } from '../context/QueryContext';
+
+const MainContent = () => {
+  const { responses, query } = useQueryContext();
+  
+  return (
+    <div className="relative min-h-screen pt-20 pb-16 px-4 sm:px-6">
+      <div className="blur-background">
+        <div className="blur-circle bg-blue-300 w-[500px] h-[500px] top-[-100px] left-[-200px]" />
+        <div className="blur-circle bg-purple-300 w-[400px] h-[400px] bottom-[-100px] right-[-150px]" />
+      </div>
+      
+      <div className="max-w-4xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-12"
+        >
+          <motion.div 
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="inline-block px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-medium mb-4"
+          >
+            Powered by Flare Data Connector
+          </motion.div>
+          
+          <h1 className="text-4xl font-bold tracking-tight mb-4">
+            Verifiable AI Knowledge
+          </h1>
+          
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            Consensus-verified AI responses you can trust, secured by decentralized validation.
+          </p>
+        </motion.div>
+        
+        <QueryInterface />
+        
+        {responses.length > 0 && (
+          <>
+            <ConsensusVisual responses={responses} />
+            
+            <div className="mt-12">
+              <motion.h2
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-xl font-semibold mb-4"
+              >
+                Responses to: "{query}"
+              </motion.h2>
+              
+              <div className="space-y-6">
+                {responses.map((response, index) => (
+                  <ResponseCard key={response.id} response={response} index={index} />
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
 
 const Index = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
-      </div>
-    </div>
+    <QueryProvider>
+      <Header />
+      <MainContent />
+    </QueryProvider>
   );
 };
 
