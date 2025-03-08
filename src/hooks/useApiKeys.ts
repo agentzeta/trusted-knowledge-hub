@@ -27,27 +27,32 @@ export const useApiKeys = () => {
       try {
         setIsLoading(true);
         
-        // Try to fetch API keys from Supabase
+        // Try to fetch API keys from Supabase Edge Function
+        console.log('Fetching API keys from Supabase Edge Function');
         const { data, error } = await supabase.functions.invoke('api-keys', {
           method: 'GET'
         });
         
         if (error) {
-          console.error('Error fetching API keys:', error);
-          throw new Error('Failed to fetch API keys');
+          console.error('Error fetching API keys from Supabase:', error);
+          throw new Error('Failed to fetch API keys from Supabase');
         }
         
-        // If we got data back, use it
-        if (data && Object.keys(data).length > 0) {
-          console.log('Loaded API keys from Supabase');
-          setApiKeys(data);
+        // If we got data back and it has apiKeys, use them
+        if (data && data.apiKeys && Object.keys(data.apiKeys).length > 0) {
+          console.log('Successfully loaded API keys from Supabase:', Object.keys(data.apiKeys).filter(k => !!data.apiKeys[k]));
+          setApiKeys(data.apiKeys);
         } else {
+          console.log('No API keys found in Supabase response, falling back to localStorage');
           // Fallback to localStorage
           try {
             const storedKeys = localStorage.getItem('apiKeys');
             if (storedKeys) {
-              console.log('Loaded API keys from localStorage');
-              setApiKeys(JSON.parse(storedKeys));
+              const parsedKeys = JSON.parse(storedKeys);
+              console.log('Loaded API keys from localStorage:', Object.keys(parsedKeys).filter(k => !!parsedKeys[k]));
+              setApiKeys(parsedKeys);
+            } else {
+              console.log('No API keys found in localStorage');
             }
           } catch (e) {
             console.error('Error parsing API keys from localStorage:', e);

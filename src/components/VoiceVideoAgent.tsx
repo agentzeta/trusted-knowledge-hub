@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -22,10 +21,16 @@ import AgentVeritasAvatar from './AgentVeritasAvatar';
 
 interface VoiceVideoAgentProps {
   initialMode?: 'voice' | 'video';
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export const VoiceVideoAgent: React.FC<VoiceVideoAgentProps> = ({ initialMode = 'voice' }) => {
-  const [isOpen, setIsOpen] = useState(false);
+export const VoiceVideoAgent: React.FC<VoiceVideoAgentProps> = ({ 
+  initialMode = 'voice',
+  isOpen: propIsOpen,
+  onOpenChange
+}) => {
+  const [isOpen, setIsOpen] = useState(propIsOpen || false);
   const [mode, setMode] = useState<'initial' | 'voice' | 'video' | 'recording' | 'playback'>('initial');
   const [isRecording, setIsRecording] = useState(false);
   const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
@@ -36,11 +41,17 @@ export const VoiceVideoAgent: React.FC<VoiceVideoAgentProps> = ({ initialMode = 
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const { speakResponse, isSpeaking, stopSpeaking } = useVoiceAgent();
+  const { 
+    speakResponse, 
+    isSpeaking, 
+    stopSpeaking, 
+    startListening, 
+    stopListening, 
+    isListening 
+  } = useVoiceAgent();
   const { consensusResponse, submitQuery, isLoading } = useQueryContext();
   const { user } = useSupabaseAuth();
   
-  // Agent script steps
   const [currentStep, setCurrentStep] = useState(0);
   const agentScript = [
     "Hello! Would you rather speak to our Agent or use text in the chat?",
@@ -48,7 +59,19 @@ export const VoiceVideoAgent: React.FC<VoiceVideoAgentProps> = ({ initialMode = 
     "Welcome to Truthful, I'm Agent Veritas. I'm here to help provide verified information from multiple AI models. What field do you have questions about today?"
   ];
 
-  // Reset when dialog closes
+  useEffect(() => {
+    if (propIsOpen !== undefined) {
+      setIsOpen(propIsOpen);
+    }
+  }, [propIsOpen]);
+
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
+    if (onOpenChange) {
+      onOpenChange(open);
+    }
+  };
+
   useEffect(() => {
     if (!isOpen) {
       cleanupMedia();
@@ -58,8 +81,16 @@ export const VoiceVideoAgent: React.FC<VoiceVideoAgentProps> = ({ initialMode = 
       setRecordedVideo(null);
       setUserInput('');
       setAgentResponding(false);
+      if (isListening) {
+        stopListening();
+      }
     } else {
-      // If initialMode is set, immediately transition to that mode
+      if (!isListening && !isSpeaking) {
+        setTimeout(() => {
+          startListening();
+        }, 1000);
+      }
+      
       if (initialMode === 'video') {
         setMode('video');
         setCurrentStep(1);
@@ -69,16 +100,14 @@ export const VoiceVideoAgent: React.FC<VoiceVideoAgentProps> = ({ initialMode = 
         setCurrentStep(1);
       }
     }
-  }, [isOpen, initialMode]);
+  }, [isOpen, initialMode, isListening, isSpeaking]);
 
-  // Speak the current agent script
   useEffect(() => {
     if (isOpen && !isSpeaking && !agentResponding && agentScript[currentStep]) {
       speakResponse(agentScript[currentStep]);
     }
   }, [currentStep, isOpen, isSpeaking, agentResponding]);
 
-  // Setup media stream for video
   const setupVideoStream = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -100,7 +129,6 @@ export const VoiceVideoAgent: React.FC<VoiceVideoAgentProps> = ({ initialMode = 
     }
   };
 
-  // Clean up media resources
   const cleanupMedia = () => {
     if (mediaStream) {
       mediaStream.getTracks().forEach(track => track.stop());
@@ -118,60 +146,58 @@ export const VoiceVideoAgent: React.FC<VoiceVideoAgentProps> = ({ initialMode = 
     setIsRecording(false);
   };
 
-  // Process user input and determine next step
   const processUserInput = (input: string) => {
     const normalizedInput = input.trim().toLowerCase();
+    console.log('Processing user input:', normalizedInput);
     
-    // If in initial mode, determine whether to go to voice or text
     if (currentStep === 0) {
       if (normalizedInput.includes('speak') || 
           normalizedInput.includes('agent') || 
           normalizedInput.includes('voice') || 
           normalizedInput.includes('talk')) {
+        console.log('User chose to speak to agent');
         setCurrentStep(1);
         setMode('voice');
       } else if (normalizedInput.includes('text') || 
                 normalizedInput.includes('chat') || 
                 normalizedInput.includes('type')) {
+        console.log('User chose text chat');
         submitUserQuery(input);
-        setIsOpen(false);
+        handleOpenChange(false);
       } else {
-        // If unclear, ask again
         setAgentResponding(true);
-        speakResponse("I'm not sure if you want to speak to an agent or use text chat. Please clarify.");
+        speakResponse("I'm not sure if you want to speak to an agent or use text chat. Please clarify by saying 'speak to agent' or 'use text chat'.");
         setAgentResponding(false);
       }
     } 
-    // If choosing between voice and video
     else if (currentStep === 1) {
       if (normalizedInput.includes('video')) {
+        console.log('User chose video mode');
         handleVideoMode();
       } else if (normalizedInput.includes('voice') || 
                 normalizedInput.includes('audio') || 
                 normalizedInput.includes('just voice') || 
                 normalizedInput.includes('enough')) {
+        console.log('User chose voice mode');
         handleVoiceMode();
       } else {
-        // If unclear, ask again
         setAgentResponding(true);
-        speakResponse("I'm not sure if you want video or just voice. Please clarify if you want video or just voice.");
+        speakResponse("I'm not sure if you want video or just voice. Please clarify by saying 'use video' or 'just voice'.");
         setAgentResponding(false);
       }
     }
-    // If in conversation mode, submit query
     else if (currentStep === 2) {
+      console.log('Processing query:', normalizedInput);
       submitUserQuery(input);
     }
   };
 
-  // Handle choosing voice mode
   const handleVoiceMode = () => {
     setMode('voice');
     setCurrentStep(2); // Skip to introduction
     speakResponse(agentScript[2]);
   };
 
-  // Handle choosing video mode
   const handleVideoMode = async () => {
     setMode('video');
     setCurrentStep(2);
@@ -181,7 +207,6 @@ export const VoiceVideoAgent: React.FC<VoiceVideoAgentProps> = ({ initialMode = 
     }
   };
 
-  // Start recording video
   const startRecording = () => {
     if (!mediaStream) return;
     
@@ -208,14 +233,12 @@ export const VoiceVideoAgent: React.FC<VoiceVideoAgentProps> = ({ initialMode = 
     mediaRecorder.start(10); // Collect data in 10ms chunks
   };
 
-  // Stop recording video
   const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
     }
   };
 
-  // Save recorded video
   const saveRecording = async () => {
     if (!recordedVideo || !user) return;
     
@@ -224,19 +247,15 @@ export const VoiceVideoAgent: React.FC<VoiceVideoAgentProps> = ({ initialMode = 
       description: "Your conversation with Agent Veritas has been saved.",
     });
     
-    // Here we would typically upload to storage
-    // For now, just close the dialog
-    setIsOpen(false);
+    handleOpenChange(false);
   };
 
-  // Submit user query and have agent respond
   const submitUserQuery = (query: string) => {
     if (!query.trim()) return;
     
     setAgentResponding(true);
     submitQuery(query);
     
-    // After submitting, prepare to speak the response when it's ready
     const checkForResponse = setInterval(() => {
       if (consensusResponse && !isLoading) {
         clearInterval(checkForResponse);
@@ -245,14 +264,11 @@ export const VoiceVideoAgent: React.FC<VoiceVideoAgentProps> = ({ initialMode = 
       }
     }, 1000);
     
-    // Clear interval after 30 seconds to prevent memory leaks
     setTimeout(() => clearInterval(checkForResponse), 30000);
     
-    // Close the dialog after submission
-    setTimeout(() => setIsOpen(false), 1000);
+    setTimeout(() => handleOpenChange(false), 1000);
   };
 
-  // Handle form submission
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     processUserInput(userInput);
@@ -261,15 +277,7 @@ export const VoiceVideoAgent: React.FC<VoiceVideoAgentProps> = ({ initialMode = 
 
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogTrigger asChild>
-          <Button 
-            className="rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white"
-            size="icon"
-          >
-            {initialMode === 'video' ? <Video className="h-5 w-5" /> : <AgentVeritasAvatar size="sm" />}
-          </Button>
-        </DialogTrigger>
+      <Dialog open={isOpen} onOpenChange={handleOpenChange}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle className="text-center flex items-center justify-center gap-2">
@@ -280,6 +288,11 @@ export const VoiceVideoAgent: React.FC<VoiceVideoAgentProps> = ({ initialMode = 
                 {(mode === 'video' || mode === 'recording') && "Video Chat with Agent Veritas"}
                 {mode === 'playback' && "Review Your Recording"}
               </span>
+              {isListening && (
+                <span className="ml-2 text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full animate-pulse">
+                  Listening...
+                </span>
+              )}
             </DialogTitle>
           </DialogHeader>
           
@@ -321,6 +334,16 @@ export const VoiceVideoAgent: React.FC<VoiceVideoAgentProps> = ({ initialMode = 
                     Text Chat
                   </Button>
                 </div>
+                {!isListening && (
+                  <p className="mt-4 text-sm text-gray-500">
+                    You can also speak your response. Click the microphone button or say "speak to agent" or "use text chat".
+                  </p>
+                )}
+                {isListening && (
+                  <p className="mt-4 text-sm text-green-500 animate-pulse">
+                    I'm listening... Say "speak to agent" or "use text chat".
+                  </p>
+                )}
               </motion.div>
             )}
             
@@ -494,7 +517,6 @@ export const VoiceVideoAgent: React.FC<VoiceVideoAgentProps> = ({ initialMode = 
                 <div className="flex justify-center gap-4">
                   <Button 
                     onClick={() => {
-                      // Restart recording process
                       setRecordedVideo(null);
                       setRecordedChunks([]);
                       setMode('recording');
@@ -521,7 +543,6 @@ export const VoiceVideoAgent: React.FC<VoiceVideoAgentProps> = ({ initialMode = 
   );
 };
 
-// Default export maintains backwards compatibility
 const VoiceVideoAgentDefault: React.FC = () => {
   return <VoiceVideoAgent initialMode="voice" />;
 };
