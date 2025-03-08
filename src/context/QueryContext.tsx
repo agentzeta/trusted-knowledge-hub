@@ -126,4 +126,6 @@ export const useQueryContext = () => {
   return context;
 };
 
-export { Response };
+// Fix the type re-export with 'export type'
+export type { Response };
+
