@@ -29,6 +29,7 @@ serve(async (req) => {
     const voice = voiceId || "9BWtsMINqrJLrRacOk9x";
     
     console.log(`Converting text to speech using voice ID: ${voice}`);
+    console.log(`Text to convert (first 50 chars): ${text.substring(0, 50)}...`);
     
     // Make request to ElevenLabs API
     const response = await fetch(
@@ -58,6 +59,8 @@ serve(async (req) => {
 
     // Get the audio as an ArrayBuffer
     const audioArrayBuffer = await response.arrayBuffer();
+    
+    console.log(`Received audio response, size: ${audioArrayBuffer.byteLength} bytes`);
     
     // Convert to base64
     const audioBase64 = btoa(

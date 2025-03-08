@@ -1,73 +1,99 @@
 
 import { useState, useEffect } from 'react';
-import { toast } from '@/components/ui/use-toast';
-import { ApiKeys } from '../types/query';
-import { DEFAULT_API_KEYS } from '../services/models/constants';
 import { supabase } from '@/integrations/supabase/client';
+import { ApiKeys } from '@/types/query';
+import { toast } from '@/components/ui/use-toast';
 
-const STORAGE_KEY = 'ai_consensus_api_keys';
+// Default API keys from environment variables or empty strings
+const DEFAULT_API_KEYS: ApiKeys = {
+  openai: '',
+  anthropic: '',
+  anthropicClaude35: '',
+  gemini: '',
+  geminiProExperimental: '',
+  perplexity: '',
+  deepseek: '',
+  grok: '',
+  qwen: '',
+  openrouter: ''
+};
 
 export const useApiKeys = () => {
   const [apiKeys, setApiKeys] = useState<ApiKeys>(DEFAULT_API_KEYS);
-  const [isLoading, setIsLoading] = useState(false);
-
-  // Fetch API keys from Supabase Edge Function
-  const fetchApiKeysFromSupabase = async () => {
-    try {
-      setIsLoading(true);
-      
-      const { data, error } = await supabase.functions.invoke('api-keys');
-      
-      if (error) {
-        console.error('Error fetching API keys from Supabase:', error);
-        return false;
-      }
-      
-      if (data?.apiKeys) {
-        setApiKeys(data.apiKeys);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data.apiKeys));
-        return true;
-      }
-      
-      return false;
-    } catch (error) {
-      console.error('Error fetching API keys:', error);
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // First try to load from Supabase
-    fetchApiKeysFromSupabase().then(success => {
-      // If Supabase fetch fails, try localStorage
-      if (!success) {
-        const storedKeys = localStorage.getItem(STORAGE_KEY);
-        if (storedKeys) {
+    const fetchApiKeys = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Try to fetch API keys from Supabase
+        const { data, error } = await supabase.functions.invoke('api-keys', {
+          method: 'GET'
+        });
+        
+        if (error) {
+          console.error('Error fetching API keys:', error);
+          throw new Error('Failed to fetch API keys');
+        }
+        
+        // If we got data back, use it
+        if (data && Object.keys(data).length > 0) {
+          console.log('Loaded API keys from Supabase');
+          setApiKeys(data);
+        } else {
+          // Fallback to localStorage
           try {
-            const parsedKeys = JSON.parse(storedKeys);
-            setApiKeys(parsedKeys);
-          } catch (error) {
-            console.error('Error parsing stored API keys:', error);
+            const storedKeys = localStorage.getItem('apiKeys');
+            if (storedKeys) {
+              console.log('Loaded API keys from localStorage');
+              setApiKeys(JSON.parse(storedKeys));
+            }
+          } catch (e) {
+            console.error('Error parsing API keys from localStorage:', e);
           }
         }
+      } catch (error) {
+        console.error('Error in fetchApiKeys:', error);
+        
+        // Always try localStorage as fallback
+        try {
+          const storedKeys = localStorage.getItem('apiKeys');
+          if (storedKeys) {
+            console.log('Loaded API keys from localStorage (fallback)');
+            setApiKeys(JSON.parse(storedKeys));
+          }
+        } catch (e) {
+          console.error('Error parsing API keys from localStorage:', e);
+        }
+      } finally {
+        setIsLoading(false);
       }
-    });
+    };
+
+    fetchApiKeys();
   }, []);
 
   const setApiKey = (provider: string, key: string) => {
-    const updatedKeys = { ...apiKeys, [provider.toLowerCase()]: key };
-    setApiKeys(updatedKeys);
-    
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedKeys));
-    
-    toast({
-      title: "API Key Saved",
-      description: `${provider} API key has been saved and will persist across sessions.`,
-      duration: 3000,
-    });
+    try {
+      const updatedKeys = { ...apiKeys, [provider]: key };
+      setApiKeys(updatedKeys);
+      localStorage.setItem('apiKeys', JSON.stringify(updatedKeys));
+      
+      toast({
+        title: "API Key Updated",
+        description: `${provider} API key has been updated successfully`,
+      });
+    } catch (error) {
+      console.error('Error saving API key:', error);
+      
+      toast({
+        title: "Error",
+        description: "Failed to save API key",
+        variant: "destructive",
+      });
+    }
   };
 
-  return { apiKeys, setApiKey, isLoading, refreshApiKeys: fetchApiKeysFromSupabase };
+  return { apiKeys, setApiKey, isLoading };
 };

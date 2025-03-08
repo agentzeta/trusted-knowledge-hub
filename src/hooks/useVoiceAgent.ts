@@ -31,17 +31,23 @@ export const useVoiceAgent = () => {
     try {
       setIsSpeaking(true);
       
+      console.log("Calling ElevenLabs TTS with text:", text.substring(0, 50) + "...");
+      
       const { data, error } = await supabase.functions.invoke('elevenlabs-tts', {
         body: { text, voiceId }
       });
       
       if (error) {
-        throw new Error(error.message);
+        console.error("TTS error:", error);
+        throw new Error(error.message || 'Error generating speech');
       }
       
-      if (!data.audioContent) {
+      if (!data || !data.audioContent) {
+        console.error("No audio content returned");
         throw new Error('No audio content returned');
       }
+      
+      console.log("Received audio response, length:", data.audioContent.length);
       
       // Convert base64 to blob URL
       const binary = atob(data.audioContent);
@@ -73,7 +79,13 @@ export const useVoiceAgent = () => {
           });
         };
         
-        await audioRef.current.play();
+        try {
+          await audioRef.current.play();
+        } catch (playError) {
+          console.error("Audio play error:", playError);
+          setIsSpeaking(false);
+          throw playError;
+        }
       }
     } catch (error: any) {
       console.error('Speech synthesis error:', error);
