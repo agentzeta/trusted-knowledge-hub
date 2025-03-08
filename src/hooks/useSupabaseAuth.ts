@@ -1,102 +1,62 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/components/ui/use-toast';
+import { supabase } from '../integrations/supabase/client';
+import { Session, User } from '@supabase/supabase-js';
 
 export const useSupabaseAuth = () => {
-  const [user, setUser] = useState<any>(null);
-  const [authLoading, setAuthLoading] = useState(false);
-  
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      setUser(data.session?.user || null);
-
-      const { data: authListener } = supabase.auth.onAuthStateChange(
-        async (event, session) => {
-          setUser(session?.user || null);
-        }
-      );
-
-      return () => {
-        authListener.subscription.unsubscribe();
-      };
+    const getSession = async () => {
+      const { data, error } = await supabase.auth.getSession();
+      if (!error && data.session) {
+        setSession(data.session);
+        setUser(data.session.user);
+      }
+      setLoading(false);
     };
 
-    checkSession();
+    getSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      setSession(newSession);
+      setUser(newSession?.user ?? null);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const signInWithGoogle = async (): Promise<void> => {
-    try {
-      setAuthLoading(true);
-      
-      // First check if Google provider is enabled
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          scopes: 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/documents',
-          redirectTo: window.location.origin
-        }
-      });
-      
-      if (error) {
-        console.error('Sign in error:', error);
-        
-        if (error.message.includes('provider is not enabled')) {
-          toast({
-            title: "Authentication Error",
-            description: "Google authentication is not enabled in Supabase. Please check your Supabase configuration.",
-            variant: "destructive",
-            duration: 5000,
-          });
-        } else {
-          toast({
-            title: "Authentication Error",
-            description: error.message || "Failed to sign in with Google",
-            variant: "destructive",
-            duration: 3000,
-          });
-        }
-        
-        throw error;
+  const signIn = async (email: string, password: string) => {
+    return await supabase.auth.signInWithPassword({ email, password });
+  };
+
+  const signUp = async (email: string, password: string) => {
+    return await supabase.auth.signUp({ email, password });
+  };
+
+  const signInWithGoogle = async () => {
+    return await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth`
       }
-    } catch (error) {
-      console.error('Sign in error:', error);
-      throw error;
-    } finally {
-      setAuthLoading(false);
-    }
+    });
   };
 
   const signOut = async () => {
-    try {
-      setAuthLoading(true);
-      await supabase.auth.signOut();
-      toast({
-        title: "Signed Out",
-        description: "You have been successfully signed out",
-        duration: 3000,
-      });
-    } catch (error: any) {
-      console.error('Sign out error:', error);
-      toast({
-        title: "Sign Out Error",
-        description: "Failed to sign out. Please try again later.",
-        variant: "destructive",
-        duration: 3000,
-      });
-      throw error;
-    } finally {
-      setAuthLoading(false);
-    }
+    return await supabase.auth.signOut();
   };
 
   return {
     user,
-    authLoading,
+    session,
+    loading,
+    signIn,
+    signUp,
     signInWithGoogle,
-    signOut,
-    isAuthenticated: !!user,
-    supabase
+    signOut
   };
 };

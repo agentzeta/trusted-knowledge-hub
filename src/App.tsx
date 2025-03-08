@@ -10,6 +10,7 @@ import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import GoogleAuth from "./components/GoogleAuth";
 import { QueryProvider } from "./context/QueryContext";
+import VoiceVideoAgent from "./components/VoiceVideoAgent";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <VoiceVideoAgent />
         </BrowserRouter>
       </TooltipProvider>
     </QueryProvider>
