@@ -10,23 +10,6 @@ import { QueryProvider, useQueryContext } from '../context/QueryContext';
 const MainContent = () => {
   const { responses, query } = useQueryContext();
   
-  // Function to get the most verified response
-  const getMostVerifiedResponse = () => {
-    if (!responses.length) return null;
-    
-    // Sort by verified status and confidence
-    const sortedResponses = [...responses].sort((a, b) => {
-      if (a.verified === b.verified) {
-        return b.confidence - a.confidence;
-      }
-      return a.verified ? -1 : 1;
-    });
-    
-    return sortedResponses[0];
-  };
-  
-  const primaryResponse = getMostVerifiedResponse();
-  
   return (
     <div className="relative min-h-screen pt-20 pb-16 px-4 sm:px-6">
       <div className="blur-background">
@@ -63,25 +46,6 @@ const MainContent = () => {
         
         {responses.length > 0 && (
           <>
-            {primaryResponse && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="mt-12 p-6 rounded-xl glass card-shadow"
-              >
-                <h2 className="text-xl font-semibold mb-2">Response to: "{query}"</h2>
-                <div className="prose prose-lg max-w-none">
-                  <p className="text-gray-700 dark:text-gray-300 text-lg">{primaryResponse.content}</p>
-                </div>
-                <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center text-sm text-gray-500">
-                  <span>Source: {primaryResponse.source}</span>
-                  <span className="mx-2">•</span>
-                  <span>{primaryResponse.verified ? 'Verified' : 'Pending verification'}</span>
-                </div>
-              </motion.div>
-            )}
-            
             <ConsensusVisual responses={responses} />
             
             <div className="mt-12">

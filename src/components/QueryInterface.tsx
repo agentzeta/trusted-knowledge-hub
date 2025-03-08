@@ -5,15 +5,31 @@ import { useQueryContext } from '../context/QueryContext';
 import { Search } from 'lucide-react';
 
 const QueryInterface: React.FC = () => {
-  const { submitQuery, isLoading } = useQueryContext();
-  const [query, setQuery] = useState('');
+  const { submitQuery, isLoading, query, responses } = useQueryContext();
+  const [inputQuery, setInputQuery] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (query.trim()) {
-      submitQuery(query.trim());
+    if (inputQuery.trim()) {
+      submitQuery(inputQuery.trim());
     }
   };
+
+  // Get the primary response (most verified or highest confidence)
+  const getPrimaryResponse = () => {
+    if (!responses.length) return null;
+    
+    const sortedResponses = [...responses].sort((a, b) => {
+      if (a.verified === b.verified) {
+        return b.confidence - a.confidence;
+      }
+      return a.verified ? -1 : 1;
+    });
+    
+    return sortedResponses[0];
+  };
+  
+  const primaryResponse = getPrimaryResponse();
 
   return (
     <motion.div
@@ -30,8 +46,8 @@ const QueryInterface: React.FC = () => {
           
           <input
             type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            value={inputQuery}
+            onChange={(e) => setInputQuery(e.target.value)}
             placeholder="Ask a question to verify with AI consensus..."
             className="block w-full bg-transparent border-0 py-4 pl-12 pr-24 text-sm sm:text-base focus:ring-0 focus:outline-none placeholder:text-gray-400"
             disabled={isLoading}
@@ -42,9 +58,9 @@ const QueryInterface: React.FC = () => {
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               type="submit"
-              disabled={isLoading || !query.trim()}
+              disabled={isLoading || !inputQuery.trim()}
               className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-xl ${
-                isLoading || !query.trim()
+                isLoading || !inputQuery.trim()
                   ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                   : 'bg-blue-500 text-white hover:bg-blue-600'
               } transition-colors duration-300`}
@@ -81,6 +97,28 @@ const QueryInterface: React.FC = () => {
           </motion.div>
         )}
       </AnimatePresence>
+      
+      {primaryResponse && !isLoading && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5 }}
+          className="mt-8 p-6 rounded-xl glass card-shadow"
+        >
+          <h2 className="text-xl font-semibold mb-2">Response:</h2>
+          <div className="prose prose-lg max-w-none">
+            <p className="text-gray-700 dark:text-gray-300 text-lg">{primaryResponse.content}</p>
+          </div>
+          <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center text-sm text-gray-500">
+            <span>Source: {primaryResponse.source}</span>
+            <span className="mx-2">•</span>
+            <span className={primaryResponse.verified ? "text-green-600 font-medium" : "text-amber-600 font-medium"}>
+              {primaryResponse.verified ? 'Verified' : 'Pending verification'}
+            </span>
+          </div>
+        </motion.div>
+      )}
     </motion.div>
   );
 };
