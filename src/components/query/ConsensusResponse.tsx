@@ -13,7 +13,7 @@ const ConsensusResponse: React.FC<ConsensusResponseProps> = ({
   timestamp 
 }) => {
   const formattedDate = timestamp 
-    ? format(new Date(timestamp * 1000), 'MMM d, yyyy h:mm a') 
+    ? format(new Date(timestamp), 'MMM d, yyyy h:mm a') 
     : null;
 
   return (

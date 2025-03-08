@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useQueryContext } from '../hooks/useQueryContext';
@@ -7,6 +8,7 @@ import QuerySearchInput from './QuerySearchInput';
 import ExampleQueriesSection from './ExampleQueriesSection';
 import UserAuthStatus from './UserAuthStatus';
 import QueryResponses from './QueryResponses';
+import WelcomeGreeting from './WelcomeGreeting';
 
 const storedQueries = [
   { id: 1, query: "How does climate change affect coral reefs?" },
@@ -27,6 +29,7 @@ const QueryInterface: React.FC = () => {
   const [inputQuery, setInputQuery] = useState('');
   const [suggestions, setSuggestions] = useState<typeof storedQueries>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showChatOptions, setShowChatOptions] = useState(true);
 
   useEffect(() => {
     if (inputQuery.trim() && inputQuery.length > 2) {
@@ -68,6 +71,33 @@ const QueryInterface: React.FC = () => {
     }
   };
 
+  const handleChooseTextChat = () => {
+    setShowChatOptions(false);
+    // Focus the search input
+    const searchInput = document.getElementById('query-search-input');
+    if (searchInput) {
+      searchInput.focus();
+    }
+  };
+
+  const handleChooseVoiceChat = () => {
+    setShowChatOptions(false);
+    // Open the voice chat dialog
+    const voiceButton = document.getElementById('voice-agent-button');
+    if (voiceButton) {
+      voiceButton.click();
+    }
+  };
+
+  const handleChooseVideoChat = () => {
+    setShowChatOptions(false);
+    // Open the video chat dialog
+    const videoButton = document.getElementById('video-agent-button');
+    if (videoButton) {
+      videoButton.click();
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -75,6 +105,14 @@ const QueryInterface: React.FC = () => {
       transition={{ duration: 0.5, delay: 0.2 }}
       className="w-full max-w-3xl mx-auto mt-8"
     >
+      {showChatOptions && (
+        <WelcomeGreeting 
+          onChooseTextChat={handleChooseTextChat}
+          onChooseVoiceChat={handleChooseVoiceChat}
+          onChooseVideoChat={handleChooseVideoChat}
+        />
+      )}
+      
       <QueryHeader
         handleGoogleSignIn={handleGoogleSignIn}
         user={user}

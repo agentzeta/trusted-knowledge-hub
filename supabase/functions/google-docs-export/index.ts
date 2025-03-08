@@ -19,6 +19,13 @@ serve(async (req) => {
     // Get the request body
     const { query, consensusResponse } = await req.json();
     
+    if (!query || !consensusResponse) {
+      return new Response(
+        JSON.stringify({ error: 'Query and consensus response are required' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
+    }
+    
     // Get authorization token from request headers
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
@@ -31,14 +38,16 @@ serve(async (req) => {
     // Extract JWT token from Bearer token
     const token = authHeader.replace('Bearer ', '');
     
-    // Call Google Docs API to create a document
+    // Log for debugging
+    console.log(`Exporting to Google Docs: ${query.substring(0, 50)}...`);
+    console.log(`Content length: ${consensusResponse.length} characters`);
+    
+    // Format the document title
     const documentTitle = `AI Consensus: ${query.substring(0, 50)}${query.length > 50 ? '...' : ''}`;
     
     // Mock successful response for demo purposes
     // In a real implementation, you would use the token to call the Google Docs API
     console.log(`Creating Google Doc with title: ${documentTitle}`);
-    console.log(`Content from query: ${query}`);
-    console.log(`Consensus response: ${consensusResponse}`);
     
     // Mock document URL - in a real implementation, this would be returned from the Google Docs API
     const documentUrl = `https://docs.google.com/document/d/mock-document-id/edit`;
@@ -46,7 +55,9 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         documentUrl,
-        message: 'Document created successfully' 
+        message: 'Document created successfully',
+        title: documentTitle,
+        exportedAt: new Date().toISOString()
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     );

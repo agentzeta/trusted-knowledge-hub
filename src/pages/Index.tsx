@@ -10,6 +10,8 @@ import { useQueryContext } from '../hooks/useQueryContext';
 import { Shield } from 'lucide-react';
 import GoogleAuth from '../components/GoogleAuth';
 import VoiceAgentButton from '../components/VoiceAgentButton';
+import VideoAgentButton from '../components/VideoAgentButton';
+import AgentVeritasAvatar from '../components/AgentVeritasAvatar';
 
 const Index = () => {
   const { responses, query } = useQueryContext();
@@ -19,6 +21,7 @@ const Index = () => {
       <Header />
       <GoogleAuth />
       <VoiceAgentButton />
+      <VideoAgentButton />
       
       <div className="blur-background">
         <div className="blur-circle bg-blue-300 w-[500px] h-[500px] top-[-100px] left-[-200px]" />
@@ -42,8 +45,8 @@ const Index = () => {
           </motion.div>
           
           <div className="flex items-center justify-center mb-4">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center mr-3">
-              <Shield className="text-white w-6 h-6" />
+            <div className="mr-3">
+              <AgentVeritasAvatar size="lg" />
             </div>
             <h1 className="text-4xl font-bold tracking-tight">
               Truthful

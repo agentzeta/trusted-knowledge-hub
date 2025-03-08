@@ -18,8 +18,13 @@ import { useVoiceAgent } from '@/hooks/useVoiceAgent';
 import { useQueryContext } from '@/hooks/useQueryContext';
 import { toast } from '@/components/ui/use-toast';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
+import AgentVeritasAvatar from './AgentVeritasAvatar';
 
-const VoiceVideoAgent: React.FC = () => {
+interface VoiceVideoAgentProps {
+  initialMode?: 'voice' | 'video';
+}
+
+export const VoiceVideoAgent: React.FC<VoiceVideoAgentProps> = ({ initialMode = 'voice' }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [mode, setMode] = useState<'initial' | 'voice' | 'video' | 'recording' | 'playback'>('initial');
   const [isRecording, setIsRecording] = useState(false);
@@ -53,8 +58,18 @@ const VoiceVideoAgent: React.FC = () => {
       setRecordedVideo(null);
       setUserInput('');
       setAgentResponding(false);
+    } else {
+      // If initialMode is set, immediately transition to that mode
+      if (initialMode === 'video') {
+        setMode('video');
+        setCurrentStep(1);
+        handleVideoMode();
+      } else if (initialMode === 'voice') {
+        setMode('voice');
+        setCurrentStep(1);
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, initialMode]);
 
   // Speak the current agent script
   useEffect(() => {
@@ -233,8 +248,7 @@ const VoiceVideoAgent: React.FC = () => {
     // Clear interval after 30 seconds to prevent memory leaks
     setTimeout(() => clearInterval(checkForResponse), 30000);
     
-    // For demo purposes, close the dialog after 1 second
-    // In real use, you'd wait for the response and then decide
+    // Close the dialog after submission
     setTimeout(() => setIsOpen(false), 1000);
   };
 
@@ -250,19 +264,22 @@ const VoiceVideoAgent: React.FC = () => {
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>
           <Button 
-            className="fixed right-20 bottom-4 z-50 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white"
+            className="rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white"
             size="icon"
           >
-            <MessageSquare />
+            {initialMode === 'video' ? <Video className="h-5 w-5" /> : <AgentVeritasAvatar size="sm" />}
           </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle className="text-center">
-              {mode === 'initial' && "Agent Veritas"}
-              {mode === 'voice' && "Voice Chat with Agent Veritas"}
-              {(mode === 'video' || mode === 'recording') && "Video Chat with Agent Veritas"}
-              {mode === 'playback' && "Review Your Recording"}
+            <DialogTitle className="text-center flex items-center justify-center gap-2">
+              <AgentVeritasAvatar size="sm" />
+              <span>
+                {mode === 'initial' && "Agent Veritas"}
+                {mode === 'voice' && "Voice Chat with Agent Veritas"}
+                {(mode === 'video' || mode === 'recording') && "Video Chat with Agent Veritas"}
+                {mode === 'playback' && "Review Your Recording"}
+              </span>
             </DialogTitle>
           </DialogHeader>
           
@@ -504,4 +521,9 @@ const VoiceVideoAgent: React.FC = () => {
   );
 };
 
-export default VoiceVideoAgent;
+// Default export maintains backwards compatibility
+const VoiceVideoAgentDefault: React.FC = () => {
+  return <VoiceVideoAgent initialMode="voice" />;
+};
+
+export default VoiceVideoAgentDefault;
