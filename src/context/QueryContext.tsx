@@ -19,6 +19,7 @@ import {
   getMockResponse 
 } from '../services/modelService';
 import { deriveConsensusResponse } from '../utils/consensusUtils';
+import { supabase } from '@/integrations/supabase/client';
 
 const STORAGE_KEY = 'ai_consensus_api_keys';
 
@@ -30,6 +31,7 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [isLoading, setIsLoading] = useState(false);
   const [apiKeys, setApiKeys] = useState<ApiKeys>(DEFAULT_API_KEYS);
   const [consensusResponse, setConsensusResponse] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);
   
   // Load API keys from localStorage on initial render
   useEffect(() => {
@@ -44,6 +46,28 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   }, []);
   
+  // Check for existing session and setup auth listener
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      setUser(data.session?.user || null);
+
+      // Set up auth state listener
+      const { data: authListener } = supabase.auth.onAuthStateChange(
+        async (event, session) => {
+          setUser(session?.user || null);
+        }
+      );
+
+      // Cleanup listener on unmount
+      return () => {
+        authListener.subscription.unsubscribe();
+      };
+    };
+
+    checkSession();
+  }, []);
+  
   const setApiKey = (provider: string, key: string) => {
     const updatedKeys = { ...apiKeys, [provider.toLowerCase()]: key };
     setApiKeys(updatedKeys);
@@ -56,6 +80,32 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       description: `${provider} API key has been saved and will persist across sessions.`,
       duration: 3000,
     });
+  };
+
+  // Save response to database
+  const saveResponseToDatabase = async (
+    queryText: string, 
+    consensusText: string, 
+    sourceResponses: Response[]
+  ) => {
+    if (!user) return;
+    
+    try {
+      const { error } = await supabase
+        .from('consensus_responses')
+        .insert({
+          user_id: user.id,
+          query: queryText,
+          consensus_response: consensusText,
+          source_responses: sourceResponses,
+        });
+        
+      if (error) {
+        console.error('Error saving response:', error);
+      }
+    } catch (error) {
+      console.error('Error saving response to database:', error);
+    }
   };
 
   const submitQuery = async (queryText: string) => {
@@ -99,6 +149,11 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       const derivedConsensus = deriveConsensusResponse(allResponses);
       setConsensusResponse(derivedConsensus);
       
+      // Save to database if user is logged in
+      if (user) {
+        saveResponseToDatabase(queryText, derivedConsensus, allResponses);
+      }
+      
       setResponses(allResponses);
     } catch (error) {
       console.error('Error submitting query:', error);
@@ -131,7 +186,8 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       submitQuery, 
       setApiKey, 
       apiKeys,
-      consensusResponse
+      consensusResponse,
+      user
     }}>
       {children}
     </QueryContext.Provider>

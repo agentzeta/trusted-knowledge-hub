@@ -19,6 +19,7 @@ export interface ApiKeys {
   deepseek?: string;
   grok?: string;
   qwen?: string;
+  openrouter?: string;
 }
 
 export interface QueryContextType {
@@ -29,4 +30,5 @@ export interface QueryContextType {
   setApiKey: (provider: string, key: string) => void;
   apiKeys: ApiKeys;
   consensusResponse: string | null;
+  user: any;
 }

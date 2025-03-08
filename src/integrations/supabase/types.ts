@@ -9,7 +9,66 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      consensus_responses: {
+        Row: {
+          attestation_id: string | null
+          blockchain_reference: string | null
+          consensus_response: string
+          created_at: string
+          id: string
+          query: string
+          source_responses: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          attestation_id?: string | null
+          blockchain_reference?: string | null
+          consensus_response: string
+          created_at?: string
+          id?: string
+          query: string
+          source_responses?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          attestation_id?: string | null
+          blockchain_reference?: string | null
+          consensus_response?: string
+          created_at?: string
+          id?: string
+          query?: string
+          source_responses?: Json | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

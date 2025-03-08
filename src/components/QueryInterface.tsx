@@ -2,8 +2,10 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQueryContext } from '../context/QueryContext';
-import { Search } from 'lucide-react';
+import { Search, LogIn } from 'lucide-react';
 import ApiKeyManager from './ApiKeyManager';
+import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
 
 // Example queries by category
 const exampleQueries = {
@@ -15,7 +17,7 @@ const exampleQueries = {
 };
 
 const QueryInterface: React.FC = () => {
-  const { submitQuery, isLoading, query, responses, consensusResponse } = useQueryContext();
+  const { submitQuery, isLoading, query, responses, consensusResponse, user } = useQueryContext();
   const [inputQuery, setInputQuery] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -30,6 +32,20 @@ const QueryInterface: React.FC = () => {
     submitQuery(query);
   };
 
+  const handleGoogleSignIn = async () => {
+    try {
+      await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          scopes: 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
+          redirectTo: window.location.origin
+        }
+      });
+    } catch (error) {
+      console.error('Sign in error:', error);
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -39,7 +55,20 @@ const QueryInterface: React.FC = () => {
     >
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-medium">Ask a question</h2>
-        <ApiKeyManager />
+        <div className="flex items-center gap-2">
+          {!user && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleGoogleSignIn}
+              className="flex items-center gap-1"
+            >
+              <LogIn className="h-4 w-4" />
+              <span>Sign in</span>
+            </Button>
+          )}
+          <ApiKeyManager />
+        </div>
       </div>
       
       <div className="relative card-shadow hover-card-shadow rounded-2xl glass p-1 transition-all duration-300">
@@ -105,6 +134,16 @@ const QueryInterface: React.FC = () => {
           ))}
         </motion.div>
       </div>
+      
+      {/* User login status indicator */}
+      {user && (
+        <div className="mt-2 mb-4">
+          <div className="text-sm bg-green-50 text-green-600 px-3 py-1 rounded-full inline-flex items-center">
+            <span className="h-2 w-2 bg-green-500 rounded-full mr-2"></span>
+            Signed in as {user.email || 'User'}
+          </div>
+        </div>
+      )}
       
       <AnimatePresence>
         {isLoading && (
