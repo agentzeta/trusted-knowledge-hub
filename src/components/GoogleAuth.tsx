@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
-import { Google, FileText, Cloud, User } from 'lucide-react';
+import { FileText, Cloud, User, Globe } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 
 const GoogleAuth: React.FC = () => {
@@ -33,7 +33,7 @@ const GoogleAuth: React.FC = () => {
               variant="outline" 
               className="bg-white hover:bg-gray-100"
             >
-              <Google className="h-4 w-4 text-gray-800" />
+              <Globe className="h-4 w-4 text-gray-800" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="left">

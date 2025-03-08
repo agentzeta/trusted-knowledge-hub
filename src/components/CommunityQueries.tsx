@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { MessageCircle, ThumbsUp, Award, User } from 'lucide-react';
+import { MessageCircle, ThumbsUp, Award, User, CheckSquare } from 'lucide-react';
 
 // Sample data for community queries
 const communityQueries = [
@@ -62,7 +62,7 @@ const CommunityQueries: React.FC = () => {
                     <span className="font-medium text-sm">{query.user}</span>
                     {query.verified && (
                       <span className="ml-2 bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded-full flex items-center">
-                        <CheckCircle className="w-3 h-3 mr-1" />
+                        <CheckSquare className="w-3 h-3 mr-1" />
                         Verified
                       </span>
                     )}
