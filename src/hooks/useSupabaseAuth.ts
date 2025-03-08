@@ -26,7 +26,7 @@ export const useSupabaseAuth = () => {
     checkSession();
   }, []);
 
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = async (): Promise<void> => {
     try {
       setAuthLoading(true);
       
@@ -61,7 +61,8 @@ export const useSupabaseAuth = () => {
         throw error;
       }
       
-      return data;
+      // We're not returning data anymore, just handling the OAuth flow
+      // The actual auth state change will be captured by the listener
     } catch (error) {
       console.error('Sign in error:', error);
       throw error;
