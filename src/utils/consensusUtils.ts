@@ -2,7 +2,7 @@
 import { Response } from '../types/query';
 
 // Helper function to calculate Jaccard similarity between two strings
-const calculateJaccardSimilarity = (str1: string, str2: string): number => {
+export const calculateJaccardSimilarity = (str1: string, str2: string): number => {
   // Convert to lowercase and split into words
   const words1 = new Set(str1.toLowerCase().split(/\s+/).filter(word => word.length > 3));
   const words2 = new Set(str2.toLowerCase().split(/\s+/).filter(word => word.length > 3));
