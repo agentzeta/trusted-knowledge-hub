@@ -1,4 +1,5 @@
-import { useQueryContext } from '../useQueryContext';
+
+import { useQueryContext } from '../../hooks/useQueryContext';
 import { toast } from '@/components/ui/use-toast';
 
 export const useVoiceIntents = (speakResponse: (text: string) => Promise<void>) => {
