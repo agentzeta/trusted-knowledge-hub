@@ -161,7 +161,7 @@ export const analyzeConsensus = (allResponses: Response[]) => {
     confidence: consensusConfidence,
     agreementRate: largestCluster.length / allResponses.length,
     clusters: sortedClusters.map(cluster => ({
-      size: cluster.size,
+      size: cluster.length,
       sources: cluster.map(r => r.source),
       confidence: cluster.reduce((sum, r) => sum + r.confidence, 0) / cluster.length
     }))
