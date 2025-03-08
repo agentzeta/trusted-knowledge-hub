@@ -2,11 +2,18 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useQueryContext } from '@/hooks/useQueryContext';
-import { Check, Loader2 } from 'lucide-react';
+import { Check, Loader2, Clock } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import { format } from 'date-fns';
 
 const BlockchainVerification: React.FC = () => {
-  const { blockchainReference, attestationId, isRecordingOnChain } = useQueryContext();
+  const { blockchainReference, attestationId, isRecordingOnChain, responses } = useQueryContext();
+  
+  // Get the timestamp from the first response (all responses have same timestamp)
+  const timestamp = responses.length > 0 ? responses[0].timestamp : null;
+  const formattedDate = timestamp 
+    ? format(new Date(timestamp * 1000), 'PPpp') // Detailed date and time format
+    : null;
   
   const openFlareExplorer = (txHash: string) => {
     window.open(`https://flare-explorer.flare.network/tx/${txHash}`, '_blank');
@@ -49,6 +56,16 @@ const BlockchainVerification: React.FC = () => {
       <h3 className="text-center font-medium mb-4">Blockchain Verification</h3>
       
       <div className="space-y-4">
+        {formattedDate && (
+          <div className="p-3 rounded-md bg-blue-50 border border-blue-100 mb-3">
+            <div className="flex items-center">
+              <Clock className="h-4 w-4 text-blue-500 mr-2" />
+              <span className="text-sm font-medium">Timestamp</span>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">{formattedDate}</p>
+          </div>
+        )}
+        
         {blockchainReference && (
           <div className="p-3 rounded-md bg-green-50 border border-green-100">
             <div className="flex justify-between items-start mb-1">

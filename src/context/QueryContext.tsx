@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, ReactNode, useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import { QueryContextType, ApiKeys, Response } from '../types/query';
@@ -82,17 +81,14 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       setConsensusResponse(derivedConsensus);
       setResponses(allResponses);
 
-      // If user is logged in, save response to database
       if (user) {
         await saveResponseToDatabase(user.id, queryText, derivedConsensus, allResponses);
       }
       
-      // If private key is set, record on blockchain
       if (privateKey) {
         setIsRecordingOnChain(true);
         
         try {
-          // Record on Flare blockchain
           const txHash = await recordOnFlareBlockchain(
             privateKey,
             queryText,
@@ -100,7 +96,6 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           );
           setBlockchainReference(txHash);
           
-          // Create attestation
           const attestationUID = await createAttestation(
             privateKey,
             queryText,
@@ -108,7 +103,6 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           );
           setAttestationId(attestationUID);
           
-          // Update database with blockchain references
           if (user) {
             await saveResponseToDatabase(
               user.id, 
