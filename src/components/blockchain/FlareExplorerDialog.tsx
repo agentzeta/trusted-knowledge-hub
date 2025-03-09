@@ -11,13 +11,13 @@ import {
 } from "@/components/ui/dialog";
 
 interface FlareExplorerDialogProps {
-  txHash: string;
+  transactionHash: string | null;
   showDialog: boolean;
   setShowDialog: (show: boolean) => void;
 }
 
 const FlareExplorerDialog: React.FC<FlareExplorerDialogProps> = ({ 
-  txHash, 
+  transactionHash, 
   showDialog, 
   setShowDialog 
 }) => {
@@ -36,7 +36,7 @@ const FlareExplorerDialog: React.FC<FlareExplorerDialogProps> = ({
         </DialogHeader>
         <div className="mt-4">
           <h3 className="text-sm font-medium mb-2">Transaction Hash:</h3>
-          <p className="text-xs bg-gray-100 p-2 rounded break-all">{txHash}</p>
+          <p className="text-xs bg-gray-100 p-2 rounded break-all">{transactionHash}</p>
           
           <div className="mt-4">
             <p className="text-sm text-gray-600 mb-2">
@@ -48,12 +48,14 @@ const FlareExplorerDialog: React.FC<FlareExplorerDialogProps> = ({
               <Button variant="outline" onClick={() => setShowDialog(false)}>
                 Close
               </Button>
-              <Button 
-                onClick={() => openFlareExplorer(txHash)}
-                className="flex items-center gap-1"
-              >
-                View on Flare Explorer <ExternalLink className="h-4 w-4 ml-1" />
-              </Button>
+              {transactionHash && (
+                <Button 
+                  onClick={() => openFlareExplorer(transactionHash)}
+                  className="flex items-center gap-1"
+                >
+                  View on Flare Explorer <ExternalLink className="h-4 w-4 ml-1" />
+                </Button>
+              )}
             </div>
           </div>
         </div>

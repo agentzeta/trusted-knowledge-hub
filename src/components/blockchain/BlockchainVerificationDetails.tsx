@@ -75,15 +75,15 @@ const BlockchainVerificationDetails: React.FC<BlockchainVerificationDetailsProps
       
       {/* Flare Explorer Dialog */}
       <FlareExplorerDialog 
-        open={showFlareExplorer} 
-        onOpenChange={setShowFlareExplorer}
+        showDialog={showFlareExplorer} 
+        setShowDialog={setShowFlareExplorer}
         transactionHash={blockchainReference}
       />
       
       {/* EAS Explorer Dialog */}
       <EASExplorerDialog
-        open={showEASExplorer}
-        onOpenChange={setShowEASExplorer}
+        showDialog={showEASExplorer}
+        setShowDialog={setShowEASExplorer}
         attestationId={attestationId}
       />
     </div>

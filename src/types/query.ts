@@ -1,4 +1,3 @@
-
 export interface ApiKeys {
   openai?: string;
   anthropic?: string;
@@ -11,6 +10,7 @@ export interface ApiKeys {
   grok?: string;
   qwen?: string;
   llama?: string;
+  elevenlabs?: string;
 }
 
 export interface Response {
