@@ -14,16 +14,15 @@ export const saveResponseToDatabase = async (
     console.log(`Saving response to database for user ${userId}`);
     
     const { data, error } = await supabase
-      .from('user_queries')
+      .from('consensus_responses')
       .insert([
         {
           user_id: userId,
-          query_text: queryText,
+          query: queryText,
           consensus_response: consensusResponse,
-          response_data: responses,
+          source_responses: responses,
           blockchain_reference: blockchainReference || null,
           attestation_id: attestationId || null,
-          tee_verification_id: teeVerificationId || null,
           created_at: new Date().toISOString()
         }
       ]);
