@@ -59,7 +59,7 @@ export const createApiPromises = (queryText: string, apiKeys: ApiKeys, signal?: 
   if (apiKeys.geminiProExperimental) {
     try {
       console.log('Adding Google Gemini 1.5 Flash to API calls');
-      apiPromises.push(modelService.fetchFromGeminiExperimental(queryText, apiKeys.geminiProExperimental));
+      apiPromises.push(modelService.fetchFromGeminiProExp(queryText, apiKeys.geminiProExperimental));
       apiSources.push('Gemini 1.5 Flash');
     } catch (error) {
       console.error('Error setting up Google Experimental fetch:', error);
@@ -148,7 +148,8 @@ export const createApiPromises = (queryText: string, apiKeys: ApiKeys, signal?: 
   if (apiPromises.length === 0 || process.env.NODE_ENV === 'development') {
     try {
       console.log('Adding mock response to API calls for development testing');
-      apiPromises.push(modelService.getMockResponse(queryText));
+      // Fix: getMockResponse requires both a source and queryText argument
+      apiPromises.push(modelService.getMockResponse('Mock Service', queryText));
       apiSources.push('Mock Service');
     } catch (error) {
       console.error('Error setting up mock fetch:', error);
