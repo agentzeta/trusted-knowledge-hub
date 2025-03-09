@@ -117,10 +117,8 @@ const QuerySearchInput: React.FC<QuerySearchInputProps> = ({
         {showSuggestions && suggestions.length > 0 && (
           <SearchSuggestions
             suggestions={suggestions}
-            onSelect={(query) => {
-              handleSuggestionClick(query);
-              setShowSuggestions(false);
-            }}
+            onSelect={handleSuggestionClick}
+            isVisible={showSuggestions}
             onClose={() => setShowSuggestions(false)}
           />
         )}
