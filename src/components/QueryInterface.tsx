@@ -8,6 +8,9 @@ import UserAuthStatus from './UserAuthStatus';
 import QueryResponses from './QueryResponses';
 import WelcomeGreeting from './WelcomeGreeting';
 import ExampleQueriesSection from './ExampleQueriesSection';
+import StockPricePredictor from './finance/StockPricePredictor';
+import { Button } from '@/components/ui/button';
+import { TrendingUp } from 'lucide-react';
 
 const storedQueries = [
   { id: 1, query: "How does climate change affect coral reefs?" },
@@ -30,6 +33,7 @@ const QueryInterface: React.FC = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showChatOptions, setShowChatOptions] = useState(true);
   const [showExamples, setShowExamples] = useState(false);
+  const [showStockPredictor, setShowStockPredictor] = useState(false);
 
   useEffect(() => {
     if (inputQuery.trim() && inputQuery.length > 2) {
@@ -93,6 +97,10 @@ const QueryInterface: React.FC = () => {
     }
   };
 
+  const toggleStockPredictor = () => {
+    setShowStockPredictor(!showStockPredictor);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -126,21 +134,39 @@ const QueryInterface: React.FC = () => {
       
       <UserAuthStatus user={user} />
       
-      <div className="mt-4 text-center">
-        <button 
+      <div className="mt-4 flex items-center justify-center space-x-4">
+        <Button 
+          variant="outline" 
+          size="sm"
           onClick={() => setShowExamples(!showExamples)}
-          className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+          className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
         >
           {showExamples ? 'Hide Example Queries' : 'Show Example Queries by Category'}
-        </button>
+        </Button>
         
-        {showExamples && (
-          <ExampleQueriesSection 
-            onExampleClick={handleSuggestionClick}
-            isLoading={isLoading}
-          />
-        )}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={toggleStockPredictor}
+          className="text-sm flex items-center gap-1.5 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+        >
+          <TrendingUp className="h-3.5 w-3.5" />
+          {showStockPredictor ? 'Hide Stock Predictor' : 'FTSO Stock Predictor'}
+        </Button>
       </div>
+      
+      {showExamples && (
+        <ExampleQueriesSection 
+          onExampleClick={handleSuggestionClick}
+          isLoading={isLoading}
+        />
+      )}
+      
+      {showStockPredictor && (
+        <div className="mt-6">
+          <StockPricePredictor onClose={() => setShowStockPredictor(false)} />
+        </div>
+      )}
       
       <QueryResponses
         isLoading={isLoading}

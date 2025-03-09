@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Book, Microscope, History, Stethoscope, Cpu, BrainCircuit, Atom, Landmark, FlaskConical, Globe, DollarSign, BarChart3, Newspaper } from 'lucide-react';
+import { Book, Microscope, History, Stethoscope, Cpu, BrainCircuit, Atom, Landmark, FlaskConical, Globe, DollarSign, BarChart3, Newspaper, TrendingUp } from 'lucide-react';
 
 // Expanded example queries by category with more specific, interesting questions
 const exampleQueries = {
@@ -16,7 +16,10 @@ const exampleQueries = {
   ],
   finance: [
     { id: 'finance-1', query: "How does blockchain technology impact traditional banking systems?", icon: <DollarSign className="h-3 w-3" /> },
-    { id: 'finance-2', query: "What caused the 2008 financial crisis and what regulations resulted from it?", icon: <BarChart3 className="h-3 w-3" /> }
+    { id: 'finance-2', query: "What caused the 2008 financial crisis and what regulations resulted from it?", icon: <BarChart3 className="h-3 w-3" /> },
+    { id: 'finance-3', query: "How do Flare Time Series Oracles (FTSO) improve stock price predictions?", icon: <TrendingUp className="h-3 w-3" /> },
+    { id: 'finance-4', query: "What factors influence FTSO predictions for major tech stocks?", icon: <TrendingUp className="h-3 w-3" /> },
+    { id: 'finance-5', query: "How accurate are decentralized oracle networks for financial forecasting?", icon: <BarChart3 className="h-3 w-3" /> }
   ],
   science: [
     { id: 'sci-1', query: "What escape velocity can a space shuttle not exceed when orbiting earth, on its trajectory to Mars?", icon: <FlaskConical className="h-3 w-3" /> },

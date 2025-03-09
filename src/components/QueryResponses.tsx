@@ -22,11 +22,16 @@ const QueryResponses: React.FC<QueryResponsesProps> = ({
   consensusResponse,
   responses
 }) => {
-  // Get access to the submitQuery function
-  const { submitQuery } = useQueryContext();
+  // Get access to the submitQuery function and query
+  const { submitQuery, query } = useQueryContext();
 
   // Get the timestamp from the first response (all responses have same timestamp)
   const timestamp = responses.length > 0 ? responses[0].timestamp : null;
+  
+  // Check if the query is related to FTSO or stock prediction
+  const isFtsoRelated = query?.toLowerCase().includes('ftso') || 
+                        query?.toLowerCase().includes('stock prediction') ||
+                        query?.toLowerCase().includes('price prediction');
   
   // Add detailed logging for debugging
   useEffect(() => {
@@ -41,9 +46,10 @@ const QueryResponses: React.FC<QueryResponsesProps> = ({
         contentLength: r.content.length,
         contentPreview: r.content.substring(0, 50) + '...',
         verified: r.verified
-      }))
+      })),
+      isFtsoRelated
     });
-  }, [isLoading, consensusResponse, responses]);
+  }, [isLoading, consensusResponse, responses, query, isFtsoRelated]);
 
   // Handle follow-up question submission
   const handleFollowUpSubmit = (question: string) => {
@@ -83,6 +89,15 @@ const QueryResponses: React.FC<QueryResponsesProps> = ({
       {responses.length > 1 && !isLoading && (
         <div className="mt-8">
           <ConsensusVisual responses={responses} />
+        </div>
+      )}
+      
+      {responses.length > 1 && !isLoading && isFtsoRelated && (
+        <div className="mt-8 p-6 rounded-xl bg-blue-50/80 dark:bg-blue-900/20 backdrop-blur-md border border-blue-200 dark:border-blue-800/30 shadow-sm">
+          <p className="text-sm text-blue-800 dark:text-blue-200">
+            <strong>FTSO Enhanced Response:</strong> This prediction leverages Flare Time Series Oracle technology 
+            to provide more accurate predictions based on decentralized consensus mechanisms.
+          </p>
         </div>
       )}
       
