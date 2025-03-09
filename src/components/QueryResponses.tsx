@@ -53,8 +53,8 @@ const QueryResponses: React.FC<QueryResponsesProps> = ({
   // If there are no responses and we're not loading, show a message
   if (responses.length === 0 && !isLoading && !consensusResponse) {
     return (
-      <div className="mt-8 p-6 rounded-xl bg-white/80 shadow-md">
-        <p className="text-center text-gray-500">
+      <div className="mt-8 p-6 rounded-xl bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200 dark:border-slate-800 shadow-sm">
+        <p className="text-center text-slate-500">
           No responses from any AI models. Please check your API keys in settings.
         </p>
       </div>
@@ -75,23 +75,33 @@ const QueryResponses: React.FC<QueryResponsesProps> = ({
       )}
       
       {responses.length > 1 && !isLoading && (
-        <ConsensusVisual responses={responses} />
+        <div className="mt-12">
+          <ConsensusVisual responses={responses} />
+        </div>
       )}
       
       {responses.length > 1 && !isLoading && (
-        <ConsensusExplanation responses={responses} />
+        <div className="mt-10">
+          <ConsensusExplanation responses={responses} />
+        </div>
       )}
       
       {responses.length > 0 && !isLoading && (
-        <IndividualResponses responses={responses} />
+        <div className="mt-10">
+          <IndividualResponses responses={responses} />
+        </div>
       )}
       
       {responses.length > 1 && !isLoading && (
-        <ConsensusStatistics responses={responses} />
+        <div className="mt-10">
+          <ConsensusStatistics responses={responses} />
+        </div>
       )}
       
       {responses.length > 0 && !isLoading && (
-        <FollowUpQuestion onSubmit={handleFollowUpSubmit} isLoading={isLoading} />
+        <div className="mt-8">
+          <FollowUpQuestion onSubmit={handleFollowUpSubmit} isLoading={isLoading} />
+        </div>
       )}
     </>
   );

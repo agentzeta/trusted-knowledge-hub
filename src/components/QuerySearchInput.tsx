@@ -41,12 +41,12 @@ const QuerySearchInput: React.FC<QuerySearchInputProps> = ({
           placeholder="Ask Truthful a question..."
           value={inputQuery}
           onChange={(e) => setInputQuery(e.target.value)}
-          className="pr-12 py-6 text-lg rounded-lg shadow-sm border-gray-200"
+          className="pr-12 py-6 text-lg rounded-xl shadow-sm border-slate-200/70 dark:border-slate-700/70 focus:border-blue-300 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm"
         />
         <Button
           type="submit"
           size="icon"
-          className="absolute right-2 top-1/2 transform -translate-y-1/2"
+          className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-blue-500 hover:bg-blue-600 text-white"
           disabled={isLoading}
         >
           {isLoading ? (

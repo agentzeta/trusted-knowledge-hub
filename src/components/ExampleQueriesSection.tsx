@@ -8,7 +8,8 @@ const exampleQueries = {
   history: "Who built the Great Wall of China?",
   politics: "How does the Electoral College work?",
   health: "Is coffee good for your health?",
-  technology: "How do neural networks work?"
+  technology: "How do neural networks work?",
+  ai: "What events are inflection points in evolution of AI industry?"
 };
 
 interface ExampleQueriesSectionProps {
@@ -22,7 +23,7 @@ const ExampleQueriesSection: React.FC<ExampleQueriesSectionProps> = ({
 }) => {
   return (
     <div className="mt-4 mb-6">
-      <p className="text-sm text-gray-500 mb-2">Try an example query:</p>
+      <p className="text-sm text-slate-500 mb-2">Try an example query:</p>
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -32,10 +33,10 @@ const ExampleQueriesSection: React.FC<ExampleQueriesSectionProps> = ({
         {Object.entries(exampleQueries).map(([category, queryText]) => (
           <motion.button
             key={category}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => onExampleClick(queryText)}
-            className="px-3 py-1.5 text-xs bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full border border-white/20 text-gray-700 dark:text-gray-200 transition-all"
+            className="px-3 py-1.5 text-xs bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 backdrop-blur-sm rounded-full border border-slate-200/50 dark:border-slate-700/50 text-slate-700 dark:text-slate-200 transition-all"
             disabled={isLoading}
           >
             {category}
