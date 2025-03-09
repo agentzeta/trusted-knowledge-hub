@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { useQueryContext } from '@/hooks/useQueryContext';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { BadgeCheck, InfoIcon, KeyRound, AlertCircle } from 'lucide-react';
+import { OPENROUTER_MODEL_IDS } from '@/services/models/constants';
 
 const OpenRouterKeyForm: React.FC = () => {
   const { setApiKey, apiKeys } = useQueryContext();
@@ -33,18 +34,37 @@ const OpenRouterKeyForm: React.FC = () => {
         <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-3 rounded-lg border border-blue-100">
           <h3 className="text-sm font-medium text-blue-800 flex items-center gap-1 mb-2">
             <BadgeCheck className="h-4 w-4 text-blue-500" />
-            Models available with OpenRouter
+            Enhanced model selection - now with 18 models!
           </h3>
-          <ul className="text-xs text-blue-700 space-y-1 pl-5 list-disc">
-            <li>Claude 3.7 Opus (Anthropic) - <code className="text-xs bg-blue-50 px-1">anthropic/claude-3-opus:20240229</code></li>
-            <li>Claude 3.5 Sonnet (Anthropic) - <code className="text-xs bg-blue-50 px-1">anthropic/claude-3-sonnet:20240229</code></li>
-            <li>Gemini 1.5 Pro (Google) - <code className="text-xs bg-blue-50 px-1">google/gemini-1.5-pro</code></li>
-            <li>Mistral Large (Mistral AI) - <code className="text-xs bg-blue-50 px-1">mistralai/mistral-large</code></li>
-            <li>Llama 3 70B (Meta) - <code className="text-xs bg-blue-50 px-1">meta-llama/llama-3-70b-instruct</code></li>
-            <li>DeepSeek V2 (DeepSeek) - <code className="text-xs bg-blue-50 px-1">deepseek-ai/deepseek-v2</code></li>
-            <li>Command R+ (Cohere) - <code className="text-xs bg-blue-50 px-1">cohere/command-r-plus</code></li>
-            <li>Sonar (Perplexity) - <code className="text-xs bg-blue-50 px-1">perplexity/sonar-small-online</code></li>
-          </ul>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
+            <div>
+              <h4 className="text-xs font-semibold text-blue-800 mb-1">Major Models</h4>
+              <ul className="text-xs text-blue-700 space-y-1 pl-5 list-disc">
+                <li>Claude 3.7 Opus (Anthropic)</li>
+                <li>Claude 3.5 Sonnet (Anthropic)</li>
+                <li>Claude 3 Haiku (Anthropic)</li>
+                <li>Gemini 1.5 Pro (Google)</li>
+                <li>Gemini 1.5 Flash (Google)</li>
+                <li>Llama 3.1 70B (Meta)</li>
+                <li>Llama 3 8B (Meta)</li>
+                <li>Grok-1.5 (xAI)</li>
+                <li>Qwen2 72B (Alibaba)</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-xs font-semibold text-blue-800 mb-1">Specialized Models</h4>
+              <ul className="text-xs text-blue-700 space-y-1 pl-5 list-disc">
+                <li>DeepSeek V2 (DeepSeek)</li>
+                <li>DeepSeek Coder (DeepSeek)</li>
+                <li>Perplexity Sonar (Perplexity)</li>
+                <li>Cohere Command-R+ (Cohere)</li>
+                <li>Mistral Large (Mistral)</li>
+                <li>Claude 3.5 Medical (Medicine-focused)</li>
+                <li>Llama 3 8B RL-Optimized</li> 
+                <li>OpenChat 3.5</li>
+              </ul>
+            </div>
+          </div>
         </div>
       
         <Alert className="bg-amber-50 border-amber-200">

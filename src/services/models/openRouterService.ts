@@ -1,17 +1,46 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { Response } from '../../types/query';
+import { OPENROUTER_MODEL_IDS } from './constants';
 
 // Define accurate OpenRouter model IDs with display names
 const OPENROUTER_MODELS = [
-  { id: 'anthropic/claude-3-opus:20240229', displayName: 'Claude 3.7 Opus' },
-  { id: 'anthropic/claude-3-sonnet:20240229', displayName: 'Claude 3.5 Sonnet' },
-  { id: 'google/gemini-1.5-pro', displayName: 'Gemini 1.5 Pro' },
-  { id: 'mistralai/mistral-large', displayName: 'Mistral Large' },
-  { id: 'meta-llama/llama-3-70b-instruct', displayName: 'Llama 3 70B' },
-  { id: 'deepseek-ai/deepseek-v2', displayName: 'DeepSeek V2' },
-  { id: 'cohere/command-r-plus', displayName: 'Cohere Command-R+' },
-  { id: 'perplexity/sonar-small-online', displayName: 'Perplexity Sonar' }
+  // Anthropic Models
+  { id: OPENROUTER_MODEL_IDS.CLAUDE_OPUS, displayName: 'Claude 3.7 Opus' },
+  { id: OPENROUTER_MODEL_IDS.CLAUDE_SONNET, displayName: 'Claude 3.5 Sonnet' },
+  { id: OPENROUTER_MODEL_IDS.CLAUDE_HAIKU, displayName: 'Claude 3 Haiku' },
+  
+  // Google Models
+  { id: OPENROUTER_MODEL_IDS.GEMINI_PRO, displayName: 'Gemini 1.5 Pro' },
+  { id: OPENROUTER_MODEL_IDS.GEMINI_FLASH, displayName: 'Gemini 1.5 Flash' },
+  
+  // Meta Models
+  { id: OPENROUTER_MODEL_IDS.LLAMA_70B, displayName: 'Llama 3.1 70B' },
+  { id: OPENROUTER_MODEL_IDS.LLAMA_8B, displayName: 'Llama 3 8B' },
+  
+  // xAI Models
+  { id: OPENROUTER_MODEL_IDS.GROK_1_5, displayName: 'Grok-1.5' },
+  
+  // DeepSeek Models
+  { id: OPENROUTER_MODEL_IDS.DEEPSEEK_V2, displayName: 'DeepSeek V2' },
+  { id: OPENROUTER_MODEL_IDS.DEEPSEEK_CODER, displayName: 'DeepSeek Coder' },
+  
+  // Alibaba Models
+  { id: OPENROUTER_MODEL_IDS.QWEN_72B, displayName: 'Qwen2 72B' },
+  
+  // Perplexity Models
+  { id: OPENROUTER_MODEL_IDS.PERPLEXITY_SONAR, displayName: 'Perplexity Sonar' },
+  
+  // Cohere Models
+  { id: OPENROUTER_MODEL_IDS.COHERE_COMMAND, displayName: 'Cohere Command-R+' },
+  
+  // Mistral Models
+  { id: OPENROUTER_MODEL_IDS.MISTRAL_LARGE, displayName: 'Mistral Large' },
+  
+  // Specialized/Finetuned Models
+  { id: OPENROUTER_MODEL_IDS.CLAUDE_3_5_SONNET_MEDICINE, displayName: 'Claude 3.5 Medical' },
+  { id: OPENROUTER_MODEL_IDS.LLAMA_3_8B_INSTRUCT_RL, displayName: 'Llama 3 8B (RL-Optimized)' },
+  { id: OPENROUTER_MODEL_IDS.OPENCHAT_35, displayName: 'OpenChat 3.5' }
 ];
 
 // Helper function to parse API keys from a string and validate them
@@ -173,84 +202,7 @@ export const fetchFromMultipleOpenRouterModels = async (
   }
 };
 
-// Improved function to fetch from a single model with proper error handling
-async function fetchSingleOpenRouterModel(
-  queryText: string,
-  apiKey: string,
-  modelId: string,
-  displayName: string,
-  requestId: string
-): Promise<Response> {
-  try {
-    // Log model and API key being used (without revealing full key)
-    const keyPreview = apiKey ? `${apiKey.substring(0, 8)}...` : 'MISSING';
-    console.log(`Fetching from OpenRouter model ${displayName} (${modelId}) with API key ${keyPreview}`);
-    
-    if (!apiKey) {
-      throw new Error('No API key provided for OpenRouter');
-    }
-    
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-        'HTTP-Referer': window.location.origin,
-        'X-Title': 'Agent Veritas Consensus App'
-      },
-      body: JSON.stringify({
-        model: modelId, // Explicitly specify the correct model ID
-        messages: [
-          { role: 'system', content: 'You are a helpful assistant providing factual, concise information.' },
-          { role: 'user', content: queryText }
-        ],
-        temperature: 0.3,
-        // Add unique request ID to prevent caching
-        extra: { requestId }
-      })
-    });
-    
-    // Handle non-success HTTP responses
-    if (!response.ok) {
-      let errorText = '';
-      try {
-        const errorResponse = await response.json();
-        errorText = JSON.stringify(errorResponse);
-      } catch (e) {
-        errorText = await response.text();
-      }
-      
-      console.error(`HTTP error ${response.status} from ${displayName}: ${errorText}`);
-      throw new Error(`Error ${response.status} from ${displayName}: ${errorText}`);
-    }
-    
-    // Parse the response
-    const data = await response.json();
-    
-    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-      console.error(`Invalid response format from ${displayName}:`, data);
-      throw new Error(`Invalid response format from ${displayName}`);
-    }
-    
-    const content = data.choices[0].message.content;
-    console.log(`Success! Got response from ${displayName} (${content.length} chars)`);
-    
-    // Return properly formatted response
-    return {
-      id: uuidv4(),
-      content: content,
-      source: displayName,
-      verified: false,
-      timestamp: Date.now(),
-      confidence: 0.7
-    };
-  } catch (error) {
-    console.error(`Failed to get response from ${displayName}:`, error);
-    throw error; // Re-throw to be handled by Promise.allSettled
-  }
-}
-
-// Single OpenRouter model fetch - keeping for compatibility but improved
+// For backward compatibility
 export const fetchFromOpenRouter = async (
   queryText: string, 
   apiKey: string, 
