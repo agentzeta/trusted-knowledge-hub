@@ -9,7 +9,7 @@ interface IndividualResponsesProps {
 
 const IndividualResponses: React.FC<IndividualResponsesProps> = ({ responses }) => {
   useEffect(() => {
-    console.log('IndividualResponses rendering with:', {
+    console.log('IndividualResponses MOUNT with:', {
       count: responses.length, 
       sources: responses.map(r => r.source).join(', '),
       responseIds: responses.map(r => r.id)
@@ -25,7 +25,14 @@ const IndividualResponses: React.FC<IndividualResponsesProps> = ({ responses }) 
         timestamp: response.timestamp
       });
     });
+    
+    return () => {
+      console.log('IndividualResponses UNMOUNT');
+    };
   }, [responses]);
+  
+  // Additional log on every render
+  console.log('IndividualResponses RENDER with responses:', responses.length);
   
   if (responses.length === 0) {
     console.log('No responses to display in IndividualResponses');
@@ -44,7 +51,7 @@ const IndividualResponses: React.FC<IndividualResponsesProps> = ({ responses }) 
         <h3 className="text-lg font-medium mb-4">Individual AI Responses ({responses.length}):</h3>
         <div className="space-y-4">
           {responses.map((response) => {
-            console.log(`Rendering response from ${response.source}:`, {
+            console.log(`Rendering response card for ${response.source}:`, {
               id: response.id,
               contentPreview: response.content.substring(0, 50) + '...',
               verified: response.verified

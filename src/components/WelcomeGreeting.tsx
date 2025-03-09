@@ -24,7 +24,7 @@ const WelcomeGreeting: React.FC<WelcomeGreetingProps> = ({
   useEffect(() => {
     // Automatically speak a greeting when the component is mounted
     if (!isSpeaking) {
-      speakResponse("Hello from Agent Veritas. Would you rather speak to me, or use text in the chat?");
+      speakResponse("Hello from Agent Vera. Would you rather speak to me, or use text in the chat?");
     }
   }, []);
 
@@ -48,7 +48,7 @@ const WelcomeGreeting: React.FC<WelcomeGreetingProps> = ({
             <AgentVeritasAvatar withPulse={!expanded} />
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-medium">Hello from Agent Veritas</h3>
+            <h3 className="text-lg font-medium">Hello from Agent Vera</h3>
             <p className="text-gray-500">Would you rather speak to our Agent, or use text in the chat?</p>
           </div>
           <div className="flex gap-2">

@@ -10,6 +10,12 @@ export const fetchFromDeepseek = async (queryText: string, apiKey: string): Prom
   
   try {
     console.log('Fetching from DeepSeek Coder with API key:', apiKey.substring(0, 5) + '...');
+    console.log('DeepSeek request payload:', JSON.stringify({
+      model: 'deepseek-coder',
+      messages: [{ role: 'user', content: queryText }],
+      max_tokens: 150
+    }));
+    
     // Using DeepSeek Coder API
     const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
@@ -24,6 +30,9 @@ export const fetchFromDeepseek = async (queryText: string, apiKey: string): Prom
       })
     });
     
+    // Get response status
+    console.log('DeepSeek response status:', response.status, response.statusText);
+    
     // Log complete response for debugging
     const responseText = await response.text();
     console.log('DeepSeek raw response text:', responseText);
@@ -32,6 +41,7 @@ export const fetchFromDeepseek = async (queryText: string, apiKey: string): Prom
     let data;
     try {
       data = JSON.parse(responseText);
+      console.log('DeepSeek parsed data:', JSON.stringify(data).substring(0, 200) + '...');
     } catch (parseError) {
       console.error('DeepSeek response is not valid JSON:', parseError);
       return null;
@@ -43,10 +53,14 @@ export const fetchFromDeepseek = async (queryText: string, apiKey: string): Prom
       return null;
     }
     
-    console.log('DeepSeek parsed response:', JSON.stringify(data).substring(0, 200) + '...');
-    
     if (data.error) {
       console.error('Deepseek API error:', data.error);
+      return null;
+    }
+    
+    // Check for expected data structure
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+      console.error('DeepSeek API returned unexpected structure:', JSON.stringify(data));
       return null;
     }
     

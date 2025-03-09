@@ -98,7 +98,7 @@ export const useAgentInteraction = (initialMode: 'voice' | 'video' = 'voice') =>
     if (!query.trim()) return;
     
     setAgentResponding(true);
-    console.log('Agent: Submitting user query to get multiple LLM responses:', query);
+    console.log('Agent Vera: Submitting user query to get multiple LLM responses:', query);
     
     // This uses the same submitQuery function that the main QueryInterface uses
     submitQuery(query);

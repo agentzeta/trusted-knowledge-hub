@@ -38,13 +38,8 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
   
   console.log('=== Creating API Promises ===');
   
-  // Add each API with a valid key to the promises array
-  if (apiKeys.openai) {
-    console.log('Adding OpenAI API call to queue with key:', apiKeys.openai.substring(0, 5) + '...');
-    apiPromises.push(fetchFromOpenAI(queryText, apiKeys.openai));
-    apiSources.push('GPT-4o');
-  }
-  
+  // CRITICAL CHANGE: Prioritize Anthropic for Agent Vera
+  // Add Anthropic first to ensure it's used for Agent Vera
   if (apiKeys.anthropic) {
     console.log('Adding Anthropic API call to queue with key:', apiKeys.anthropic.substring(0, 5) + '...');
     apiPromises.push(fetchFromAnthropic(queryText, apiKeys.anthropic));
@@ -55,6 +50,13 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
     console.log('Adding Anthropic Claude 3.5 API call to queue with key:', apiKeys.anthropicClaude35.substring(0, 5) + '...');
     apiPromises.push(fetchFromAnthropicClaude35(queryText, apiKeys.anthropicClaude35));
     apiSources.push('Claude 3.5 Sonnet');
+  }
+  
+  // Add other APIs after Anthropic
+  if (apiKeys.openai) {
+    console.log('Adding OpenAI API call to queue with key:', apiKeys.openai.substring(0, 5) + '...');
+    apiPromises.push(fetchFromOpenAI(queryText, apiKeys.openai));
+    apiSources.push('GPT-4o');
   }
   
   if (apiKeys.gemini) {
