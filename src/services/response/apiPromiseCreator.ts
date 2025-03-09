@@ -7,9 +7,9 @@ import {
   fetchFromGemini, 
   fetchFromGeminiProExp, 
   fetchFromPerplexity, 
-  fetchFromDeepseek,
-  fetchFromMultipleOpenRouterModels
+  fetchFromDeepseek
 } from '../modelService';
+import { fetchFromMultipleOpenRouterModels } from '../models/openRouter';
 
 /**
  * Creates API promises based on available API keys with improved error handling
@@ -128,7 +128,7 @@ export const createApiPromises = (queryText: string, apiKeys: ApiKeys) => {
     console.log('Skipping DeepSeek (Coder) - No API key provided');
   }
   
-  // Handle OpenRouter specially with enhanced error handling
+  // Handle OpenRouter with updated import
   if (apiKeys.openrouter) {
     console.log('Adding OpenRouter multi-model fetching to request queue');
     
