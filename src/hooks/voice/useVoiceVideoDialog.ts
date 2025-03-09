@@ -52,6 +52,7 @@ export const useVoiceVideoDialog = (
 
   useEffect(() => {
     if (!isOpen) {
+      // Cleanup when dialog closes
       cleanupMedia();
       setMode('initial');
       setCurrentStep(0);
@@ -61,12 +62,15 @@ export const useVoiceVideoDialog = (
         stopListening();
       }
     } else {
+      // Start listening when dialog opens (after a slight delay)
       if (!isListening && !isSpeaking) {
         setTimeout(() => {
+          console.log('Starting listening in useVoiceVideoDialog');
           startListening();
         }, 1000);
       }
       
+      // If initial mode is video, setup video mode
       if (initialMode === 'video') {
         handleVideoMode();
       }
@@ -74,6 +78,7 @@ export const useVoiceVideoDialog = (
   }, [isOpen, initialMode, isListening, isSpeaking]);
 
   const handleVideoMode = async () => {
+    console.log('Handling video mode in useVoiceVideoDialog');
     setMode('video');
     setCurrentStep(2);
     const stream = await setupVideoStream();
@@ -83,7 +88,10 @@ export const useVoiceVideoDialog = (
   };
 
   const saveRecording = async () => {
+    console.log('Saving recording in useVoiceVideoDialog');
     if (!recordedVideo) return;
+    
+    // Implementation for saving recording would go here
     
     return true;
   };

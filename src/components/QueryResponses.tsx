@@ -39,6 +39,17 @@ const QueryResponses: React.FC<QueryResponsesProps> = ({
     });
   }, [isLoading, consensusResponse, responses]);
 
+  // If there are no responses and we're not loading, show a message
+  if (responses.length === 0 && !isLoading && !consensusResponse) {
+    return (
+      <div className="mt-8 p-6 rounded-xl bg-white/80 shadow-md">
+        <p className="text-center text-gray-500">
+          No responses from any AI models. Please check your API keys in settings.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <>
       <AnimatePresence>

@@ -39,6 +39,9 @@ const IndividualResponses: React.FC<IndividualResponsesProps> = ({ responses }) 
     return null;
   }
   
+  // Sort responses by source name for consistent display
+  const sortedResponses = [...responses].sort((a, b) => a.source.localeCompare(b.source));
+  
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -50,7 +53,7 @@ const IndividualResponses: React.FC<IndividualResponsesProps> = ({ responses }) 
       <div className="p-6">
         <h3 className="text-lg font-medium mb-4">Individual AI Responses ({responses.length}):</h3>
         <div className="space-y-4">
-          {responses.map((response) => {
+          {sortedResponses.map((response) => {
             console.log(`Rendering response card for ${response.source}:`, {
               id: response.id,
               contentPreview: response.content.substring(0, 50) + '...',

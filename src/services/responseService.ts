@@ -32,53 +32,51 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
     };
   }
   
-  // Create API promises only for those with keys
+  // Create API promises array
   const apiPromises = [];
   const apiSources = [];
   
   console.log('=== Creating API Promises ===');
   
-  // CRITICAL CHANGE: Prioritize Anthropic for Agent Vera
-  // Add Anthropic first to ensure it's used for Agent Vera
+  // Create promises for each API with a key, using parallel Promise.all
   if (apiKeys.anthropic) {
-    console.log('Adding Anthropic API call to queue with key:', apiKeys.anthropic.substring(0, 5) + '...');
+    console.log('Adding Anthropic (Claude 3 Haiku) to request queue');
     apiPromises.push(fetchFromAnthropic(queryText, apiKeys.anthropic));
     apiSources.push('Claude 3 Haiku');
   }
   
   if (apiKeys.anthropicClaude35) {
-    console.log('Adding Anthropic Claude 3.5 API call to queue with key:', apiKeys.anthropicClaude35.substring(0, 5) + '...');
+    console.log('Adding Anthropic (Claude 3.5 Sonnet) to request queue');
     apiPromises.push(fetchFromAnthropicClaude35(queryText, apiKeys.anthropicClaude35));
     apiSources.push('Claude 3.5 Sonnet');
   }
   
-  // Add other APIs after Anthropic
   if (apiKeys.openai) {
-    console.log('Adding OpenAI API call to queue with key:', apiKeys.openai.substring(0, 5) + '...');
+    console.log('Adding OpenAI (GPT-4o) to request queue');
     apiPromises.push(fetchFromOpenAI(queryText, apiKeys.openai));
     apiSources.push('GPT-4o');
   }
   
   if (apiKeys.gemini) {
-    console.log('Adding Gemini API call to queue with key:', apiKeys.gemini.substring(0, 5) + '...');
+    console.log('Adding Gemini (1.5 Pro) to request queue');
     apiPromises.push(fetchFromGemini(queryText, apiKeys.gemini));
     apiSources.push('Gemini 1.5 Pro');
   }
   
   if (apiKeys.geminiProExperimental) {
-    console.log('Adding Gemini Pro Experimental API call to queue with key:', apiKeys.geminiProExperimental.substring(0, 5) + '...');
+    console.log('Adding Gemini (1.5 Flash) to request queue');
     apiPromises.push(fetchFromGeminiProExp(queryText, apiKeys.geminiProExperimental));
     apiSources.push('Gemini 1.5 Flash');
   }
   
   if (apiKeys.perplexity) {
-    console.log('Adding Perplexity API call to queue with key:', apiKeys.perplexity.substring(0, 5) + '...');
+    console.log('Adding Perplexity (Sonar) to request queue');
     apiPromises.push(fetchFromPerplexity(queryText, apiKeys.perplexity));
     apiSources.push('Perplexity Sonar');
   }
   
   if (apiKeys.deepseek) {
-    console.log('Adding DeepSeek API call to queue with key:', apiKeys.deepseek.substring(0, 5) + '...');
+    console.log('Adding DeepSeek (Coder) to request queue');
     apiPromises.push(fetchFromDeepseek(queryText, apiKeys.deepseek));
     apiSources.push('DeepSeek Coder');
   }
@@ -93,21 +91,22 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
     };
   }
   
-  // Execute all API promises simultaneously
-  console.log('=== Executing API Calls ===');
+  // Execute all API promises with allSettled to get results regardless of success/failure
+  console.log('=== Executing API Calls in Parallel ===');
   const apiResults = await Promise.allSettled(apiPromises);
   
   // Debug information about API responses
   apiResults.forEach((result, index) => {
     const source = index < apiSources.length ? apiSources[index] : 'Unknown';
     if (result.status === 'fulfilled') {
-      console.log(`API response from ${source} status:`, result.status);
-      console.log(`API response from ${source} value:`, result.value ? 'Response received' : 'Null response');
       if (result.value) {
-        console.log(`API response from ${source} content preview:`, result.value.content.substring(0, 50) + '...');
+        console.log(`✅ SUCCESS: API response from ${source}`);
+        console.log(`Content preview from ${source}:`, result.value.content.substring(0, 50) + '...');
+      } else {
+        console.warn(`⚠️ WARNING: API response from ${source} was fulfilled but returned null`);
       }
     } else {
-      console.error(`API response from ${source} failed:`, result.reason);
+      console.error(`❌ ERROR: API response from ${source} failed:`, result.reason);
     }
   });
   
