@@ -40,11 +40,11 @@ const WelcomeGreeting: React.FC<WelcomeGreetingProps> = ({
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="mb-8 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
+      className="mb-8 bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden professional-card"
     >
       <div className="p-4">
         <div className="flex items-center gap-3" onClick={handleExpandClick}>
-          <div className="flex items-center justify-center bg-gradient-to-r from-purple-400 to-indigo-600 rounded-full w-10 h-10">
+          <div className="flex items-center justify-center bg-gradient-to-r from-slate-700 to-slate-900 rounded-full w-10 h-10">
             <AgentVeritasAvatar withPulse={!expanded} />
           </div>
           <div className="flex-1">
@@ -77,7 +77,7 @@ const WelcomeGreeting: React.FC<WelcomeGreetingProps> = ({
             <div className="flex flex-wrap gap-3 justify-center">
               <Button 
                 variant="outline" 
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 apple-button"
                 onClick={onChooseTextChat}
               >
                 <MessageSquare size={16} />
@@ -85,7 +85,7 @@ const WelcomeGreeting: React.FC<WelcomeGreetingProps> = ({
               </Button>
               <Button 
                 variant="outline" 
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 apple-button"
                 onClick={onChooseVoiceChat}
               >
                 <Mic size={16} />
@@ -93,7 +93,7 @@ const WelcomeGreeting: React.FC<WelcomeGreetingProps> = ({
               </Button>
               <Button 
                 variant="outline" 
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 apple-button"
                 onClick={onChooseVideoChat}
               >
                 <Video size={16} />
