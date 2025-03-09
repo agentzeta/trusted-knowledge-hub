@@ -47,15 +47,29 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
     apiResults.forEach((result, i) => {
       const source = i < apiSources.length ? apiSources[i] : 'Unknown';
       if (result.status === 'fulfilled') {
-        successCount++;
-        if (Array.isArray(result.value)) {
-          console.log(`${source}: SUCCESS (array of ${result.value.length} responses)`);
-        } else {
+        // Handle null results (from error handling in apiPromiseCreator)
+        if (result.value === null) {
+          failureCount++;
+          console.warn(`${source}: HANDLED ERROR (returned null)`);
+        }
+        // Handle array results (like from OpenRouter)
+        else if (Array.isArray(result.value)) {
+          if (result.value.length > 0) {
+            successCount++;
+            console.log(`${source}: SUCCESS (array of ${result.value.length} responses)`);
+          } else {
+            failureCount++;
+            console.warn(`${source}: EMPTY ARRAY (no responses)`);
+          }
+        } 
+        // Handle single response
+        else {
+          successCount++;
           console.log(`${source}: SUCCESS (single response)`);
         }
       } else {
         failureCount++;
-        console.log(`${source}: FAILED (${result.reason})`);
+        console.error(`${source}: FAILED (${result.reason})`);
       }
     });
     

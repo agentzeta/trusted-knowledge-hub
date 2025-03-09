@@ -15,6 +15,12 @@ export const processApiResults = (apiResults: PromiseSettledResult<any>[], apiSo
     const source = index < apiSources.length ? apiSources[index] : 'Unknown';
     
     if (result.status === 'fulfilled') {
+      // Handle null results (from our improved error handling in apiPromiseCreator)
+      if (result.value === null) {
+        console.warn(`⚠️ Result from ${source} was fulfilled but returned null (error handled)`);
+        return;
+      }
+      
       // Special handling for responses that return an array of responses (like OpenRouter)
       if (Array.isArray(result.value)) {
         console.log(`✅ SUCCESS: Received an array of ${result.value.length} responses from ${source}`);
@@ -29,14 +35,22 @@ export const processApiResults = (apiResults: PromiseSettledResult<any>[], apiSo
         result.value.forEach((item: Response, i: number) => {
           if (item && item.content && item.source) {
             console.log(`Array response item #${i+1} from ${item.source}: Content length ${item.content.length}`);
+            // Check if the response contains an error message
+            if (item.source.includes('Error') || item.content.includes('Error')) {
+              console.warn(`⚠️ WARNING: Response from ${item.source} contains error markers`);
+            }
           } else {
             console.warn(`⚠️ WARNING: Invalid item in array from ${source}:`, item);
           }
         });
         
-        // Validate each response in the array
+        // Validate each response in the array and filter out error responses
         const validArrayResponses = result.value.filter((item: Response) => {
-          return item && item.content && item.source;
+          return item && 
+                 item.content && 
+                 item.source && 
+                 !item.source.includes('Error') && 
+                 !item.content.toLowerCase().includes('error fetching');
         });
         
         // Add each validated response to our valid responses
@@ -44,7 +58,7 @@ export const processApiResults = (apiResults: PromiseSettledResult<any>[], apiSo
           validResponses = [...validResponses, ...validArrayResponses];
           console.log(`✅ Added ${validArrayResponses.length} valid responses from ${source} array`);
         } else {
-          console.warn(`⚠️ WARNING: No valid responses from ${source} array`);
+          console.warn(`⚠️ WARNING: No valid responses from ${source} array after filtering out errors`);
         }
         
       } else if (result.value && result.value.content) {
@@ -74,7 +88,11 @@ export const processApiResults = (apiResults: PromiseSettledResult<any>[], apiSo
   
   // Log the summary of processed responses
   console.log(`🏁 FINAL PROCESSED RESPONSES: ${finalResponses.length} valid from ${apiResults.length} total`);
-  console.log('Valid response sources:', finalResponses.map(r => r.source).join(', '));
+  if (finalResponses.length > 0) {
+    console.log('Valid response sources:', finalResponses.map(r => r.source).join(', '));
+  } else {
+    console.error('❌ No valid responses after processing - check API keys and request parameters');
+  }
   
   return finalResponses;
 };

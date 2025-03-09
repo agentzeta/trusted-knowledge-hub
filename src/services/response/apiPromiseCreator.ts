@@ -1,3 +1,4 @@
+
 import { ApiKeys } from '../../types/query';
 import { 
   fetchFromOpenAI, 
@@ -27,7 +28,7 @@ export const createApiPromises = (queryText: string, apiKeys: ApiKeys) => {
       Promise.resolve(fetchFromAnthropic(queryText, apiKeys.anthropic))
         .catch(error => {
           console.error('Error fetching from Anthropic (Claude 3 Haiku):', error);
-          throw error; // Re-throw for Promise.allSettled to catch
+          return null; // Return null to be filtered out later
         })
     );
     apiSources.push('Claude 3 Haiku');
@@ -38,7 +39,7 @@ export const createApiPromises = (queryText: string, apiKeys: ApiKeys) => {
       Promise.resolve(fetchFromAnthropicClaude35(queryText, apiKeys.anthropic))
         .catch(error => {
           console.error('Error fetching from Anthropic (Claude 3.5 Sonnet):', error);
-          throw error;
+          return null;
         })
     );
     apiSources.push('Claude 3.5 Sonnet');
@@ -49,7 +50,7 @@ export const createApiPromises = (queryText: string, apiKeys: ApiKeys) => {
       Promise.resolve(fetchFromAnthropicClaude35(queryText, apiKeys.anthropicClaude35))
         .catch(error => {
           console.error('Error fetching from Anthropic (Claude 3.5 Sonnet):', error);
-          throw error;
+          return null;
         })
     );
     apiSources.push('Claude 3.5 Sonnet');
@@ -63,7 +64,7 @@ export const createApiPromises = (queryText: string, apiKeys: ApiKeys) => {
       Promise.resolve(fetchFromOpenAI(queryText, apiKeys.openai))
         .catch(error => {
           console.error('Error fetching from OpenAI (GPT-4o):', error);
-          throw error;
+          return null;
         })
     );
     apiSources.push('GPT-4o');
@@ -77,7 +78,7 @@ export const createApiPromises = (queryText: string, apiKeys: ApiKeys) => {
       Promise.resolve(fetchFromGemini(queryText, apiKeys.gemini))
         .catch(error => {
           console.error('Error fetching from Gemini (1.5 Pro):', error);
-          throw error;
+          return null;
         })
     );
     apiSources.push('Gemini 1.5 Pro');
@@ -91,7 +92,7 @@ export const createApiPromises = (queryText: string, apiKeys: ApiKeys) => {
       Promise.resolve(fetchFromGeminiProExp(queryText, apiKeys.geminiProExperimental))
         .catch(error => {
           console.error('Error fetching from Gemini (1.5 Flash):', error);
-          throw error;
+          return null;
         })
     );
     apiSources.push('Gemini 1.5 Flash');
@@ -105,7 +106,7 @@ export const createApiPromises = (queryText: string, apiKeys: ApiKeys) => {
       Promise.resolve(fetchFromPerplexity(queryText, apiKeys.perplexity))
         .catch(error => {
           console.error('Error fetching from Perplexity (Sonar):', error);
-          throw error;
+          return null;
         })
     );
     apiSources.push('Perplexity Sonar');
@@ -119,7 +120,7 @@ export const createApiPromises = (queryText: string, apiKeys: ApiKeys) => {
       Promise.resolve(fetchFromDeepseek(queryText, apiKeys.deepseek))
         .catch(error => {
           console.error('Error fetching from DeepSeek (Coder):', error);
-          throw error;
+          return null;
         })
     );
     apiSources.push('DeepSeek Coder');
@@ -131,16 +132,12 @@ export const createApiPromises = (queryText: string, apiKeys: ApiKeys) => {
   if (apiKeys.openrouter) {
     console.log('Adding OpenRouter multi-model fetching to request queue');
     
-    // Special promise that won't crash if one model fails
-    const openRouterPromise = Promise.resolve()
-      .then(() => {
-        console.log('Starting OpenRouter multi-model fetch with API key cycling');
-        return fetchFromMultipleOpenRouterModels(queryText, apiKeys.openrouter);
-      })
+    // Return the promise directly without wrapping in Promise.resolve
+    // The fetchFromMultipleOpenRouterModels function already has internal error handling
+    const openRouterPromise = fetchFromMultipleOpenRouterModels(queryText, apiKeys.openrouter)
       .catch(error => {
-        console.error('Error in OpenRouter multi-model fetch:', error);
-        // Return empty array on error instead of crashing
-        return [];
+        console.error('Uncaught error in OpenRouter multi-model fetch:', error);
+        return []; // Return empty array on error
       });
     
     apiPromises.push(openRouterPromise);

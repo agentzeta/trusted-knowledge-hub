@@ -31,3 +31,15 @@ export const DEFAULT_API_KEYS = {
   llama: import.meta.env.VITE_LLAMA_API_KEY || '',
   elevenlabs: import.meta.env.VITE_ELEVENLABS_API_KEY || '',
 };
+
+// OpenRouter model IDs - constant reference for accurate model IDs
+export const OPENROUTER_MODEL_IDS = {
+  CLAUDE_OPUS: 'anthropic/claude-3-opus:20240229',
+  CLAUDE_SONNET: 'anthropic/claude-3-sonnet:20240229',
+  GEMINI_PRO: 'google/gemini-1.5-pro',
+  MISTRAL_LARGE: 'mistralai/mistral-large',
+  LLAMA_70B: 'meta-llama/llama-3-70b-instruct',
+  DEEPSEEK_V2: 'deepseek-ai/deepseek-v2',
+  COHERE_COMMAND: 'cohere/command-r-plus',
+  PERPLEXITY_SONAR: 'perplexity/sonar-small-online'
+};

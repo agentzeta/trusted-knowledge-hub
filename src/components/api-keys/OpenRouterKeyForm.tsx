@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useQueryContext } from '@/hooks/useQueryContext';
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { BadgeCheck, InfoIcon, KeyRound } from 'lucide-react';
+import { BadgeCheck, InfoIcon, KeyRound, AlertCircle } from 'lucide-react';
 
 const OpenRouterKeyForm: React.FC = () => {
   const { setApiKey, apiKeys } = useQueryContext();
@@ -36,16 +36,23 @@ const OpenRouterKeyForm: React.FC = () => {
             Models available with OpenRouter
           </h3>
           <ul className="text-xs text-blue-700 space-y-1 pl-5 list-disc">
-            <li>Claude 3.7 Opus (Anthropic)</li>
-            <li>Claude 3.5 Sonnet (Anthropic)</li>
-            <li>Gemini 1.5 Pro (Google)</li>
-            <li>Mistral Large (Mistral AI)</li>
-            <li>Llama 3 70B (Meta)</li>
-            <li>DeepSeek V2 (DeepSeek)</li>
-            <li>Command R+ (Cohere)</li>
-            <li>Sonar (Perplexity)</li>
+            <li>Claude 3.7 Opus (Anthropic) - <code className="text-xs bg-blue-50 px-1">anthropic/claude-3-opus:20240229</code></li>
+            <li>Claude 3.5 Sonnet (Anthropic) - <code className="text-xs bg-blue-50 px-1">anthropic/claude-3-sonnet:20240229</code></li>
+            <li>Gemini 1.5 Pro (Google) - <code className="text-xs bg-blue-50 px-1">google/gemini-1.5-pro</code></li>
+            <li>Mistral Large (Mistral AI) - <code className="text-xs bg-blue-50 px-1">mistralai/mistral-large</code></li>
+            <li>Llama 3 70B (Meta) - <code className="text-xs bg-blue-50 px-1">meta-llama/llama-3-70b-instruct</code></li>
+            <li>DeepSeek V2 (DeepSeek) - <code className="text-xs bg-blue-50 px-1">deepseek-ai/deepseek-v2</code></li>
+            <li>Command R+ (Cohere) - <code className="text-xs bg-blue-50 px-1">cohere/command-r-plus</code></li>
+            <li>Sonar (Perplexity) - <code className="text-xs bg-blue-50 px-1">perplexity/sonar-small-online</code></li>
           </ul>
         </div>
+      
+        <Alert className="bg-amber-50 border-amber-200">
+          <AlertCircle className="h-4 w-4 text-amber-500" />
+          <AlertDescription className="text-amber-700">
+            OpenRouter has rate limits. Providing multiple API keys (separated by commas) helps distribute the load across keys.
+          </AlertDescription>
+        </Alert>
       
         <div className="space-y-2">
           <Label htmlFor="openrouter-key" className="flex items-center gap-1">
