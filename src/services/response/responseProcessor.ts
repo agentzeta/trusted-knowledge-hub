@@ -24,7 +24,12 @@ export const processApiResults = (apiResults: PromiseSettledResult<any>[], apiSo
               contentLength: item.content.length,
               contentPreview: item.content.substring(0, 50) + '...'
             });
-            validResponses.push(item);
+            // Ensure we're adding each item as a separate response
+            validResponses.push({
+              ...item,
+              // Ensure the source is properly set
+              source: item.source || `OpenRouter Model ${validResponses.length + 1}`
+            });
           }
         });
       } else if (result.value) {

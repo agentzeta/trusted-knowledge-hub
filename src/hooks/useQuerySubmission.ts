@@ -55,13 +55,17 @@ export const useQuerySubmission = (
         console.log('Setting verified responses:', verifiedResponses.length);
         console.log('Verified response sources:', verifiedResponses.map(r => r.source).join(', '));
         
-        // Store all responses regardless of verification status
+        // Store all responses
         setResponses(allResponses);
+        console.log('All responses set:', allResponses.length);
+        console.log('Sources:', allResponses.map(r => r.source).join(', '));
 
+        // Save to database if user is logged in
         if (user) {
           await saveResponseToDatabase(user.id, queryText, derivedConsensus, verifiedResponses);
         }
         
+        // Record on blockchain if private key is available
         if (privateKey) {
           await recordOnBlockchain(
             privateKey,

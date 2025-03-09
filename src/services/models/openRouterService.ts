@@ -61,7 +61,7 @@ export const fetchFromOpenRouter = async (
   }
 };
 
-// Updated function to fetch from multiple models individually
+// Updated function to fetch from multiple OpenRouter models individually
 export const fetchFromMultipleOpenRouterModels = async (
   queryText: string,
   apiKey: string
@@ -100,17 +100,21 @@ export const fetchFromMultipleOpenRouterModels = async (
           { role: 'system', content: 'You are a helpful assistant providing factual, concise information.' },
           { role: 'user', content: queryText }
         ],
-        temperature: 0.3
+        temperature: 0.3,
+        // Add a unique route parameter to prevent API caching the same response
+        route: model.displayName
       })
     })
     .then(async response => {
       if (!response.ok) {
-        console.error(`Error from ${model.displayName}: ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        console.error(`Error from ${model.displayName}:`, errorData);
         return null;
       }
       
       try {
         const data = await response.json();
+        console.log(`Response data from ${model.displayName}:`, data);
         
         if (!data.choices || !data.choices[0] || !data.choices[0].message) {
           console.error(`Invalid response format from ${model.displayName}`);
@@ -148,7 +152,7 @@ export const fetchFromMultipleOpenRouterModels = async (
     console.log(`Successfully received ${validResponses.length} responses from OpenRouter models`);
     console.log('OpenRouter model sources:', validResponses.map(r => r.source).join(', '));
     
-    // Return an empty array if no valid responses
+    // Ensure we're returning an array of distinct responses
     return validResponses;
   } catch (error) {
     console.error('Error in fetchFromMultipleOpenRouterModels:', error);

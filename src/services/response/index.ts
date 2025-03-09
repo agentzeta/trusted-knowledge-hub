@@ -31,10 +31,18 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
   
   // Execute all API promises with allSettled to get results regardless of success/failure
   console.log('=== Executing API Calls in Parallel ===');
+  console.log(`Executing ${apiPromises.length} API calls to sources:`, apiSources.join(', '));
+  
   const apiResults = await Promise.allSettled(apiPromises);
+  
+  console.log(`Received ${apiResults.length} API results:`, 
+    apiResults.map((r, i) => `${apiSources[i]}: ${r.status}`).join(', '));
   
   // Process results and collect valid responses
   const validResponses = processApiResults(apiResults, apiSources);
+  
+  console.log(`After processing, have ${validResponses.length} valid responses from:`, 
+    validResponses.map(r => r.source).join(', '));
   
   if (validResponses.length === 0) {
     return handleNoResponses();
