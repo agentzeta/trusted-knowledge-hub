@@ -9,7 +9,7 @@ import { processApiResults, handleNoResponses, handleNoApiKeys } from './respons
  * Main function to fetch responses from all configured AI models
  * With improved error handling and response processing
  */
-export const fetchResponses = async (queryText: string, apiKeys: ApiKeys, signal?: AbortSignal) => {
+export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
   console.log('=== Starting fetchResponses with Enhanced Error Handling ===');
   console.log('Query text:', queryText);
   
@@ -24,7 +24,7 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys, signal
   
   try {
     // Create API promises array
-    const { apiPromises, apiSources } = createApiPromises(queryText, apiKeys, signal);
+    const { apiPromises, apiSources } = createApiPromises(queryText, apiKeys);
     
     if (apiPromises.length === 0) {
       console.error('No API promises created - no valid API keys found');
@@ -39,11 +39,6 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys, signal
     console.log(`Executing ${apiPromises.length} API calls to sources:`, apiSources.join(', '));
     
     const apiResults = await Promise.allSettled(apiPromises);
-    
-    // Check if the operation was aborted
-    if (signal?.aborted) {
-      throw new DOMException('Operation aborted', 'AbortError');
-    }
     
     console.log('API results received, processing each:');
     let successCount = 0;
@@ -98,11 +93,6 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys, signal
     
     return { allResponses: validResponses, derivedConsensus };
   } catch (error) {
-    // Re-throw abort errors so they can be handled appropriately
-    if (error.name === 'AbortError') {
-      throw error;
-    }
-    
     console.error('Unexpected error in fetchResponses:', error);
     toast({
       title: "Error Processing Responses",

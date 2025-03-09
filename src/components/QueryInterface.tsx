@@ -24,7 +24,7 @@ const storedQueries = [
 ];
 
 const QueryInterface: React.FC = () => {
-  const { submitQuery, stopQuery, isLoading, query, responses, consensusResponse } = useQueryContext();
+  const { submitQuery, isLoading, query, responses, consensusResponse } = useQueryContext();
   const { user, signInWithGoogle } = useSupabaseAuth();
   const [inputQuery, setInputQuery] = useState('');
   const [suggestions, setSuggestions] = useState<typeof storedQueries>([]);
@@ -61,12 +61,6 @@ const QueryInterface: React.FC = () => {
     setInputQuery(query);
     submitQuery(query);
     setShowSuggestions(false);
-  };
-
-  const handleStop = () => {
-    if (stopQuery) {
-      stopQuery();
-    }
   };
 
   const handleGoogleSignIn = async () => {
@@ -133,7 +127,6 @@ const QueryInterface: React.FC = () => {
         showSuggestions={showSuggestions}
         setShowSuggestions={setShowSuggestions}
         handleSuggestionClick={handleSuggestionClick}
-        handleStop={handleStop}
       />
       
       <ExampleQueriesSection

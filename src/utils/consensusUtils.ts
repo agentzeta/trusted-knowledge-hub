@@ -1,7 +1,4 @@
 
-// This is a focused update to improve the consensus verification logic
-// I'm only modifying the verifyResponses and deriveConsensusResponse functions
-
 import { Response } from '../types/query';
 
 // Helper function to calculate Jaccard similarity between two strings
@@ -177,18 +174,11 @@ export const generateConsensusExplanation = (
 export const verifyResponses = (
   responses: Response[], 
   consensusText: string,
-  verificationThreshold: number = 0.45 // Lowered from 0.5 to 0.45 to be more inclusive
+  verificationThreshold: number = 0.5 // Lowered from 0.6 to 0.5 to be more inclusive
 ): Response[] => {
-  // Prevent bias by ensuring we don't auto-verify any specific model
   return responses.map(response => {
     // Calculate similarity with consensus
     const similarity = calculateJaccardSimilarity(response.content, consensusText);
-    
-    console.log(`Verification for ${response.source}:`, {
-      similarity: similarity.toFixed(3),
-      threshold: verificationThreshold,
-      isVerified: similarity >= verificationThreshold
-    });
     
     // Determine verification status based on similarity and confidence
     const isVerified = similarity >= verificationThreshold;
@@ -206,18 +196,13 @@ export const deriveConsensusResponse = (allResponses: Response[]): string => {
   if (allResponses.length === 0) return "No responses available";
   if (allResponses.length === 1) return allResponses[0].content;
   
-  console.log('=== DERIVING CONSENSUS RESPONSE ===');
-  
   // Step 1: Filter out clear outliers based on similarity
   const outlierThreshold = 0.12; // Lowered from 0.15 to be more inclusive
   const nonOutliers = allResponses.filter(r => !isOutlier(r, allResponses, outlierThreshold));
   
-  console.log(`Identified ${allResponses.length - nonOutliers.length} outliers out of ${allResponses.length} total responses`);
-  
   if (nonOutliers.length === 0) {
     // If all were outliers, fall back to the highest confidence response
     const sortedByConfidence = [...allResponses].sort((a, b) => b.confidence - a.confidence);
-    console.log('All responses were outliers, using highest confidence response from:', sortedByConfidence[0].source);
     return sortedByConfidence[0].content + "\n\n(Note: There was significant disagreement between AI responses on this query.)";
   }
   
@@ -225,16 +210,9 @@ export const deriveConsensusResponse = (allResponses: Response[]): string => {
   const similarityThreshold = 0.30; // Lowered from 0.35 to be more inclusive
   const clusters = clusterResponses(nonOutliers, similarityThreshold);
   
-  console.log(`Responses formed ${clusters.length} clusters`);
-  clusters.forEach((cluster, i) => {
-    console.log(`Cluster #${i+1} (${cluster.length} responses):`, cluster.map(r => r.source).join(', '));
-  });
-  
   // Step 3: Find the largest cluster (majority opinion)
   const sortedClusters = clusters.sort((a, b) => b.length - a.length);
   const largestCluster = sortedClusters[0];
-  
-  console.log(`Largest cluster has ${largestCluster.length} responses:`, largestCluster.map(r => r.source).join(', '));
   
   // Step 4: Extract common information from the largest cluster
   const consensusContent = extractCommonInformation(largestCluster);
@@ -243,8 +221,6 @@ export const deriveConsensusResponse = (allResponses: Response[]): string => {
   const consensusConfidence = calculateConsensusConfidence(largestCluster, allResponses);
   const confidenceLevel = consensusConfidence >= 0.8 ? "High" : 
                           consensusConfidence >= 0.5 ? "Moderate" : "Low";
-  
-  console.log(`Consensus confidence: ${confidenceLevel} (${Math.round(consensusConfidence * 100)}%)`);
   
   // Add confidence information to the response
   return `${consensusContent}

@@ -13,19 +13,15 @@ serve(async (req) => {
   }
 
   try {
-    // Get the API key from environment variables
     const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
     
     if (!ELEVENLABS_API_KEY) {
-      console.error('ELEVENLABS_API_KEY is not set in environment variables');
       throw new Error('ELEVENLABS_API_KEY is not set');
     }
     
-    // Parse request body
     const { text, voiceId } = await req.json();
     
     if (!text) {
-      console.error('No text provided in request');
       throw new Error('Text is required');
     }
     
@@ -43,7 +39,6 @@ serve(async (req) => {
         headers: {
           "Content-Type": "application/json",
           "xi-api-key": ELEVENLABS_API_KEY,
-          "Accept": "audio/mpeg"
         },
         body: JSON.stringify({
           text: text,
@@ -57,11 +52,9 @@ serve(async (req) => {
     );
 
     if (!response.ok) {
-      const errorBody = await response.text();
-      console.error("ElevenLabs API error response:", errorBody);
-      console.error("ElevenLabs API status:", response.status);
-      console.error("ElevenLabs API statusText:", response.statusText);
-      throw new Error(`ElevenLabs API error: ${response.status} ${response.statusText}`);
+      const errorText = await response.text();
+      console.error("ElevenLabs API error:", errorText);
+      throw new Error(`ElevenLabs API error: ${errorText}`);
     }
 
     // Get the audio as an ArrayBuffer
