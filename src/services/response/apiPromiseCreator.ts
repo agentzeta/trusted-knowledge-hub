@@ -1,4 +1,3 @@
-
 import { ApiKeys } from '../../types/query';
 import { 
   fetchFromOpenAI, 
@@ -128,18 +127,21 @@ export const createApiPromises = (queryText: string, apiKeys: ApiKeys) => {
     console.log('Skipping DeepSeek (Coder) - No API key provided');
   }
   
-  // Enhance OpenRouter with better error handling
+  // Handle OpenRouter specially with enhanced error handling
   if (apiKeys.openrouter) {
-    console.log('🔥 Adding OpenRouter multi-model fetching to queue with improved error handling');
+    console.log('Adding OpenRouter multi-model fetching to request queue');
     
-    // This version prevents one failure from affecting all models
-    const openRouterPromise = Promise.resolve(
-      fetchFromMultipleOpenRouterModels(queryText, apiKeys.openrouter)
-    ).catch(error => {
-      console.error('OpenRouter multi-model fetch failed:', error);
-      // Return empty array on error to prevent blocking other models
-      return [];
-    });
+    // Special promise that won't crash if one model fails
+    const openRouterPromise = Promise.resolve()
+      .then(() => {
+        console.log('Starting OpenRouter multi-model fetch with API key cycling');
+        return fetchFromMultipleOpenRouterModels(queryText, apiKeys.openrouter);
+      })
+      .catch(error => {
+        console.error('Error in OpenRouter multi-model fetch:', error);
+        // Return empty array on error instead of crashing
+        return [];
+      });
     
     apiPromises.push(openRouterPromise);
     apiSources.push('OpenRouter Models');

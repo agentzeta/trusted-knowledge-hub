@@ -1,9 +1,8 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea"; 
+import { Label } from "@/components/ui/label";
 import { useQueryContext } from '@/hooks/useQueryContext';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { BadgeCheck, InfoIcon, KeyRound } from 'lucide-react';
@@ -15,6 +14,11 @@ const OpenRouterKeyForm: React.FC = () => {
   const handleSaveOpenRouter = () => {
     if (openRouterKey) setApiKey('openrouter', openRouterKey);
   };
+
+  // Calculate how many API keys are provided (for display purposes)
+  const apiKeyCount = openRouterKey 
+    ? openRouterKey.split(',').filter(key => key.trim().length > 0).length 
+    : 0;
 
   return (
     <div className="space-y-4 mt-4">
@@ -46,28 +50,37 @@ const OpenRouterKeyForm: React.FC = () => {
         <div className="space-y-2">
           <Label htmlFor="openrouter-key" className="flex items-center gap-1">
             <KeyRound className="h-4 w-4" />
-            OpenRouter API Key(s)
+            OpenRouter API Key(s) {apiKeyCount > 0 && <span className="text-green-600 text-xs ml-2">({apiKeyCount} keys provided)</span>}
           </Label>
           <Textarea
             id="openrouter-key"
-            placeholder="sk-or-... (You can paste multiple keys separated by commas)"
+            placeholder="sk-or-... (You can paste multiple keys separated by commas for round-robin assignment)"
             value={openRouterKey}
             onChange={(e) => setOpenRouterKey(e.target.value)}
             className="font-mono text-sm"
             rows={3}
           />
-          <div className="text-xs text-gray-500 space-y-1">
-            <p>
+          <div className="text-xs space-y-1">
+            <p className="text-gray-500">
               Get your key at <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">openrouter.ai/keys</a>
             </p>
             <p className="text-green-600 font-medium">
-              NEW: You can enter multiple OpenRouter API keys separated by commas for round-robin assignment to models
+              IMPORTANT: Enter multiple OpenRouter API keys separated by commas for round-robin assignment to models
+            </p>
+            <p className="text-amber-600">
+              Each model query uses one API key in rotation, so adding multiple keys increases throughput
             </p>
           </div>
         </div>
       </div>
       
-      <Button onClick={handleSaveOpenRouter} disabled={!openRouterKey} className="w-full">Save OpenRouter API Key(s)</Button>
+      <Button 
+        onClick={handleSaveOpenRouter} 
+        disabled={!openRouterKey} 
+        className="w-full"
+      >
+        Save {apiKeyCount > 1 ? `${apiKeyCount} OpenRouter API Keys` : 'OpenRouter API Key'}
+      </Button>
     </div>
   );
 };

@@ -12,6 +12,8 @@ import { processApiResults, handleNoResponses, handleNoApiKeys } from './respons
 export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
   console.log('=== Starting fetchResponses with Enhanced Error Handling ===');
   console.log('Query text:', queryText);
+  
+  // Check which API keys are available
   const availableKeys = Object.keys(apiKeys).filter(k => !!apiKeys[k as keyof ApiKeys]);
   console.log('Available API keys:', availableKeys);
   
@@ -39,23 +41,30 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
     const apiResults = await Promise.allSettled(apiPromises);
     
     console.log('API results received, processing each:');
+    let successCount = 0;
+    let failureCount = 0;
+    
     apiResults.forEach((result, i) => {
       const source = i < apiSources.length ? apiSources[i] : 'Unknown';
       if (result.status === 'fulfilled') {
+        successCount++;
         if (Array.isArray(result.value)) {
           console.log(`${source}: SUCCESS (array of ${result.value.length} responses)`);
         } else {
           console.log(`${source}: SUCCESS (single response)`);
         }
       } else {
+        failureCount++;
         console.log(`${source}: FAILED (${result.reason})`);
       }
     });
     
+    console.log(`API calls summary: ${successCount} succeeded, ${failureCount} failed`);
+    
     // Process results and collect valid responses with improved handling for arrays
     const validResponses = processApiResults(apiResults, apiSources);
     
-    console.log(`After processing, have ${validResponses.length} total responses from:`, 
+    console.log(`After processing, have ${validResponses.length} total valid responses from:`, 
       validResponses.map(r => r.source).join(', '));
     
     // If no valid responses, handle that case

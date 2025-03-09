@@ -19,23 +19,24 @@ export const processApiResults = (apiResults: PromiseSettledResult<any>[], apiSo
       if (Array.isArray(result.value)) {
         console.log(`✅ SUCCESS: Received an array of ${result.value.length} responses from ${source}`);
         
+        // Skip empty arrays
+        if (result.value.length === 0) {
+          console.warn(`⚠️ WARNING: Empty array received from ${source}`);
+          return;
+        }
+        
         // Log every response in the array
         result.value.forEach((item: Response, i: number) => {
-          console.log(`Array response item #${i+1} from ${item.source || source}:`, {
-            id: item.id,
-            source: item.source,
-            contentLength: item.content?.length || 0
-          });
+          if (item && item.content && item.source) {
+            console.log(`Array response item #${i+1} from ${item.source}: Content length ${item.content.length}`);
+          } else {
+            console.warn(`⚠️ WARNING: Invalid item in array from ${source}:`, item);
+          }
         });
         
-        // Validate each response in the array - with more detailed logging
+        // Validate each response in the array
         const validArrayResponses = result.value.filter((item: Response) => {
-          if (item && item.content && item.source) {
-            return true;
-          } else {
-            console.warn(`❌ Invalid item in response array from ${source}:`, item);
-            return false;
-          }
+          return item && item.content && item.source;
         });
         
         // Add each validated response to our valid responses
@@ -43,38 +44,39 @@ export const processApiResults = (apiResults: PromiseSettledResult<any>[], apiSo
           validResponses = [...validResponses, ...validArrayResponses];
           console.log(`✅ Added ${validArrayResponses.length} valid responses from ${source} array`);
         } else {
-          console.warn(`⚠️ WARNING: Received ${result.value.length} responses from ${source}, but NONE were valid`);
+          console.warn(`⚠️ WARNING: No valid responses from ${source} array`);
         }
         
       } else if (result.value && result.value.content) {
         // Single response case
-        console.log(`✅ SUCCESS: Single API response from ${source}:`, {
-          contentLength: result.value.content.length
-        });
-        
+        console.log(`✅ SUCCESS: Single response from ${source}: Content length ${result.value.content.length}`);
         validResponses.push(result.value);
       } else {
-        console.warn(`⚠️ WARNING: API response from ${source} was fulfilled but invalid:`, result.value);
+        console.warn(`⚠️ WARNING: Response from ${source} was fulfilled but invalid:`, result.value);
       }
     } else {
-      console.error(`❌ ERROR: API response from ${source} failed:`, result.reason);
+      // Error handling with detailed logging
+      try {
+        const errorMessage = result.reason?.message || 'Unknown error';
+        const errorStack = result.reason?.stack || '';
+        console.error(`❌ ERROR: Response from ${source} failed: ${errorMessage}`);
+        if (errorStack) {
+          console.error(`Stack trace: ${errorStack}`);
+        }
+      } catch (e) {
+        console.error(`❌ ERROR: Response from ${source} failed with unparseable error`);
+      }
     }
   });
   
-  // Final validation of response array with detailed logging
-  validResponses = validResponses.filter(r => {
-    if (!r || !r.content || !r.source) {
-      console.warn('❌ Filtering out invalid response:', r);
-      return false;
-    }
-    return true;
-  });
+  // Filter out invalid responses just to be safe
+  const finalResponses = validResponses.filter(r => r && r.content && r.source);
   
-  // Log the final validated responses
-  console.log(`🏁 Final processed responses: ${validResponses.length}`);
-  console.log('Valid response sources:', validResponses.map(r => r.source).join(', '));
+  // Log the summary of processed responses
+  console.log(`🏁 FINAL PROCESSED RESPONSES: ${finalResponses.length} valid from ${apiResults.length} total`);
+  console.log('Valid response sources:', finalResponses.map(r => r.source).join(', '));
   
-  return validResponses;
+  return finalResponses;
 };
 
 /**
