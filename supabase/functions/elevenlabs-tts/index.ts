@@ -1,5 +1,5 @@
 
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -9,75 +9,89 @@ const corsHeaders = {
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { text, voiceId = 'pFZP5JQG7iQjIQuC4Bku' } = await req.json()
-    console.log(`Converting text to speech using voice ID: ${voiceId}\n`)
-
+    const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
+    
+    if (!ELEVENLABS_API_KEY) {
+      throw new Error('ELEVENLABS_API_KEY is not set');
+    }
+    
+    const { text, voiceId } = await req.json();
+    
     if (!text) {
-      throw new Error('Text is required')
+      throw new Error('Text is required');
     }
-
-    // Get the API key from environment variable
-    const apiKey = Deno.env.get('ELEVENLABS_API_KEY')
-    if (!apiKey) {
-      throw new Error('ELEVENLABS_API_KEY is not set')
-    }
-
-    // Call ElevenLabs API to convert text to speech
-    const ttsResponse = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
-      method: 'POST',
-      headers: {
-        'Accept': 'audio/mpeg',
-        'Content-Type': 'application/json',
-        'xi-api-key': apiKey,
-      },
-      body: JSON.stringify({
-        text,
-        model_id: 'eleven_monolingual_v1',
-        voice_settings: {
-          stability: 0.5,
-          similarity_boost: 0.5,
-        },
-      }),
-    })
-
-    if (!ttsResponse.ok) {
-      const errorText = await ttsResponse.text()
-      console.error('ElevenLabs API error:', errorText)
-      throw new Error(`ElevenLabs API returned ${ttsResponse.status}: ${errorText}`)
-    }
-
-    // Convert audio buffer to base64
-    const arrayBuffer = await ttsResponse.arrayBuffer()
-    const base64Audio = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)))
-
-    return new Response(
-      JSON.stringify({ audioContent: base64Audio }),
+    
+    // Default to "Aria" voice if not specified
+    const voice = voiceId || "9BWtsMINqrJLrRacOk9x";
+    
+    console.log(`Converting text to speech using voice ID: ${voice}`);
+    console.log(`Text to convert (first 50 chars): ${text.substring(0, 50)}...`);
+    
+    // Make request to ElevenLabs API
+    const response = await fetch(
+      `https://api.elevenlabs.io/v1/text-to-speech/${voice}/stream`,
       {
-        headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json' 
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "xi-api-key": ELEVENLABS_API_KEY,
         },
+        body: JSON.stringify({
+          text: text,
+          model_id: "eleven_multilingual_v2",
+          voice_settings: {
+            stability: 0.5,
+            similarity_boost: 0.75,
+          },
+        }),
       }
-    )
-  } catch (error) {
-    console.error('Error in elevenlabs-tts function:', error)
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("ElevenLabs API error:", errorText);
+      throw new Error(`ElevenLabs API error: ${errorText}`);
+    }
+
+    // Get the audio as an ArrayBuffer
+    const audioArrayBuffer = await response.arrayBuffer();
+    
+    console.log(`Received audio response, size: ${audioArrayBuffer.byteLength} bytes`);
+    
+    // Convert to base64
+    const audioBase64 = btoa(
+      String.fromCharCode(...new Uint8Array(audioArrayBuffer))
+    );
     
     return new Response(
       JSON.stringify({ 
-        error: error.message || 'An error occurred during text-to-speech conversion',
-        details: error.stack 
+        audioContent: audioBase64,
+        format: "mp3" 
       }),
-      {
-        status: 400,
+      { 
         headers: { 
           ...corsHeaders, 
           'Content-Type': 'application/json' 
-        },
+        } 
       }
-    )
+    );
+    
+  } catch (error) {
+    console.error("Error in ElevenLabs TTS function:", error);
+    
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { 
+        status: 500, 
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        } 
+      }
+    );
   }
-})
+});

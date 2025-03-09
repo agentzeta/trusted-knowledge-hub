@@ -1,91 +1,124 @@
 
 import React, { useState } from 'react';
+import { Check, ExternalLink, Clock } from 'lucide-react';
+import { Button } from "@/components/ui/button";
 import { format } from 'date-fns';
-import { Button } from '@/components/ui/button';
-import { ExternalLink, AlertCircle, CheckCircle2, Shield } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import FlareExplorerDialog from './FlareExplorerDialog';
 import EASExplorerDialog from './EASExplorerDialog';
 
 interface BlockchainVerificationDetailsProps {
-  blockchainReference: string | null;
-  attestationId: string | null;
+  blockchainReference: string;
+  attestationId: string;
   timestamp: number | null;
 }
 
-const BlockchainVerificationDetails: React.FC<BlockchainVerificationDetailsProps> = ({ 
-  blockchainReference, 
-  attestationId, 
-  timestamp 
+const BlockchainVerificationDetails: React.FC<BlockchainVerificationDetailsProps> = ({
+  blockchainReference,
+  attestationId,
+  timestamp
 }) => {
   const [showFlareExplorer, setShowFlareExplorer] = useState(false);
   const [showEASExplorer, setShowEASExplorer] = useState(false);
   
   const formattedDate = timestamp 
-    ? format(new Date(timestamp), 'MMM d, yyyy h:mm a') 
-    : 'Unknown date';
+    ? format(new Date(timestamp * 1000), 'PPpp') // Detailed date and time format
+    : null;
+    
+  const openFlareExplorer = (txHash: string) => {
+    window.open(`https://flare-explorer.flare.network/tx/${txHash}`, '_blank');
+  };
   
+  const openEASExplorer = (attestId: string) => {
+    window.open(`https://attestation.flare.network/attestation/${attestId}`, '_blank');
+  };
+
   return (
     <div className="space-y-4">
-      <div className="flex flex-col items-center text-center mb-4">
-        <Shield className="h-10 w-10 text-orange-500 mb-2" />
-        <p className="text-sm text-gray-700">
-          This consensus response has been verified by Flare Data Connector and recorded on the blockchain for tamper-proof verification.
-        </p>
-      </div>
-      
-      <div className="space-y-2">
-        <div className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
+      {formattedDate && (
+        <div className="p-3 rounded-md bg-blue-50 border border-blue-100 mb-3">
           <div className="flex items-center">
-            <CheckCircle2 className="h-4 w-4 text-green-500 mr-2" />
-            <span className="text-sm font-medium">Flare Blockchain</span>
+            <Clock className="h-4 w-4 text-blue-500 mr-2" />
+            <span className="text-sm font-medium">Consensus Timestamp</span>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowFlareExplorer(true)}
-            className="text-xs"
-          >
-            <ExternalLink className="h-3 w-3 mr-1" />
-            View
-          </Button>
+          <p className="text-xs text-gray-500 mt-1">{formattedDate}</p>
         </div>
-        
-        <div className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
-          <div className="flex items-center">
-            <CheckCircle2 className="h-4 w-4 text-green-500 mr-2" />
-            <span className="text-sm font-medium">Ethereum Attestation</span>
+      )}
+      
+      {blockchainReference && (
+        <div className="p-3 rounded-md bg-green-50 border border-green-100">
+          <div className="flex justify-between items-start mb-1">
+            <span className="text-sm font-medium flex items-center">
+              <Check className="h-4 w-4 text-green-500 mr-1" />
+              Flare Blockchain
+            </span>
+            <div className="flex gap-2">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-xs text-blue-600 p-0 h-auto" 
+                onClick={() => setShowFlareExplorer(true)}
+              >
+                View Details
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-xs text-blue-600 p-0 h-auto flex items-center" 
+                onClick={() => openFlareExplorer(blockchainReference)}
+              >
+                <ExternalLink className="w-3 h-3 mr-1" />
+                Explorer
+              </Button>
+            </div>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowEASExplorer(true)}
-            className="text-xs"
-          >
-            <ExternalLink className="h-3 w-3 mr-1" />
-            View
-          </Button>
+          <p className="text-xs text-gray-500 break-all">{blockchainReference.substring(0, 20)}...</p>
+          <FlareExplorerDialog 
+            txHash={blockchainReference} 
+            showDialog={showFlareExplorer} 
+            setShowDialog={setShowFlareExplorer} 
+          />
         </div>
+      )}
+      
+      {attestationId && (
+        <div className="p-3 rounded-md bg-green-50 border border-green-100">
+          <div className="flex justify-between items-start mb-1">
+            <span className="text-sm font-medium flex items-center">
+              <Check className="h-4 w-4 text-green-500 mr-1" />
+              EAS Attestation
+            </span>
+            <div className="flex gap-2">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-xs text-blue-600 p-0 h-auto" 
+                onClick={() => setShowEASExplorer(true)}
+              >
+                View Details
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-xs text-blue-600 p-0 h-auto flex items-center" 
+                onClick={() => openEASExplorer(attestationId)}
+              >
+                <ExternalLink className="w-3 h-3 mr-1" />
+                Explorer
+              </Button>
+            </div>
+          </div>
+          <p className="text-xs text-gray-500 break-all">{attestationId.substring(0, 20)}...</p>
+          <EASExplorerDialog 
+            attestId={attestationId} 
+            showDialog={showEASExplorer} 
+            setShowDialog={setShowEASExplorer} 
+          />
+        </div>
+      )}
+      
+      <div className="mt-4 text-xs text-center text-gray-500">
+        <p>Permanently recorded on {new Date().toLocaleString()}</p>
       </div>
-      
-      <div className="pt-2 text-xs text-gray-500 border-t border-gray-200">
-        <p>Verified on {formattedDate}</p>
-        <p className="mt-1">Transaction ID: {blockchainReference ? `${blockchainReference.substring(0, 8)}...` : 'N/A'}</p>
-      </div>
-      
-      {/* Flare Explorer Dialog */}
-      <FlareExplorerDialog 
-        showDialog={showFlareExplorer} 
-        setShowDialog={setShowFlareExplorer}
-        transactionHash={blockchainReference}
-      />
-      
-      {/* EAS Explorer Dialog */}
-      <EASExplorerDialog
-        showDialog={showEASExplorer}
-        setShowDialog={setShowEASExplorer}
-        attestationId={attestationId}
-      />
     </div>
   );
 };

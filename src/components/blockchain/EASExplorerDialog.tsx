@@ -11,13 +11,13 @@ import {
 } from "@/components/ui/dialog";
 
 interface EASExplorerDialogProps {
-  attestationId: string | null;
+  attestId: string;
   showDialog: boolean;
   setShowDialog: (show: boolean) => void;
 }
 
 const EASExplorerDialog: React.FC<EASExplorerDialogProps> = ({ 
-  attestationId, 
+  attestId, 
   showDialog, 
   setShowDialog 
 }) => {
@@ -36,7 +36,7 @@ const EASExplorerDialog: React.FC<EASExplorerDialogProps> = ({
         </DialogHeader>
         <div className="mt-4">
           <h3 className="text-sm font-medium mb-2">Attestation ID:</h3>
-          <p className="text-xs bg-gray-100 p-2 rounded break-all">{attestationId}</p>
+          <p className="text-xs bg-gray-100 p-2 rounded break-all">{attestId}</p>
           
           <div className="mt-4">
             <p className="text-sm text-gray-600 mb-2">
@@ -48,14 +48,12 @@ const EASExplorerDialog: React.FC<EASExplorerDialogProps> = ({
               <Button variant="outline" onClick={() => setShowDialog(false)}>
                 Close
               </Button>
-              {attestationId && (
-                <Button 
-                  onClick={() => openEASExplorer(attestationId)}
-                  className="flex items-center gap-1"
-                >
-                  View on EAS Explorer <ExternalLink className="h-4 w-4 ml-1" />
-                </Button>
-              )}
+              <Button 
+                onClick={() => openEASExplorer(attestId)}
+                className="flex items-center gap-1"
+              >
+                View on EAS Explorer <ExternalLink className="h-4 w-4 ml-1" />
+              </Button>
             </div>
           </div>
         </div>
