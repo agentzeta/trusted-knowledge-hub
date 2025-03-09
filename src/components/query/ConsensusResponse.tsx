@@ -3,8 +3,9 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
-import { Shield, Clock, CheckCircle, Upload, TrendingUp } from 'lucide-react';
+import { Shield, Clock, CheckCircle, Upload, TrendingUp, FileText } from 'lucide-react';
 import { useQueryContext } from '@/hooks/useQueryContext';
+import { toast } from '@/components/ui/use-toast';
 
 interface ConsensusResponseProps {
   consensusResponse: string;
@@ -15,7 +16,15 @@ const ConsensusResponse: React.FC<ConsensusResponseProps> = ({
   consensusResponse, 
   timestamp 
 }) => {
-  const { verifyOnBlockchain, privateKey, isRecordingOnChain, blockchainReference, query } = useQueryContext();
+  const { 
+    verifyOnBlockchain, 
+    privateKey, 
+    isRecordingOnChain, 
+    blockchainReference, 
+    query,
+    exportToGoogleDocs,
+    user
+  } = useQueryContext();
   
   const formattedDate = timestamp 
     ? format(new Date(timestamp), 'MMM d, yyyy h:mm a') 
@@ -25,6 +34,27 @@ const ConsensusResponse: React.FC<ConsensusResponseProps> = ({
   const isFtsoRelated = query?.toLowerCase().includes('ftso') || 
                          query?.toLowerCase().includes('stock prediction') ||
                          query?.toLowerCase().includes('price prediction');
+  
+  const handleExportToGoogleDocs = async () => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to export to Google Docs",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await exportToGoogleDocs();
+    } catch (error: any) {
+      toast({
+        title: "Export failed",
+        description: error.message || "Failed to export to Google Docs",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <motion.div
@@ -70,6 +100,17 @@ const ConsensusResponse: React.FC<ConsensusResponseProps> = ({
                   Verified on blockchain
                 </span>
               )}
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportToGoogleDocs}
+                className="bg-white hover:bg-gray-50 text-blue-600 border-blue-200 flex items-center gap-2"
+                disabled={!user || !consensusResponse}
+              >
+                <FileText className="h-4 w-4" />
+                Export to Docs
+              </Button>
               
               {privateKey && (
                 <Button 
