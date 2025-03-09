@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useQueryContext } from '@/hooks/useQueryContext';
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { InfoIcon } from 'lucide-react';
 
 const AnthropicKeyForm: React.FC = () => {
   const { setApiKey, apiKeys } = useQueryContext();
@@ -25,6 +27,13 @@ const AnthropicKeyForm: React.FC = () => {
 
   return (
     <div className="space-y-4 mt-4">
+      <Alert className="bg-blue-50 border-blue-200 mb-4">
+        <InfoIcon className="h-4 w-4 text-blue-500" />
+        <AlertDescription className="text-blue-700">
+          One API key works for all Claude models (3 Haiku, 3.5 Sonnet, 3.7, etc)
+        </AlertDescription>
+      </Alert>
+      
       <div className="space-y-2">
         <Label htmlFor="anthropic-key">Anthropic API Key</Label>
         <Input
@@ -39,11 +48,11 @@ const AnthropicKeyForm: React.FC = () => {
           One API key works for all Claude models.
         </p>
       </div>
-      <Button onClick={handleSaveAnthropic} disabled={!anthropicKey} className="mb-4">Save Anthropic API Key</Button>
+      <Button onClick={handleSaveAnthropic} disabled={!anthropicKey} className="mb-4 w-full">Save Anthropic API Key</Button>
       
       {/* For backward compatibility - will be removed in future */}
-      <div className="space-y-2 opacity-50">
-        <Label htmlFor="anthropic-claude35-key">Legacy: Separate Claude 3.5 API Key (Not needed)</Label>
+      <div className="space-y-2 opacity-50 mt-8 pt-4 border-t border-gray-200">
+        <Label htmlFor="anthropic-claude35-key" className="text-sm">Legacy: Separate Claude 3.5 API Key (Not needed)</Label>
         <Input
           id="anthropic-claude35-key"
           type="password"
@@ -53,7 +62,7 @@ const AnthropicKeyForm: React.FC = () => {
         />
         <p className="text-xs text-gray-500">
           This is only for backward compatibility. You shouldn't need separate keys for Claude models.
-          Use the main Anthropic API Key above instead.
+          Use the main Anthropic API key above instead.
         </p>
       </div>
       <Button onClick={handleSaveAnthropicClaude35} disabled={!anthropicClaude35Key} className="opacity-50">

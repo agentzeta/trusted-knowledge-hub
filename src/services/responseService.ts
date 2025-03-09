@@ -97,6 +97,26 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
     console.log('Skipping DeepSeek (Coder) - No API key provided');
   }
   
+  // Add support for Llama models using a single API key
+  if (apiKeys.llama) {
+    console.log('Using Llama API key for all Llama models');
+    // You would implement specific model fetchers here
+    // For now, just logging that we have the key
+    console.log('Llama API key is available for use with Llama models');
+  }
+  
+  // Handle ElevenLabs key for voice synthesis
+  if (apiKeys.elevenlabs) {
+    console.log('ElevenLabs API key is available for voice synthesis');
+    // Store the ElevenLabs key in sessionStorage for easy access by TTS service
+    try {
+      sessionStorage.setItem('elevenLabsApiKey', apiKeys.elevenlabs);
+      console.log('ElevenLabs API key stored in session storage for voice synthesis');
+    } catch (e) {
+      console.error('Failed to store ElevenLabs API key in session storage:', e);
+    }
+  }
+  
   console.log(`Attempting to fetch from ${apiPromises.length} LLMs:`, apiSources.join(', '));
   
   if (apiPromises.length === 0) {

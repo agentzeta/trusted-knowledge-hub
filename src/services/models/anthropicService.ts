@@ -82,9 +82,46 @@ export const fetchFromAnthropic = async (queryText: string, apiKey: string): Pro
       };
     } catch (fetchError) {
       console.error('Fetch operation to Anthropic API failed:', fetchError);
-      // This might be a CORS issue or network problem
-      console.log('This could be a CORS issue. If running locally, check if a CORS proxy is needed.');
-      return null;
+      console.log('This could be a CORS issue. Using a proxy might help resolve this.');
+      
+      // Try with a CORS proxy if direct fetch fails
+      try {
+        console.log('Attempting to use CORS proxy for Anthropic API...');
+        const response = await fetch('https://cors-anywhere.herokuapp.com/https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'anthropic-version': '2023-06-01',
+            'x-api-key': apiKey,
+            'Origin': window.location.origin
+          },
+          body: JSON.stringify({
+            model: 'claude-3-haiku-20240307',
+            max_tokens: 150,
+            messages: [{ role: 'user', content: queryText }]
+          })
+        });
+        
+        if (!response.ok) {
+          console.error(`Claude API proxy error (${response.status}):`, await response.text());
+          return null;
+        }
+        
+        const data = await response.json();
+        const content = data.content[0].text;
+        
+        return {
+          id: `anthropic-proxy-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+          content: content,
+          source: 'Claude 3 Haiku',
+          verified: true,
+          timestamp: Date.now(),
+          confidence: 0.92
+        };
+      } catch (proxyError) {
+        console.error('Proxy attempt for Anthropic API also failed:', proxyError);
+        return null;
+      }
     }
   } catch (error) {
     console.error('Error fetching from Anthropic:', error);
@@ -173,9 +210,46 @@ export const fetchFromAnthropicClaude35 = async (queryText: string, apiKey: stri
       };
     } catch (fetchError) {
       console.error('Fetch operation to Claude 3.5 API failed:', fetchError);
-      // This might be a CORS issue or network problem
-      console.log('This could be a CORS issue. If running locally, check if a CORS proxy is needed.');
-      return null;
+      console.log('This could be a CORS issue. Using a proxy might help resolve this.');
+      
+      // Try with a CORS proxy if direct fetch fails
+      try {
+        console.log('Attempting to use CORS proxy for Claude 3.5 API...');
+        const response = await fetch('https://cors-anywhere.herokuapp.com/https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'anthropic-version': '2023-06-01',
+            'x-api-key': apiKey,
+            'Origin': window.location.origin
+          },
+          body: JSON.stringify({
+            model: 'claude-3-5-sonnet-20240620',
+            max_tokens: 150,
+            messages: [{ role: 'user', content: queryText }]
+          })
+        });
+        
+        if (!response.ok) {
+          console.error(`Claude 3.5 API proxy error (${response.status}):`, await response.text());
+          return null;
+        }
+        
+        const data = await response.json();
+        const content = data.content[0].text;
+        
+        return {
+          id: `anthropic35-proxy-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+          content: content,
+          source: 'Claude 3.5 Sonnet',
+          verified: true,
+          timestamp: Date.now(),
+          confidence: 0.94
+        };
+      } catch (proxyError) {
+        console.error('Proxy attempt for Claude 3.5 API also failed:', proxyError);
+        return null;
+      }
     }
   } catch (error) {
     console.error('Error fetching from Claude 3.5:', error);

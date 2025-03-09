@@ -12,7 +12,7 @@ export interface Response {
 export interface ApiKeys {
   openai?: string;
   anthropic?: string;
-  anthropicClaude35?: string;
+  anthropicClaude35?: string; // Kept for backward compatibility
   gemini?: string;
   geminiProExperimental?: string;
   perplexity?: string;
@@ -20,6 +20,8 @@ export interface ApiKeys {
   grok?: string;
   qwen?: string;
   openrouter?: string;
+  llama?: string;      // Added for consolidated Llama models access
+  elevenlabs?: string; // Added for voice synthesis
 }
 
 export interface QueryContextType {

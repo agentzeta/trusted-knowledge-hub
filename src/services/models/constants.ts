@@ -4,9 +4,11 @@ export const AI_SOURCES = [
   'GPT-4o', 
   'Claude 3 Haiku', 
   'Claude 3.5 Sonnet',
+  'Claude 3.7 Opus',
   'Gemini 1.5 Pro', 
   'Gemini 1.5 Flash',
   'Llama 3.1 70B', 
+  'Llama 3 8B',
   'Grok-1.5', 
   'Perplexity Sonar', 
   'DeepSeek Coder',
@@ -24,4 +26,6 @@ export const DEFAULT_API_KEYS = {
   deepseek: import.meta.env.VITE_DEEPSEEK_API_KEY || '',
   grok: import.meta.env.VITE_GROK_API_KEY || '',
   qwen: import.meta.env.VITE_QWEN_API_KEY || '',
+  llama: import.meta.env.VITE_LLAMA_API_KEY || '',
+  elevenlabs: import.meta.env.VITE_ELEVENLABS_API_KEY || '',
 };

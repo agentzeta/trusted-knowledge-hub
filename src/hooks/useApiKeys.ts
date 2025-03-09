@@ -8,14 +8,16 @@ import { toast } from '@/components/ui/use-toast';
 const DEFAULT_API_KEYS: ApiKeys = {
   openai: '',
   anthropic: '',
-  anthropicClaude35: '',
+  anthropicClaude35: '', // Kept for backward compatibility
   gemini: '',
   geminiProExperimental: '',
   perplexity: '',
   deepseek: '',
   grok: '',
   qwen: '',
-  openrouter: ''
+  openrouter: '',
+  llama: '',      // Added for Llama models
+  elevenlabs: ''  // Added for ElevenLabs TTS
 };
 
 export const useApiKeys = () => {
@@ -84,6 +86,22 @@ export const useApiKeys = () => {
       const updatedKeys = { ...apiKeys, [provider]: key };
       setApiKeys(updatedKeys);
       localStorage.setItem('apiKeys', JSON.stringify(updatedKeys));
+      
+      // Also update the Edge Function if possible
+      try {
+        supabase.functions.invoke('api-keys', {
+          method: 'POST',
+          body: { provider, key }
+        }).then(({ error }) => {
+          if (error) {
+            console.error('Error saving API key to Supabase:', error);
+          } else {
+            console.log(`Successfully saved ${provider} API key to Supabase`);
+          }
+        });
+      } catch (e) {
+        console.error('Error calling Supabase to save API key:', e);
+      }
       
       toast({
         title: "API Key Updated",
