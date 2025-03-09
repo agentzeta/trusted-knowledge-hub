@@ -1,39 +1,54 @@
 
-// API types for QueryContext
+export interface ResponseMediaType {
+  type: 'image' | 'audio' | 'video';
+  url: string;
+  alt?: string;
+}
+
 export interface Response {
   id: string;
   content: string;
   source: string;
   verified: boolean;
-  timestamp: number;
   confidence: number;
+  timestamp: number;
+  media?: ResponseMediaType[];
 }
 
 export interface ApiKeys {
-  openai?: string;
-  anthropic?: string;
-  anthropicClaude35?: string; // Kept for backward compatibility
-  gemini?: string;
-  geminiProExperimental?: string;
-  perplexity?: string;
-  deepseek?: string;
-  grok?: string;
-  qwen?: string;
-  openrouter?: string;  // Added for OpenRouter API access
-  llama?: string;      // Added for consolidated Llama models access
-  elevenlabs?: string; // Added for voice synthesis
+  openai: string;
+  anthropic: string;
+  anthropicClaude35: string;
+  gemini: string;
+  geminiProExperimental: string;
+  perplexity: string;
+  deepseek: string;
+  grok: string;
+  qwen: string;
+  openrouter: string;
+  llama: string;
+  elevenlabs: string;
+  [key: string]: string;
+}
+
+export interface ModelSource {
+  id: string;
+  name: string;
+  isAvailable: boolean;
+  apiKeyName: keyof ApiKeys;
 }
 
 export interface QueryContextType {
   query: string | null;
   responses: Response[];
   isLoading: boolean;
-  submitQuery: (query: string) => void;
-  setApiKey: (provider: string, key: string) => void;
-  setWalletKey: (key: string) => void;
+  consensusResponse: string | null;
+  submitQuery: (queryText: string) => Promise<void>;
+  cancelQuery: () => void;
+  setApiKey: (key: keyof ApiKeys, value: string) => void;
+  setWalletKey: (value: string) => void;
   privateKey: string | null;
   apiKeys: ApiKeys;
-  consensusResponse: string | null;
   blockchainReference: string | null;
   attestationId: string | null;
   isRecordingOnChain: boolean;

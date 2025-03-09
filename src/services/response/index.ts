@@ -1,9 +1,24 @@
-
 import { ApiKeys, Response } from '../../types/query';
 import { deriveConsensusResponse } from '../../utils/consensusUtils';
 import { toast } from '@/components/ui/use-toast';
 import { createApiPromises } from './apiPromiseCreator';
 import { processApiResults, handleNoResponses, handleNoApiKeys } from './responseProcessor';
+
+// Keep track of any active AbortController
+let activeAbortController: AbortController | null = null;
+
+/**
+ * Cancel any ongoing API requests
+ */
+export const cancelActiveRequests = () => {
+  if (activeAbortController) {
+    console.log('Cancelling active API requests');
+    activeAbortController.abort();
+    activeAbortController = null;
+    return true;
+  }
+  return false;
+};
 
 /**
  * Main function to fetch responses from all configured AI models
@@ -12,6 +27,10 @@ import { processApiResults, handleNoResponses, handleNoApiKeys } from './respons
 export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
   console.log('=== Starting fetchResponses with Enhanced Error Handling ===');
   console.log('Query text:', queryText);
+  
+  // Create new AbortController for this request batch
+  activeAbortController = new AbortController();
+  const signal = activeAbortController.signal;
   
   // Check which API keys are available
   const availableKeys = Object.keys(apiKeys).filter(k => !!apiKeys[k as keyof ApiKeys]);
@@ -24,7 +43,7 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
   
   try {
     // Create API promises array
-    const { apiPromises, apiSources } = createApiPromises(queryText, apiKeys);
+    const { apiPromises, apiSources } = createApiPromises(queryText, apiKeys, signal);
     
     if (apiPromises.length === 0) {
       console.error('No API promises created - no valid API keys found');
@@ -39,6 +58,9 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
     console.log(`Executing ${apiPromises.length} API calls to sources:`, apiSources.join(', '));
     
     const apiResults = await Promise.allSettled(apiPromises);
+    
+    // Clear the active abort controller since the requests are complete
+    activeAbortController = null;
     
     console.log('API results received, processing each:');
     let successCount = 0;
@@ -93,6 +115,23 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
     
     return { allResponses: validResponses, derivedConsensus };
   } catch (error) {
+    // Clear the active abort controller if there's an error
+    activeAbortController = null;
+    
+    // Check if the error is an AbortError
+    if (error.name === 'AbortError') {
+      console.log('Fetch operation was aborted by user');
+      toast({
+        title: "Requests Cancelled",
+        description: "AI model queries were cancelled.",
+        duration: 3000,
+      });
+      return { 
+        allResponses: [], 
+        derivedConsensus: null 
+      };
+    }
+    
     console.error('Unexpected error in fetchResponses:', error);
     toast({
       title: "Error Processing Responses",

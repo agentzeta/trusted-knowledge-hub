@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { toast } from '@/components/ui/use-toast';
-import { fetchResponses } from '../services/responseService';
+import { fetchResponses, cancelActiveRequests } from '../services/response';
 import { saveResponseToDatabase } from '../services/databaseService';
 import { Response } from '../types/query';
 import { verifyResponses } from '../utils/consensusUtils';
@@ -23,6 +23,17 @@ export const useQuerySubmission = (
   const [isLoading, setIsLoading] = useState(false);
   const [consensusResponse, setConsensusResponse] = useState<string | null>(null);
 
+  const cancelQuery = () => {
+    if (cancelActiveRequests()) {
+      setIsLoading(false);
+      toast({
+        title: "Query Cancelled",
+        description: "The query to AI models has been cancelled.",
+        duration: 3000,
+      });
+    }
+  };
+
   const submitQuery = async (queryText: string) => {
     setQuery(queryText);
     setIsLoading(true);
@@ -36,6 +47,12 @@ export const useQuerySubmission = (
       
       // Fetch responses from all available LLMs
       const result = await fetchResponses(queryText, apiKeys);
+      
+      // If query was cancelled, exit early
+      if (!result.derivedConsensus) {
+        setIsLoading(false);
+        return;
+      }
       
       const { allResponses, derivedConsensus } = result;
       console.log('=== QUERY RESULTS RECEIVED ===');
@@ -106,6 +123,7 @@ export const useQuerySubmission = (
     responses,
     isLoading,
     consensusResponse,
-    submitQuery
+    submitQuery,
+    cancelQuery
   };
 };

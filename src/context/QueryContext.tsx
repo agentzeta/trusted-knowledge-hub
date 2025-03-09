@@ -27,7 +27,8 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     responses, 
     isLoading, 
     consensusResponse, 
-    submitQuery 
+    submitQuery,
+    cancelQuery
   } = useQuerySubmission(apiKeys, user, recordResponseOnBlockchain, privateKey);
 
   const exportToGoogleDocs = async () => {
@@ -77,7 +78,8 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       query, 
       responses, 
       isLoading, 
-      submitQuery, 
+      submitQuery,
+      cancelQuery,
       setApiKey,
       setWalletKey,
       privateKey,

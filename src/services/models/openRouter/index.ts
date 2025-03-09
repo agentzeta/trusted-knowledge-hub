@@ -7,7 +7,8 @@ import { OPENROUTER_MODELS } from './modelDefinitions';
 // Main export: fetch from multiple OpenRouter models
 export const fetchFromMultipleOpenRouterModels = async (
   queryText: string,
-  apiKeyString: string
+  apiKeyString: string,
+  signal?: AbortSignal
 ): Promise<Response[]> => {
   console.log('=== FETCHING FROM MULTIPLE OPENROUTER MODELS ===');
   
@@ -16,14 +17,15 @@ export const fetchFromMultipleOpenRouterModels = async (
     return [];
   }
   
-  return processBatchedRequests(queryText, apiKeyString);
+  return processBatchedRequests(queryText, apiKeyString, signal);
 };
 
 // For backward compatibility: fetch from a single OpenRouter model
 export const fetchFromOpenRouter = async (
   queryText: string, 
   apiKey: string, 
-  modelName: string = 'anthropic/claude-3-opus:20240229'
+  modelName: string = 'anthropic/claude-3-opus:20240229',
+  signal?: AbortSignal
 ): Promise<Response> => {
   // Find model info or use default
   const modelInfo = OPENROUTER_MODELS.find(m => m.id === modelName) || 
@@ -50,7 +52,8 @@ export const fetchFromOpenRouter = async (
         temperature: 0.3,
         max_tokens: 1000,
         extra: { requestId }
-      })
+      }),
+      signal
     });
     
     if (!response.ok) {
