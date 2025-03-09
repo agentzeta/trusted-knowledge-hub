@@ -40,43 +40,43 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
   
   // Add each API with a valid key to the promises array
   if (apiKeys.openai) {
-    console.log('Adding OpenAI API call to queue');
+    console.log('Adding OpenAI API call to queue with key:', apiKeys.openai.substring(0, 5) + '...');
     apiPromises.push(fetchFromOpenAI(queryText, apiKeys.openai));
     apiSources.push('GPT-4o');
   }
   
   if (apiKeys.anthropic) {
-    console.log('Adding Anthropic API call to queue');
+    console.log('Adding Anthropic API call to queue with key:', apiKeys.anthropic.substring(0, 5) + '...');
     apiPromises.push(fetchFromAnthropic(queryText, apiKeys.anthropic));
     apiSources.push('Claude 3 Haiku');
   }
   
   if (apiKeys.anthropicClaude35) {
-    console.log('Adding Anthropic Claude 3.5 API call to queue');
+    console.log('Adding Anthropic Claude 3.5 API call to queue with key:', apiKeys.anthropicClaude35.substring(0, 5) + '...');
     apiPromises.push(fetchFromAnthropicClaude35(queryText, apiKeys.anthropicClaude35));
     apiSources.push('Claude 3.5 Sonnet');
   }
   
   if (apiKeys.gemini) {
-    console.log('Adding Gemini API call to queue');
+    console.log('Adding Gemini API call to queue with key:', apiKeys.gemini.substring(0, 5) + '...');
     apiPromises.push(fetchFromGemini(queryText, apiKeys.gemini));
     apiSources.push('Gemini 1.5 Pro');
   }
   
   if (apiKeys.geminiProExperimental) {
-    console.log('Adding Gemini Pro Experimental API call to queue');
+    console.log('Adding Gemini Pro Experimental API call to queue with key:', apiKeys.geminiProExperimental.substring(0, 5) + '...');
     apiPromises.push(fetchFromGeminiProExp(queryText, apiKeys.geminiProExperimental));
     apiSources.push('Gemini 1.5 Flash');
   }
   
   if (apiKeys.perplexity) {
-    console.log('Adding Perplexity API call to queue');
+    console.log('Adding Perplexity API call to queue with key:', apiKeys.perplexity.substring(0, 5) + '...');
     apiPromises.push(fetchFromPerplexity(queryText, apiKeys.perplexity));
     apiSources.push('Perplexity Sonar');
   }
   
   if (apiKeys.deepseek) {
-    console.log('Adding DeepSeek API call to queue');
+    console.log('Adding DeepSeek API call to queue with key:', apiKeys.deepseek.substring(0, 5) + '...');
     apiPromises.push(fetchFromDeepseek(queryText, apiKeys.deepseek));
     apiSources.push('DeepSeek Coder');
   }
@@ -99,7 +99,11 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
   apiResults.forEach((result, index) => {
     const source = index < apiSources.length ? apiSources[index] : 'Unknown';
     if (result.status === 'fulfilled') {
-      console.log(`API response from ${source} successful:`, result.value ? 'Response received' : 'Null response');
+      console.log(`API response from ${source} status:`, result.status);
+      console.log(`API response from ${source} value:`, result.value ? 'Response received' : 'Null response');
+      if (result.value) {
+        console.log(`API response from ${source} content preview:`, result.value.content.substring(0, 50) + '...');
+      }
     } else {
       console.error(`API response from ${source} failed:`, result.reason);
     }
@@ -113,6 +117,7 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
   console.log(`Received ${validResponses.length} valid API responses from:`, validResponses.map(r => r.source).join(', '));
   
   // IMPORTANT: Add additional debug to verify response array
+  console.log('=== Detailed Response Information ===');
   validResponses.forEach(r => {
     console.log(`Response details for ${r.source}:`, {
       id: r.id,
@@ -124,6 +129,7 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
   });
   
   if (validResponses.length === 0) {
+    console.error('No valid responses received from any API');
     toast({
       title: "No Valid Responses",
       description: "All API requests failed. Please check your API keys and try again.",
@@ -136,6 +142,8 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
   }
   
   const derivedConsensus = deriveConsensusResponse(validResponses);
+  console.log('Derived consensus response:', derivedConsensus.substring(0, 100) + '...');
+  console.log('=== Completed fetchResponses ===');
   
   return { allResponses: validResponses, derivedConsensus };
 };

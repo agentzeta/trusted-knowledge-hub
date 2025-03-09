@@ -14,6 +14,17 @@ const IndividualResponses: React.FC<IndividualResponsesProps> = ({ responses }) 
       sources: responses.map(r => r.source).join(', '),
       responseIds: responses.map(r => r.id)
     });
+    
+    // Log each response in detail
+    responses.forEach((response, index) => {
+      console.log(`Response #${index + 1} from ${response.source}:`, {
+        id: response.id,
+        contentLength: response.content.length,
+        contentPreview: response.content.substring(0, 50) + '...',
+        verified: response.verified,
+        timestamp: response.timestamp
+      });
+    });
   }, [responses]);
   
   if (responses.length === 0) {

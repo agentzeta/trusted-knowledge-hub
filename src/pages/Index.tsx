@@ -25,7 +25,7 @@ const TruthfulLogo = () => (
   </div>
 );
 
-const AgentVeritasLogo = () => (
+const AgentVeraLogo = () => (
   <div className="flex items-center gap-2">
     <div className="relative">
       <div className="flex items-center justify-center bg-gradient-to-r from-purple-500 to-pink-500 rounded-full p-1">
@@ -37,7 +37,7 @@ const AgentVeritasLogo = () => (
     </div>
     <div>
       <div className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-pink-500">
-        Agent Veritas
+        Agent Vera
       </div>
     </div>
   </div>
@@ -77,7 +77,7 @@ const Index = () => {
           <div className="flex flex-col items-center justify-center mb-4 gap-6">
             <TruthfulLogo />
             <div className="mt-3">
-              <AgentVeritasLogo />
+              <AgentVeraLogo />
             </div>
           </div>
           
