@@ -77,8 +77,6 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
   
   console.log(`Attempting to fetch from ${apiPromises.length} LLMs`);
   
-  // No mock responses - we'll only use real API responses
-  
   // Execute all API promises simultaneously
   const apiResults = await Promise.allSettled(apiPromises);
   
@@ -103,6 +101,7 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
     source: r.source,
     contentLength: r.content.length,
     verified: r.verified,
+    id: r.id
   })));
   
   if (validResponses.length === 0) {

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Response } from '../../types/query';
 
@@ -8,8 +8,13 @@ interface IndividualResponsesProps {
 }
 
 const IndividualResponses: React.FC<IndividualResponsesProps> = ({ responses }) => {
-  console.log('IndividualResponses rendering with:', responses.length, 'responses');
-  console.log('Response sources:', responses.map(r => r.source).join(', '));
+  useEffect(() => {
+    console.log('IndividualResponses rendering with:', {
+      count: responses.length, 
+      sources: responses.map(r => r.source).join(', '),
+      responseIds: responses.map(r => r.id)
+    });
+  }, [responses]);
   
   if (responses.length === 0) {
     return null;

@@ -40,8 +40,10 @@ export const fetchFromGemini = async (queryText: string, apiKey: string): Promis
     
     console.log('Gemini 1.5 Pro response received successfully');
     
+    const uniqueId = `gemini-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    
     return {
-      id: `gemini-${Date.now()}`,
+      id: uniqueId,
       content: data.candidates[0].content.parts[0].text,
       source: 'Gemini 1.5 Pro',
       verified: true,
@@ -93,8 +95,10 @@ export const fetchFromGeminiProExp = async (queryText: string, apiKey: string): 
     
     console.log('Gemini 1.5 Flash response received successfully');
     
+    const uniqueId = `gemini-flash-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    
     return {
-      id: `gemini-flash-${Date.now()}`,
+      id: uniqueId,
       content: data.candidates[0].content.parts[0].text,
       source: 'Gemini 1.5 Flash',
       verified: true,

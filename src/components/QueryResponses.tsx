@@ -27,7 +27,13 @@ const QueryResponses: React.FC<QueryResponsesProps> = ({
       isLoading,
       hasConsensus: !!consensusResponse,
       responseCount: responses.length,
-      responseSources: responses.map(r => r.source)
+      responseSources: responses.map(r => r.source),
+      responseDetails: responses.map(r => ({
+        id: r.id,
+        source: r.source,
+        contentLength: r.content.length,
+        verified: r.verified
+      }))
     });
   }, [isLoading, consensusResponse, responses]);
 

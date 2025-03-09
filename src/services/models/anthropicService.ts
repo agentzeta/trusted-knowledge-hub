@@ -6,6 +6,7 @@ export const fetchFromAnthropic = async (queryText: string, apiKey: string): Pro
   if (!apiKey) return null;
   
   try {
+    console.log('Fetching from Claude 3 Haiku...');
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -20,6 +21,12 @@ export const fetchFromAnthropic = async (queryText: string, apiKey: string): Pro
       })
     });
     
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Claude API error (${response.status}):`, errorText);
+      return null;
+    }
+    
     const data = await response.json();
     
     if (data.error) {
@@ -27,8 +34,12 @@ export const fetchFromAnthropic = async (queryText: string, apiKey: string): Pro
       return null;
     }
     
+    console.log('Claude 3 Haiku response received successfully');
+    
+    const uniqueId = `anthropic-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    
     return {
-      id: `anthropic-${Date.now()}`,
+      id: uniqueId,
       content: data.content[0].text,
       source: 'Claude 3 Haiku',
       verified: true,
@@ -46,6 +57,7 @@ export const fetchFromAnthropicClaude35 = async (queryText: string, apiKey: stri
   if (!apiKey) return null;
   
   try {
+    console.log('Fetching from Claude 3.5 Sonnet...');
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -60,6 +72,12 @@ export const fetchFromAnthropicClaude35 = async (queryText: string, apiKey: stri
       })
     });
     
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Claude 3.5 API error (${response.status}):`, errorText);
+      return null;
+    }
+    
     const data = await response.json();
     
     if (data.error) {
@@ -67,8 +85,12 @@ export const fetchFromAnthropicClaude35 = async (queryText: string, apiKey: stri
       return null;
     }
     
+    console.log('Claude 3.5 Sonnet response received successfully');
+    
+    const uniqueId = `anthropic35-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    
     return {
-      id: `anthropic35-${Date.now()}`,
+      id: uniqueId,
       content: data.content[0].text,
       source: 'Claude 3.5 Sonnet',
       verified: true,
