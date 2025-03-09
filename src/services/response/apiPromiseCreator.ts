@@ -79,13 +79,16 @@ export const createApiPromises = (queryText: string, apiKeys: ApiKeys) => {
     console.log('Skipping DeepSeek (Coder) - No API key provided');
   }
   
-  // Add support for OpenRouter with dedicated multimodel fetching
+  // Make sure OpenRouter is processed LAST since it returns multiple responses
+  // This ensures it doesn't get overshadowed by other API results
   if (apiKeys.openrouter) {
-    console.log('Adding OpenRouter multimodel fetching to request queue');
+    console.log('Adding OpenRouter multimodel fetching to request queue (LAST)');
     
     // Add it directly to the apiPromises array but correctly label it for error handling
     apiPromises.push(fetchFromMultipleOpenRouterModels(queryText, apiKeys.openrouter));
     apiSources.push('OpenRouter Models');
+    
+    console.log('OpenRouter multimodel fetching has been added as the last API call');
   } else {
     console.log('Skipping OpenRouter models - No API key provided');
   }
@@ -107,7 +110,7 @@ export const createApiPromises = (queryText: string, apiKeys: ApiKeys) => {
     }
   }
   
-  console.log(`Attempting to fetch from ${apiPromises.length} API promises with sources:`, apiSources.join(', '));
+  console.log(`Created ${apiPromises.length} API promises with sources:`, apiSources.join(', '));
   
   return { apiPromises, apiSources };
 };

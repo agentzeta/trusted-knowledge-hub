@@ -14,6 +14,7 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
   const availableKeys = Object.keys(apiKeys).filter(k => !!apiKeys[k as keyof ApiKeys]);
   console.log('Available API keys:', availableKeys);
   
+  // If no API keys are configured, return early
   if (availableKeys.length === 0) {
     return handleNoApiKeys();
   }
@@ -35,8 +36,18 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
   
   const apiResults = await Promise.allSettled(apiPromises);
   
-  console.log(`Received ${apiResults.length} API results:`, 
-    apiResults.map((r, i) => `${apiSources[i]}: ${r.status}`).join(', '));
+  console.log('API results received, checking status of each:');
+  apiResults.forEach((result, i) => {
+    if (result.status === 'fulfilled') {
+      if (Array.isArray(result.value)) {
+        console.log(`${apiSources[i]}: SUCCESS (array of ${result.value.length} responses)`);
+      } else {
+        console.log(`${apiSources[i]}: SUCCESS (single response)`);
+      }
+    } else {
+      console.log(`${apiSources[i]}: FAILED (${result.reason})`);
+    }
+  });
   
   // Process results and collect valid responses
   const validResponses = processApiResults(apiResults, apiSources);
@@ -44,6 +55,7 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
   console.log(`After processing, have ${validResponses.length} valid responses from:`, 
     validResponses.map(r => r.source).join(', '));
   
+  // If no valid responses, handle that case
   if (validResponses.length === 0) {
     return handleNoResponses();
   }

@@ -61,12 +61,13 @@ export const fetchFromOpenRouter = async (
   }
 };
 
-// Updated function to fetch from multiple OpenRouter models individually
+// Updated function to fetch from multiple OpenRouter models SEQUENTIALLY
+// This is crucial to ensure we get distinct responses from each model
 export const fetchFromMultipleOpenRouterModels = async (
   queryText: string,
   apiKey: string
 ): Promise<Response[]> => {
-  console.log('Fetching from multiple OpenRouter models individually');
+  console.log('=== FETCHING FROM MULTIPLE OPENROUTER MODELS ===');
   
   // Define models with more specific display names
   const models = [
@@ -80,7 +81,7 @@ export const fetchFromMultipleOpenRouterModels = async (
     { name: 'perplexity/sonar-small-online', displayName: 'Perplexity Sonar' }
   ];
   
-  console.log(`Making individual requests to ${models.length} OpenRouter models`);
+  console.log(`Will make individual requests to ${models.length} OpenRouter models`);
   
   const responses: Response[] = [];
   
@@ -89,6 +90,11 @@ export const fetchFromMultipleOpenRouterModels = async (
     console.log(`Creating request for OpenRouter model: ${model.displayName}`);
     
     try {
+      // Add a small delay between requests to avoid rate limiting
+      if (responses.length > 0) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -105,7 +111,7 @@ export const fetchFromMultipleOpenRouterModels = async (
           ],
           temperature: 0.3,
           // Add a unique identifier to prevent caching
-          route: `${model.displayName}-${Date.now()}`
+          route: `${model.displayName}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
         })
       });
       
@@ -116,7 +122,12 @@ export const fetchFromMultipleOpenRouterModels = async (
       }
       
       const data = await response.json();
-      console.log(`Response data from ${model.displayName}:`, data);
+      console.log(`Response data from ${model.displayName}:`, {
+        model: data.model,
+        hasChoices: !!data.choices,
+        choicesLength: data.choices?.length,
+        contentPreview: data.choices?.[0]?.message?.content?.substring(0, 50) + '...'
+      });
       
       if (!data.choices || !data.choices[0] || !data.choices[0].message) {
         console.error(`Invalid response format from ${model.displayName}`);
@@ -125,17 +136,25 @@ export const fetchFromMultipleOpenRouterModels = async (
       
       console.log(`✅ Success: Received response from ${model.displayName}`);
       
-      responses.push({
+      const responseObj = {
         id: uuidv4(),
         content: data.choices[0].message.content,
         source: model.displayName,
         verified: false,
         timestamp: Date.now(),
         confidence: 0.7
-      });
+      };
+      
+      responses.push(responseObj);
       
       // Add detailed logging to verify this response was added
       console.log(`Added response from ${model.displayName} to results array. Current count: ${responses.length}`);
+      console.log(`Latest response details:`, {
+        id: responseObj.id,
+        source: responseObj.source,
+        contentLength: responseObj.content.length,
+        contentPreview: responseObj.content.substring(0, 50) + '...'
+      });
     } catch (error) {
       console.error(`Error fetching from ${model.displayName}:`, error);
     }

@@ -8,18 +8,32 @@ import { toast } from '@/components/ui/use-toast';
 export const processApiResults = (apiResults: PromiseSettledResult<any>[], apiSources: string[]) => {
   let validResponses: Response[] = [];
   
+  console.log('=== PROCESSING API RESULTS ===');
+  console.log(`Processing ${apiResults.length} API results from sources:`, apiSources.join(', '));
+  
   apiResults.forEach((result, index) => {
     const source = index < apiSources.length ? apiSources[index] : 'Unknown';
     
     if (result.status === 'fulfilled') {
+      // Special handling for OpenRouter which returns an array of responses
       if (Array.isArray(result.value)) {
-        // This is the result from OpenRouter multi-model fetcher
         console.log(`✅ SUCCESS: Received an array of ${result.value.length} responses from ${source}`);
         
-        // IMPORTANT: Add each response individually from the array
+        // Log every response in the array to verify we're getting them all
+        result.value.forEach((item: Response, i: number) => {
+          console.log(`OpenRouter array item #${i+1}:`, {
+            source: item.source,
+            id: item.id,
+            contentLength: item.content?.length || 0,
+            contentSample: item.content?.substring(0, 40) + '...' || 'No content'
+          });
+        });
+        
+        // Add each response individually from the array
         result.value.forEach((item: Response) => {
-          if (item) {
-            console.log(`Adding OpenRouter response from ${item.source}:`, {
+          // Make sure we have a valid response with content
+          if (item && item.content) {
+            console.log(`Adding response from ${item.source || source}:`, {
               id: item.id,
               contentLength: item.content.length,
               contentPreview: item.content.substring(0, 50) + '...'
@@ -28,38 +42,53 @@ export const processApiResults = (apiResults: PromiseSettledResult<any>[], apiSo
             validResponses.push({
               id: item.id,
               content: item.content,
-              source: item.source || `OpenRouter Model ${validResponses.length + 1}`,
+              source: item.source || `Model #${validResponses.length + 1}`,
               verified: false,
               timestamp: item.timestamp || Date.now(),
               confidence: item.confidence || 0.7
             });
+          } else {
+            console.warn(`⚠️ WARNING: Invalid item in OpenRouter response array:`, item);
           }
         });
         
-        // After adding all responses, log the current count
-        console.log(`After adding all OpenRouter responses, total valid responses: ${validResponses.length}`);
-      } else if (result.value) {
-        console.log(`✅ SUCCESS: API response from ${source}`);
-        console.log(`Content preview from ${source}:`, result.value.content.substring(0, 50) + '...');
+        // Verify how many responses we've added
+        console.log(`After adding OpenRouter responses, total valid responses: ${validResponses.length}`);
+      } else if (result.value && result.value.content) {
+        // Single response case
+        console.log(`✅ SUCCESS: API response from ${source}:`, {
+          contentLength: result.value.content.length,
+          contentPreview: result.value.content.substring(0, 50) + '...'
+        });
+        
         validResponses.push(result.value);
       } else {
-        console.warn(`⚠️ WARNING: API response from ${source} was fulfilled but returned null`);
+        console.warn(`⚠️ WARNING: API response from ${source} was fulfilled but returned invalid data:`, result.value);
       }
     } else {
       console.error(`❌ ERROR: API response from ${source} failed:`, result.reason);
     }
   });
   
-  console.log(`Received ${validResponses.length} valid API responses from:`, validResponses.map(r => r.source).join(', '));
+  console.log(`Processed ${apiResults.length} API results into ${validResponses.length} valid responses`);
+  console.log('Valid response sources:', validResponses.map(r => r.source).join(', '));
   
-  // IMPORTANT: Add additional debug to verify response array
-  console.log('=== Detailed Response Information ===');
-  validResponses.forEach(r => {
-    console.log(`Response details for ${r.source}:`, {
+  // Final validation of response array
+  validResponses = validResponses.filter(r => {
+    if (!r || !r.content || !r.source) {
+      console.warn('Filtering out invalid response:', r);
+      return false;
+    }
+    return true;
+  });
+  
+  // Detailed logging of final responses
+  console.log('=== FINAL RESPONSES ===');
+  validResponses.forEach((r, i) => {
+    console.log(`Response #${i+1} - ${r.source}:`, {
       id: r.id,
       contentLength: r.content.length,
-      contentPreview: r.content.substring(0, 50) + '...',
-      verified: r.verified,
+      contentSample: r.content.substring(0, 40) + '...',
       timestamp: r.timestamp
     });
   });

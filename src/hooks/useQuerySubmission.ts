@@ -30,14 +30,16 @@ export const useQuerySubmission = (
     setResponses([]); // Clear previous responses
     
     try {
-      console.log('Submitting query:', queryText);
+      console.log('=== SUBMITTING QUERY ===');
+      console.log('Query text:', queryText);
       console.log('Available API keys:', Object.keys(apiKeys).filter(k => !!apiKeys[k]));
       
       // Fetch responses from all available LLMs
       const result = await fetchResponses(queryText, apiKeys);
       
       const { allResponses, derivedConsensus } = result;
-      console.log('Received responses:', allResponses.length);
+      console.log('=== QUERY RESULTS RECEIVED ===');
+      console.log(`Received ${allResponses.length} total responses`);
       console.log('Response sources:', allResponses.map(r => r.source).join(', '));
       
       // Set consensus response
@@ -52,18 +54,23 @@ export const useQuerySubmission = (
       } else {
         // Verify responses based on consensus
         const verifiedResponses = verifyResponses(allResponses, derivedConsensus);
-        console.log('Setting verified responses:', verifiedResponses.length);
+        console.log('Verified responses:', verifiedResponses.length);
         console.log('Verified response sources:', verifiedResponses.map(r => r.source).join(', '));
         
         // Store all responses
         setResponses(allResponses);
-        console.log('All responses set:', allResponses.length);
-        console.log('Sources:', allResponses.map(r => r.source).join(', '));
+        console.log('All responses set in state:', allResponses.length);
         
         // Log individual model responses for debugging
-        console.log('Individual responses:');
+        console.log('=== INDIVIDUAL RESPONSES DETAILS ===');
         allResponses.forEach((response, index) => {
-          console.log(`Response #${index + 1}: ${response.source} - ${response.id}`);
+          console.log(`Response #${index + 1}:`, {
+            source: response.source,
+            id: response.id,
+            contentLength: response.content.length,
+            contentSample: response.content.substring(0, 40) + '...',
+            timestamp: response.timestamp
+          });
         });
 
         // Save to database if user is logged in
