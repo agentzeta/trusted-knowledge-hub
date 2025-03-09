@@ -42,7 +42,7 @@ const IndividualResponses: React.FC<IndividualResponsesProps> = ({ responses }) 
   // Sort responses alphabetically by source name for consistent display
   const sortedResponses = [...responses].sort((a, b) => a.source.localeCompare(b.source));
   
-  // Group OpenRouter responses separate from other models
+  // Group responses by type (OpenRouter vs Direct API)
   const openRouterResponses = sortedResponses.filter(r => 
     r.source.includes('Claude') || 
     r.source.includes('Llama') || 

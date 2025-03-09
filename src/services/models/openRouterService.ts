@@ -61,7 +61,7 @@ export const fetchFromOpenRouter = async (
   }
 };
 
-// Updated function to fetch from multiple models individually instead of in a batch
+// Updated function to fetch from multiple models individually
 export const fetchFromMultipleOpenRouterModels = async (
   queryText: string,
   apiKey: string
@@ -82,11 +82,10 @@ export const fetchFromMultipleOpenRouterModels = async (
   
   console.log(`Making individual requests to ${models.length} OpenRouter models`);
   
-  // Make individual requests for each model to ensure we get distinct responses
-  const responses: Response[] = [];
-  
   // Create an array of promises for all the API calls
   const promises = models.map(model => {
+    console.log(`Creating request for OpenRouter model: ${model.displayName}`);
+    
     return fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -110,23 +109,28 @@ export const fetchFromMultipleOpenRouterModels = async (
         return null;
       }
       
-      const data = await response.json();
-      
-      if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-        console.error(`Invalid response format from ${model.displayName}`);
+      try {
+        const data = await response.json();
+        
+        if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+          console.error(`Invalid response format from ${model.displayName}`);
+          return null;
+        }
+        
+        console.log(`✅ Success: Received response from ${model.displayName}`);
+        
+        return {
+          id: uuidv4(),
+          content: data.choices[0].message.content,
+          source: model.displayName,
+          verified: false,
+          timestamp: Date.now(),
+          confidence: 0.7
+        };
+      } catch (error) {
+        console.error(`Error parsing response from ${model.displayName}:`, error);
         return null;
       }
-      
-      console.log(`✅ Success: Received response from ${model.displayName}`);
-      
-      return {
-        id: uuidv4(),
-        content: data.choices[0].message.content,
-        source: model.displayName,
-        verified: false,
-        timestamp: Date.now(),
-        confidence: 0.7
-      };
     })
     .catch(error => {
       console.error(`Error fetching from ${model.displayName}:`, error);
@@ -134,13 +138,20 @@ export const fetchFromMultipleOpenRouterModels = async (
     });
   });
   
-  // Wait for all promises to settle
-  const results = await Promise.all(promises);
-  
-  // Filter out nulls (failed requests)
-  const validResponses = results.filter(response => response !== null) as Response[];
-  
-  console.log(`Successfully received ${validResponses.length} responses from OpenRouter models`);
-  
-  return validResponses;
+  // Wait for all promises to complete
+  try {
+    const results = await Promise.all(promises);
+    
+    // Filter out nulls (failed requests)
+    const validResponses = results.filter(response => response !== null) as Response[];
+    
+    console.log(`Successfully received ${validResponses.length} responses from OpenRouter models`);
+    console.log('OpenRouter model sources:', validResponses.map(r => r.source).join(', '));
+    
+    // Return an empty array if no valid responses
+    return validResponses;
+  } catch (error) {
+    console.error('Error in fetchFromMultipleOpenRouterModels:', error);
+    return [];
+  }
 };
