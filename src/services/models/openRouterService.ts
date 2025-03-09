@@ -82,80 +82,67 @@ export const fetchFromMultipleOpenRouterModels = async (
   
   console.log(`Making individual requests to ${models.length} OpenRouter models`);
   
-  // Create an array of promises for all the API calls
-  const promises = models.map(model => {
+  const responses: Response[] = [];
+  
+  // Make individual sequential requests to ensure we get all responses
+  for (const model of models) {
     console.log(`Creating request for OpenRouter model: ${model.displayName}`);
     
-    return fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-        'HTTP-Referer': window.location.origin,
-        'X-Title': 'Agent Veritas Consensus App'
-      },
-      body: JSON.stringify({
-        model: model.name,
-        messages: [
-          { role: 'system', content: 'You are a helpful assistant providing factual, concise information.' },
-          { role: 'user', content: queryText }
-        ],
-        temperature: 0.3,
-        // Add a unique route parameter to prevent API caching the same response
-        route: model.displayName
-      })
-    })
-    .then(async response => {
+    try {
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+          'HTTP-Referer': window.location.origin,
+          'X-Title': 'Agent Veritas Consensus App'
+        },
+        body: JSON.stringify({
+          model: model.name,
+          messages: [
+            { role: 'system', content: 'You are a helpful assistant providing factual, concise information.' },
+            { role: 'user', content: queryText }
+          ],
+          temperature: 0.3,
+          // Add a unique identifier to prevent caching
+          route: `${model.displayName}-${Date.now()}`
+        })
+      });
+      
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         console.error(`Error from ${model.displayName}:`, errorData);
-        return null;
+        continue;
       }
       
-      try {
-        const data = await response.json();
-        console.log(`Response data from ${model.displayName}:`, data);
-        
-        if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-          console.error(`Invalid response format from ${model.displayName}`);
-          return null;
-        }
-        
-        console.log(`✅ Success: Received response from ${model.displayName}`);
-        
-        return {
-          id: uuidv4(),
-          content: data.choices[0].message.content,
-          source: model.displayName,
-          verified: false,
-          timestamp: Date.now(),
-          confidence: 0.7
-        };
-      } catch (error) {
-        console.error(`Error parsing response from ${model.displayName}:`, error);
-        return null;
+      const data = await response.json();
+      console.log(`Response data from ${model.displayName}:`, data);
+      
+      if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+        console.error(`Invalid response format from ${model.displayName}`);
+        continue;
       }
-    })
-    .catch(error => {
+      
+      console.log(`✅ Success: Received response from ${model.displayName}`);
+      
+      responses.push({
+        id: uuidv4(),
+        content: data.choices[0].message.content,
+        source: model.displayName,
+        verified: false,
+        timestamp: Date.now(),
+        confidence: 0.7
+      });
+      
+      // Add detailed logging to verify this response was added
+      console.log(`Added response from ${model.displayName} to results array. Current count: ${responses.length}`);
+    } catch (error) {
       console.error(`Error fetching from ${model.displayName}:`, error);
-      return null;
-    });
-  });
-  
-  // Wait for all promises to complete
-  try {
-    const results = await Promise.all(promises);
-    
-    // Filter out nulls (failed requests)
-    const validResponses = results.filter(response => response !== null) as Response[];
-    
-    console.log(`Successfully received ${validResponses.length} responses from OpenRouter models`);
-    console.log('OpenRouter model sources:', validResponses.map(r => r.source).join(', '));
-    
-    // Ensure we're returning an array of distinct responses
-    return validResponses;
-  } catch (error) {
-    console.error('Error in fetchFromMultipleOpenRouterModels:', error);
-    return [];
+    }
   }
+  
+  console.log(`Successfully received ${responses.length} responses from OpenRouter models`);
+  console.log('OpenRouter model sources:', responses.map(r => r.source).join(', '));
+  
+  return responses;
 };

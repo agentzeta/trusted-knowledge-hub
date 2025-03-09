@@ -59,6 +59,12 @@ export const useQuerySubmission = (
         setResponses(allResponses);
         console.log('All responses set:', allResponses.length);
         console.log('Sources:', allResponses.map(r => r.source).join(', '));
+        
+        // Log individual model responses for debugging
+        console.log('Individual responses:');
+        allResponses.forEach((response, index) => {
+          console.log(`Response #${index + 1}: ${response.source} - ${response.id}`);
+        });
 
         // Save to database if user is logged in
         if (user) {

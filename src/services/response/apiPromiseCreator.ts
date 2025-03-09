@@ -82,7 +82,8 @@ export const createApiPromises = (queryText: string, apiKeys: ApiKeys) => {
   // Add support for OpenRouter with dedicated multimodel fetching
   if (apiKeys.openrouter) {
     console.log('Adding OpenRouter multimodel fetching to request queue');
-    // Instead of using Promise.all, we'll pass the whole promise which internally makes multiple requests
+    
+    // Add it directly to the apiPromises array but correctly label it for error handling
     apiPromises.push(fetchFromMultipleOpenRouterModels(queryText, apiKeys.openrouter));
     apiSources.push('OpenRouter Models');
   } else {

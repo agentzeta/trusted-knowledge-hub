@@ -53,5 +53,12 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
   console.log('Derived consensus response:', derivedConsensus.substring(0, 100) + '...');
   console.log('=== Completed fetchResponses ===');
   
+  // Log the final response object being returned
+  console.log('Final response object:', {
+    responseCount: validResponses.length,
+    sources: validResponses.map(r => r.source).join(', '),
+    consensusLength: derivedConsensus.length
+  });
+  
   return { allResponses: validResponses, derivedConsensus };
 };

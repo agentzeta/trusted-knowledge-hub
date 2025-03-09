@@ -16,7 +16,7 @@ export const processApiResults = (apiResults: PromiseSettledResult<any>[], apiSo
         // This is the result from OpenRouter multi-model fetcher
         console.log(`✅ SUCCESS: Received an array of ${result.value.length} responses from ${source}`);
         
-        // Add each item from the array as an individual response
+        // IMPORTANT: Add each response individually from the array
         result.value.forEach((item: Response) => {
           if (item) {
             console.log(`Adding OpenRouter response from ${item.source}:`, {
@@ -24,14 +24,20 @@ export const processApiResults = (apiResults: PromiseSettledResult<any>[], apiSo
               contentLength: item.content.length,
               contentPreview: item.content.substring(0, 50) + '...'
             });
-            // Ensure we're adding each item as a separate response
+            
             validResponses.push({
-              ...item,
-              // Ensure the source is properly set
-              source: item.source || `OpenRouter Model ${validResponses.length + 1}`
+              id: item.id,
+              content: item.content,
+              source: item.source || `OpenRouter Model ${validResponses.length + 1}`,
+              verified: false,
+              timestamp: item.timestamp || Date.now(),
+              confidence: item.confidence || 0.7
             });
           }
         });
+        
+        // After adding all responses, log the current count
+        console.log(`After adding all OpenRouter responses, total valid responses: ${validResponses.length}`);
       } else if (result.value) {
         console.log(`✅ SUCCESS: API response from ${source}`);
         console.log(`Content preview from ${source}:`, result.value.content.substring(0, 50) + '...');
