@@ -29,6 +29,7 @@ export interface QueryContextType {
   responses: Response[];
   isLoading: boolean;
   submitQuery: (query: string) => void;
+  stopQuery?: () => void;
   setApiKey: (provider: string, key: string) => void;
   setWalletKey: (key: string) => void;
   privateKey: string | null;

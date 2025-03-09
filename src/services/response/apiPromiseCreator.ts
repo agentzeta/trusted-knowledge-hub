@@ -1,152 +1,160 @@
 
-import { ApiKeys } from '../../types/query';
-import { 
-  fetchFromOpenAI, 
-  fetchFromAnthropic, 
-  fetchFromAnthropicClaude35, 
-  fetchFromGemini, 
-  fetchFromGeminiProExp, 
-  fetchFromPerplexity, 
-  fetchFromDeepseek
-} from '../modelService';
-import { fetchFromMultipleOpenRouterModels } from '../models/openRouter';
+import * as modelService from '../modelService';
+import { v4 as uuidv4 } from 'uuid';
+import { ApiKeys, Response } from '../../types/query';
 
 /**
- * Creates API promises based on available API keys with improved error handling
+ * Creates API promises for each configured model based on API keys
+ * Returns array of promises and their corresponding source names
  */
-export const createApiPromises = (queryText: string, apiKeys: ApiKeys) => {
-  console.log('=== Creating API Promises with Improved Error Handling ===');
-  
-  const apiPromises = [];
-  const apiSources = [];
-  
-  // Create promises for each API with a key
-  if (apiKeys.anthropic) {
-    console.log('Adding Anthropic (Claude 3 Haiku) to request queue');
-    apiPromises.push(
-      // Wrap in Promise.resolve().catch to ensure errors don't break the whole process
-      Promise.resolve(fetchFromAnthropic(queryText, apiKeys.anthropic))
-        .catch(error => {
-          console.error('Error fetching from Anthropic (Claude 3 Haiku):', error);
-          return null; // Return null to be filtered out later
-        })
-    );
-    apiSources.push('Claude 3 Haiku');
+export const createApiPromises = (queryText: string, apiKeys: ApiKeys, signal?: AbortSignal) => {
+  const apiPromises: Promise<Response | Response[] | null>[] = [];
+  const apiSources: string[] = [];
+
+  // Helper to add a promise to the arrays
+  const addPromise = (promise: Promise<Response | Response[] | null>, source: string) => {
+    apiPromises.push(promise);
+    apiSources.push(source);
+  };
+
+  // Function to create abortable fetch if signal is provided
+  const createAbortablePromise = <T>(promise: Promise<T>): Promise<T> => {
+    if (!signal) return promise;
     
-    // Use the same anthropic key for Claude 3.5 Sonnet
-    console.log('Adding Anthropic (Claude 3.5 Sonnet) to request queue with same API key');
-    apiPromises.push(
-      Promise.resolve(fetchFromAnthropicClaude35(queryText, apiKeys.anthropic))
-        .catch(error => {
-          console.error('Error fetching from Anthropic (Claude 3.5 Sonnet):', error);
-          return null;
+    return new Promise((resolve, reject) => {
+      // If signal is already aborted, reject immediately
+      if (signal.aborted) {
+        reject(new DOMException('Operation aborted', 'AbortError'));
+        return;
+      }
+      
+      // Handle abort events
+      const abortHandler = () => {
+        reject(new DOMException('Operation aborted', 'AbortError'));
+      };
+      
+      signal.addEventListener('abort', abortHandler);
+      
+      promise
+        .then(result => {
+          signal.removeEventListener('abort', abortHandler);
+          resolve(result);
         })
-    );
-    apiSources.push('Claude 3.5 Sonnet');
-  } else if (apiKeys.anthropicClaude35) {
-    // Backward compatibility - use specific Claude 3.5 key if provided
-    console.log('Adding Anthropic (Claude 3.5 Sonnet) to request queue with specific API key');
-    apiPromises.push(
-      Promise.resolve(fetchFromAnthropicClaude35(queryText, apiKeys.anthropicClaude35))
         .catch(error => {
-          console.error('Error fetching from Anthropic (Claude 3.5 Sonnet):', error);
-          return null;
-        })
-    );
-    apiSources.push('Claude 3.5 Sonnet');
-  } else {
-    console.log('Skipping Anthropic models - No API key provided');
-  }
-  
+          signal.removeEventListener('abort', abortHandler);
+          reject(error);
+        });
+    });
+  };
+
+  // OpenAI API
   if (apiKeys.openai) {
-    console.log('Adding OpenAI (GPT-4o) to request queue');
-    apiPromises.push(
-      Promise.resolve(fetchFromOpenAI(queryText, apiKeys.openai))
-        .catch(error => {
-          console.error('Error fetching from OpenAI (GPT-4o):', error);
-          return null;
-        })
-    );
-    apiSources.push('GPT-4o');
-  } else {
-    console.log('Skipping OpenAI (GPT-4o) - No API key provided');
+    try {
+      addPromise(
+        createAbortablePromise(modelService.fetchFromOpenAI(queryText, apiKeys.openai)),
+        'OpenAI GPT-4'
+      );
+    } catch (error) {
+      console.error('Error creating OpenAI promise:', error);
+    }
   }
-  
+
+  // Anthropic Claude API (both keys for backward compatibility)
+  const anthropicKey = apiKeys.anthropic || apiKeys.anthropicClaude35;
+  if (anthropicKey) {
+    try {
+      // Claude 3.5 Sonnet
+      addPromise(
+        createAbortablePromise(modelService.fetchFromClaude35(queryText, anthropicKey)),
+        'Claude 3.5 Sonnet'
+      );
+      
+      // Claude 3.7 Opus if available
+      try {
+        addPromise(
+          createAbortablePromise(modelService.fetchFromClaude37(queryText, anthropicKey)),
+          'Claude 3.7 Opus'
+        );
+      } catch (error) {
+        console.error('Error creating Claude 3.7 Opus promise:', error);
+      }
+    } catch (error) {
+      console.error('Error creating Anthropic Claude promise:', error);
+    }
+  }
+
+  // Google Gemini API
   if (apiKeys.gemini) {
-    console.log('Adding Gemini (1.5 Pro) to request queue');
-    apiPromises.push(
-      Promise.resolve(fetchFromGemini(queryText, apiKeys.gemini))
-        .catch(error => {
-          console.error('Error fetching from Gemini (1.5 Pro):', error);
-          return null;
-        })
-    );
-    apiSources.push('Gemini 1.5 Pro');
-  } else {
-    console.log('Skipping Gemini (1.5 Pro) - No API key provided');
+    try {
+      addPromise(
+        createAbortablePromise(modelService.fetchFromGemini(queryText, apiKeys.gemini)),
+        'Gemini 1.5 Pro'
+      );
+    } catch (error) {
+      console.error('Error creating Gemini promise:', error);
+    }
   }
-  
+
+  // Google Gemini Pro Experimental API
   if (apiKeys.geminiProExperimental) {
-    console.log('Adding Gemini (1.5 Flash) to request queue');
-    apiPromises.push(
-      Promise.resolve(fetchFromGeminiProExp(queryText, apiKeys.geminiProExperimental))
-        .catch(error => {
-          console.error('Error fetching from Gemini (1.5 Flash):', error);
-          return null;
-        })
-    );
-    apiSources.push('Gemini 1.5 Flash');
-  } else {
-    console.log('Skipping Gemini (1.5 Flash) - No API key provided');
+    try {
+      addPromise(
+        createAbortablePromise(modelService.fetchFromGeminiProExp(queryText)),
+        'Gemini 1.5 Pro Experimental'
+      );
+    } catch (error) {
+      console.error('Error creating Gemini Pro Experimental promise:', error);
+    }
   }
-  
+
+  // Perplexity API
   if (apiKeys.perplexity) {
-    console.log('Adding Perplexity (Sonar) to request queue');
-    apiPromises.push(
-      Promise.resolve(fetchFromPerplexity(queryText, apiKeys.perplexity))
-        .catch(error => {
-          console.error('Error fetching from Perplexity (Sonar):', error);
-          return null;
-        })
-    );
-    apiSources.push('Perplexity Sonar');
-  } else {
-    console.log('Skipping Perplexity (Sonar) - No API key provided');
+    try {
+      addPromise(
+        createAbortablePromise(modelService.fetchFromPerplexity(queryText, apiKeys.perplexity)),
+        'Perplexity Sonar'
+      );
+    } catch (error) {
+      console.error('Error creating Perplexity promise:', error);
+    }
   }
-  
+
+  // DeepSeek API
   if (apiKeys.deepseek) {
-    console.log('Adding DeepSeek (Coder) to request queue');
-    apiPromises.push(
-      Promise.resolve(fetchFromDeepseek(queryText, apiKeys.deepseek))
-        .catch(error => {
-          console.error('Error fetching from DeepSeek (Coder):', error);
-          return null;
-        })
-    );
-    apiSources.push('DeepSeek Coder');
-  } else {
-    console.log('Skipping DeepSeek (Coder) - No API key provided');
+    try {
+      addPromise(
+        createAbortablePromise(modelService.fetchFromDeepSeek(queryText, apiKeys.deepseek)),
+        'DeepSeek V2'
+      );
+    } catch (error) {
+      console.error('Error creating DeepSeek promise:', error);
+    }
   }
-  
-  // Handle OpenRouter with updated import
+
+  // OpenRouter APIs for other models (using round-robin key assignment)
   if (apiKeys.openrouter) {
-    console.log('Adding OpenRouter multi-model fetching to request queue');
-    
-    // Return the promise directly without wrapping in Promise.resolve
-    // The fetchFromMultipleOpenRouterModels function already has internal error handling
-    const openRouterPromise = fetchFromMultipleOpenRouterModels(queryText, apiKeys.openrouter)
-      .catch(error => {
-        console.error('Uncaught error in OpenRouter multi-model fetch:', error);
-        return []; // Return empty array on error
-      });
-    
-    apiPromises.push(openRouterPromise);
-    apiSources.push('OpenRouter Models');
-  } else {
-    console.log('Skipping OpenRouter models - No API key provided');
+    try {
+      addPromise(
+        createAbortablePromise(modelService.fetchFromOpenRouter(queryText, apiKeys.openrouter)),
+        'OpenRouter'
+      );
+    } catch (error) {
+      console.error('Error creating OpenRouter promises:', error);
+    }
   }
-  
-  console.log(`Created ${apiPromises.length} API promises with sources:`, apiSources.join(', '));
-  
+
+  // Add development/debug Mock API (response is generated locally)
+  // Don't include in production but useful for testing
+  if (process.env.NODE_ENV === 'development') {
+    try {
+      addPromise(
+        createAbortablePromise(modelService.getMockResponse('Debug Model', queryText)),
+        'Mock/Debug Model'
+      );
+    } catch (error) {
+      console.error('Error creating mock/debug promise:', error);
+    }
+  }
+
   return { apiPromises, apiSources };
 };

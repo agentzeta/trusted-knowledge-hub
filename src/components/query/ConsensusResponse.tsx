@@ -2,6 +2,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
+import { Calendar, Download } from 'lucide-react';
+import { useQueryContext } from '@/hooks/useQueryContext';
+import UploadToBlockchainButton from '@/components/blockchain/UploadToBlockchainButton';
 
 interface ConsensusResponseProps {
   consensusResponse: string;
@@ -12,6 +15,7 @@ const ConsensusResponse: React.FC<ConsensusResponseProps> = ({
   consensusResponse, 
   timestamp 
 }) => {
+  const { exportToGoogleDocs } = useQueryContext();
   const formattedDate = timestamp 
     ? format(new Date(timestamp), 'MMM d, yyyy h:mm a') 
     : null;
@@ -31,19 +35,32 @@ const ConsensusResponse: React.FC<ConsensusResponseProps> = ({
             Multi-Model Consensus
           </span>
         </div>
+        
         <div className="prose prose-lg max-w-none">
           <p className="text-gray-700 dark:text-gray-300 text-lg whitespace-pre-line">{consensusResponse}</p>
           
-          {formattedDate && (
-            <div className="mt-4 pt-4 border-t text-sm text-gray-500">
-              <span className="flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                </svg>
+          <div className="mt-6 flex flex-wrap gap-3 items-center justify-between pt-4 border-t">
+            {formattedDate && (
+              <span className="flex items-center text-sm text-gray-500">
+                <Calendar className="h-4 w-4 mr-1" />
                 Generated on {formattedDate}
               </span>
+            )}
+            
+            <div className="flex flex-wrap gap-3">
+              <button 
+                onClick={exportToGoogleDocs}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
+              >
+                <Download className="h-3.5 w-3.5" />
+                Export to Docs
+              </button>
+              
+              <UploadToBlockchainButton 
+                className="px-3 py-1.5 text-xs font-medium" 
+              />
             </div>
-          )}
+          </div>
         </div>
       </div>
     </motion.div>
