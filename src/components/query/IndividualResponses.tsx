@@ -17,6 +17,7 @@ const IndividualResponses: React.FC<IndividualResponsesProps> = ({ responses }) 
   }, [responses]);
   
   if (responses.length === 0) {
+    console.log('No responses to display in IndividualResponses');
     return null;
   }
   

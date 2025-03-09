@@ -6,6 +6,7 @@ export const fetchFromPerplexity = async (queryText: string, apiKey: string): Pr
   if (!apiKey) return null;
   
   try {
+    console.log('Fetching from Perplexity Sonar...');
     const response = await fetch('https://api.perplexity.ai/chat/completions', {
       method: 'POST',
       headers: {
@@ -28,6 +29,12 @@ export const fetchFromPerplexity = async (queryText: string, apiKey: string): Pr
       }),
     });
     
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Perplexity API error (${response.status}):`, errorText);
+      return null;
+    }
+    
     const data = await response.json();
     
     if (data.error) {
@@ -35,8 +42,10 @@ export const fetchFromPerplexity = async (queryText: string, apiKey: string): Pr
       return null;
     }
     
+    console.log('Perplexity Sonar response received successfully');
+    
     return {
-      id: `perplexity-${Date.now()}`,
+      id: `perplexity-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       content: data.choices[0].message.content,
       source: 'Perplexity Sonar',
       verified: true,

@@ -30,6 +30,9 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
   const apiPromises = [];
   const apiSources = [];
   
+  // Track which APIs we're calling
+  console.log("Creating separate promise for each API with valid key");
+  
   // Add each API with a valid key to the promises array
   if (apiKeys.openai) {
     console.log('Adding OpenAI API call to queue');

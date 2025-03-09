@@ -42,7 +42,7 @@ export const fetchFromDeepseek = async (queryText: string, apiKey: string): Prom
     
     return {
       id: uniqueId,
-      content: data.choices?.[0]?.message?.content || '',
+      content: data.choices?.[0]?.message?.content || 'No content returned from DeepSeek',
       source: 'DeepSeek Coder',
       verified: true,
       timestamp: Date.now(),
