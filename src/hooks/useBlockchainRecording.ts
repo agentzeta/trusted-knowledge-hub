@@ -71,7 +71,9 @@ export const useBlockchainRecording = () => {
             <p>Your consensus response has been recorded on the Flare blockchain.</p>
             <div className="mt-2 text-xs flex flex-col gap-1.5">
               <span className="font-medium">Transaction Hash:</span>
-              <code className="bg-gray-100 p-1.5 rounded text-xs block break-all dark:bg-gray-800">{txHash.substring(0, 18)}...{txHash.substring(txHash.length - 6)}</code>
+              <code className="bg-gray-100 p-1.5 rounded text-xs block break-all dark:bg-gray-800">
+                {txHash.substring(0, 18)}...{txHash.substring(txHash.length - 6)}
+              </code>
               <a 
                 href={`https://flare-explorer.flare.network/tx/${txHash}`} 
                 target="_blank"
