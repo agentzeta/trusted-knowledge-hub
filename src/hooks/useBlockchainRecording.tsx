@@ -6,11 +6,13 @@ import { Response } from '../types/query';
 import { saveResponseToDatabase } from '../services/databaseService';
 import { ToastAction } from '@/components/ui/toast';
 import React from 'react';
+import { submitToFlareTee, verifyTeeConsensusOnChain } from '../utils/flareTeeUtils';
 
 export const useBlockchainRecording = () => {
   const [blockchainReference, setBlockchainReference] = useState<string | null>(null);
   const [attestationId, setAttestationId] = useState<string | null>(null);
   const [isRecordingOnChain, setIsRecordingOnChain] = useState(false);
+  const [teeVerificationId, setTeeVerificationId] = useState<string | null>(null);
 
   const recordResponseOnBlockchain = async (
     privateKey: string | null,
@@ -31,7 +33,26 @@ export const useBlockchainRecording = () => {
       const timestamp = Math.floor(Date.now() / 1000);
       console.log(`Recording on blockchain with timestamp: ${timestamp}`);
       
-      // Record on Flare blockchain
+      // Step 1: Process responses through Flare TEE for secure consensus
+      console.log('Starting TEE verification process...');
+      const teeResult = await submitToFlareTee(
+        queryText,
+        responses,
+        privateKey
+      );
+      
+      setTeeVerificationId(teeResult.verificationId);
+      console.log(`TEE verification completed with ID: ${teeResult.verificationId}`);
+      
+      // Step 2: Verify the TEE result on chain
+      const teeTxHash = await verifyTeeConsensusOnChain(
+        teeResult.verificationId,
+        teeResult.signature,
+        privateKey
+      );
+      console.log(`TEE verification recorded on blockchain: ${teeTxHash}`);
+      
+      // Step 3: Record on Flare blockchain (traditional method as backup)
       const txHash = await recordOnFlareBlockchain(
         privateKey,
         queryText,
@@ -41,7 +62,7 @@ export const useBlockchainRecording = () => {
       setBlockchainReference(txHash);
       console.log(`Transaction recorded on blockchain: ${txHash}`);
       
-      // Create attestation
+      // Step 4: Create attestation
       const attestationUID = await createAttestation(
         privateKey,
         queryText,
@@ -51,7 +72,7 @@ export const useBlockchainRecording = () => {
       setAttestationId(attestationUID);
       console.log(`Attestation created: ${attestationUID}`);
       
-      // Save to database if user is logged in
+      // Step 5: Save to database if user is logged in
       if (userId) {
         await saveResponseToDatabase(
           userId, 
@@ -59,7 +80,8 @@ export const useBlockchainRecording = () => {
           consensusResponse, 
           responses,
           txHash,
-          attestationUID
+          attestationUID,
+          teeResult.verificationId // Add TEE verification ID to database
         );
         console.log(`Response saved to database for user: ${userId}`);
       }
@@ -67,7 +89,7 @@ export const useBlockchainRecording = () => {
       // Create a toast notification with transaction details
       toast({
         title: "Blockchain Verification Complete",
-        description: `Your consensus response has been recorded on the Flare blockchain. Transaction Hash: ${txHash.substring(0, 18)}...${txHash.substring(txHash.length - 6)}`,
+        description: `Your consensus response has been verified in Flare's TEE and recorded on the blockchain. Transaction Hash: ${txHash.substring(0, 18)}...${txHash.substring(txHash.length - 6)}`,
         duration: 10000,
         action: (
           <ToastAction 
@@ -79,7 +101,11 @@ export const useBlockchainRecording = () => {
         )
       });
       
-      return { txHash, attestationUID };
+      return { 
+        txHash, 
+        attestationUID,
+        teeVerificationId: teeResult.verificationId 
+      };
     } catch (error) {
       console.error('Blockchain recording error:', error);
       toast({
@@ -97,6 +123,7 @@ export const useBlockchainRecording = () => {
   return {
     blockchainReference,
     attestationId,
+    teeVerificationId,
     isRecordingOnChain,
     recordResponseOnBlockchain
   };

@@ -6,7 +6,7 @@ import BlockchainLoadingState from './blockchain/BlockchainLoadingState';
 import BlockchainVerificationDetails from './blockchain/BlockchainVerificationDetails';
 
 const BlockchainVerification: React.FC = () => {
-  const { blockchainReference, attestationId, isRecordingOnChain, responses } = useQueryContext();
+  const { blockchainReference, attestationId, teeVerificationId, isRecordingOnChain, responses } = useQueryContext();
   
   // Get the timestamp from the first response (all responses have same timestamp)
   const timestamp = responses.length > 0 ? responses[0].timestamp : null;
@@ -15,7 +15,7 @@ const BlockchainVerification: React.FC = () => {
     return <BlockchainLoadingState />;
   }
   
-  if (!blockchainReference && !attestationId) {
+  if (!blockchainReference && !attestationId && !teeVerificationId) {
     return null;
   }
   
@@ -31,6 +31,7 @@ const BlockchainVerification: React.FC = () => {
       <BlockchainVerificationDetails
         blockchainReference={blockchainReference}
         attestationId={attestationId}
+        teeVerificationId={teeVerificationId}
         timestamp={timestamp}
       />
     </motion.div>

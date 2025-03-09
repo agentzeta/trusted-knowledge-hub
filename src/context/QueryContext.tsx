@@ -1,4 +1,4 @@
-import React, { createContext, ReactNode } from 'react';
+import React, { createContext, ReactNode, useState } from 'react';
 import { QueryContextType } from '../types/query';
 import { useSupabaseAuth } from '../hooks/useSupabaseAuth';
 import { useApiKeys } from '../hooks/useApiKeys';
@@ -9,6 +9,26 @@ import { exportToGoogleDocsService } from '../services/exportService';
 import { toast } from '@/components/ui/use-toast';
 
 const QueryContext = createContext<QueryContextType | undefined>(undefined);
+
+export interface QueryContextType {
+  query: string;
+  responses: string[];
+  isLoading: boolean;
+  consensusResponse: string;
+  submitQuery: (query: string) => void;
+  setApiKey: (apiKey: string) => void;
+  setWalletKey: (walletKey: string) => void;
+  privateKey: string | null;
+  apiKeys: string[];
+  consensusResponse: string;
+  blockchainReference: string | null;
+  attestationId: string | null;
+  teeVerificationId: string | null;
+  isRecordingOnChain: boolean;
+  verifyOnBlockchain: () => Promise<void>;
+  exportToGoogleDocs: () => Promise<void>;
+  user: any;
+}
 
 export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { user } = useSupabaseAuth();
@@ -30,47 +50,28 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     submitQuery 
   } = useQuerySubmission(apiKeys, user, privateKey);
 
+  const [teeVerificationId, setTeeVerificationId] = useState<string | null>(null);
+
   const verifyOnBlockchain = async () => {
-    if (!privateKey) {
-      toast({
-        title: "Private Key Required",
-        description: "Please add your Ethereum wallet private key in Settings to verify on blockchain.",
-        duration: 3000,
-      });
-      return;
-    }
-
-    if (!query || !consensusResponse) {
-      toast({
-        title: "No Content to Verify",
-        description: "Please run a query first to generate content for verification.",
-        duration: 3000,
-      });
-      return;
-    }
-
+    if (!privateKey || !user || !consensusResponse || !query) return;
+    
     try {
-      await recordResponseOnBlockchain(
+      const result = await recordResponseOnBlockchain(
         privateKey,
-        user?.id || null,
+        user.id,
         query,
         consensusResponse,
         responses
       );
       
-      toast({
-        title: "Verification Started",
-        description: "Your consensus response is being recorded on the Flare blockchain.",
-        duration: 3000,
-      });
-    } catch (error: any) {
-      console.error('Blockchain verification error:', error);
-      toast({
-        title: "Verification Failed",
-        description: error.message || "Failed to verify on blockchain",
-        variant: "destructive",
-        duration: 3000,
-      });
+      if (result) {
+        setBlockchainReference(result.txHash);
+        setAttestationId(result.attestationUID);
+        setTeeVerificationId(result.teeVerificationId || null);
+      }
+    } catch (error) {
+      console.error('Error verifying on blockchain:', error);
+      throw error;
     }
   };
 
@@ -117,7 +118,7 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   };
 
   return (
-    <QueryContext.Provider value={{ 
+    <QueryContext.Provider value={{
       query, 
       responses, 
       isLoading, 
@@ -129,10 +130,11 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       consensusResponse,
       blockchainReference,
       attestationId,
+      teeVerificationId,
       isRecordingOnChain,
-      user,
+      verifyOnBlockchain,
       exportToGoogleDocs,
-      verifyOnBlockchain
+      user
     }}>
       {children}
     </QueryContext.Provider>
