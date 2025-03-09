@@ -35,7 +35,7 @@ const SearchSuggestions: React.FC<SearchSuggestionsProps> = ({
         {suggestions.map((suggestion) => (
           <motion.li
             key={suggestion.id}
-            whileHover={{ backgroundColor: 'rgba(241, 245, 249, 0.6)', dark: 'rgba(30, 41, 59, 0.6)' }}
+            whileHover={{ backgroundColor: 'rgba(241, 245, 249, 0.6)' }}
             onClick={() => {
               onSuggestionClick(suggestion.query);
               if (setShowSuggestions) setShowSuggestions(false);
