@@ -7,6 +7,8 @@ import ConsensusResponse from './query/ConsensusResponse';
 import IndividualResponses from './query/IndividualResponses';
 import ConsensusVisual from './ConsensusVisual';
 import ConsensusStatistics from './ConsensusStatistics';
+import FollowUpQuestion from './query/FollowUpQuestion';
+import { useQueryContext } from '../hooks/useQueryContext';
 
 interface QueryResponsesProps {
   isLoading: boolean;
@@ -19,6 +21,9 @@ const QueryResponses: React.FC<QueryResponsesProps> = ({
   consensusResponse,
   responses
 }) => {
+  // Get access to the submitQuery function
+  const { submitQuery } = useQueryContext();
+
   // Get the timestamp from the first response (all responses have same timestamp)
   const timestamp = responses.length > 0 ? responses[0].timestamp : null;
   
@@ -38,6 +43,11 @@ const QueryResponses: React.FC<QueryResponsesProps> = ({
       }))
     });
   }, [isLoading, consensusResponse, responses]);
+
+  // Handle follow-up question submission
+  const handleFollowUpSubmit = (question: string) => {
+    submitQuery(question);
+  };
 
   // If there are no responses and we're not loading, show a message
   if (responses.length === 0 && !isLoading && !consensusResponse) {
@@ -73,6 +83,10 @@ const QueryResponses: React.FC<QueryResponsesProps> = ({
       
       {responses.length > 1 && !isLoading && (
         <ConsensusStatistics responses={responses} />
+      )}
+      
+      {responses.length > 0 && !isLoading && (
+        <FollowUpQuestion onSubmit={handleFollowUpSubmit} isLoading={isLoading} />
       )}
     </>
   );

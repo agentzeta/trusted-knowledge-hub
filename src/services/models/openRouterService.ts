@@ -42,6 +42,9 @@ export const fetchFromOpenRouter = async (
     }
 
     const content = data.choices[0].message.content;
+    
+    // Extract model name from the response or use the provided model name
+    // Format: "provider/model-name"
     const modelUsed = data.model.split('/').pop() || modelName;
     
     return {
@@ -56,4 +59,43 @@ export const fetchFromOpenRouter = async (
     console.error('Error fetching from OpenRouter:', error);
     throw error;
   }
+};
+
+// New function to fetch from multiple models in parallel
+export const fetchFromMultipleOpenRouterModels = async (
+  queryText: string,
+  apiKey: string
+): Promise<Response[]> => {
+  console.log('Fetching from multiple OpenRouter models');
+  
+  // Define a list of interesting and diverse models to query
+  const models = [
+    { name: 'anthropic/claude-3-opus:20240229', label: 'Claude 3.7 Opus' },
+    { name: 'anthropic/claude-3-sonnet:20240229', label: 'Claude 3.5 Sonnet' },
+    { name: 'google/gemini-1.5-pro', label: 'Gemini 1.5 Pro' },
+    { name: 'mistralai/mistral-large', label: 'Mistral Large' },
+    { name: 'meta-llama/llama-3-70b-instruct', label: 'Llama 3 70B' },
+    { name: 'deepseek-ai/deepseek-v2', label: 'DeepSeek V2' },
+    { name: 'cohere/command-r-plus', label: 'Cohere Command-R+' },
+    { name: 'perplexity/sonar-small-online', label: 'Perplexity Sonar' }
+  ];
+  
+  // Create an array of promises, each fetching from a different model
+  const promises = models.map(model => 
+    fetchFromOpenRouter(queryText, apiKey, model.name)
+      .catch(error => {
+        console.error(`Error fetching from OpenRouter model ${model.label}:`, error);
+        return null;
+      })
+  );
+  
+  // Wait for all promises to resolve
+  const results = await Promise.allSettled(promises);
+  
+  // Filter out failed requests and return successful responses
+  return results
+    .filter((result): result is PromiseFulfilledResult<Response> => 
+      result.status === 'fulfilled' && result.value !== null
+    )
+    .map(result => result.value);
 };

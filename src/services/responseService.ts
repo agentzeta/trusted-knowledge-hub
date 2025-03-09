@@ -10,7 +10,7 @@ import {
   fetchFromPerplexity, 
   fetchFromDeepseek
 } from './modelService';
-import { fetchFromOpenRouter } from './models/openRouterService';
+import { fetchFromMultipleOpenRouterModels } from './models/openRouterService';
 import { deriveConsensusResponse } from '../utils/consensusUtils';
 import { toast } from '@/components/ui/use-toast';
 
@@ -98,21 +98,24 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
     console.log('Skipping DeepSeek (Coder) - No API key provided');
   }
   
-  // Add support for OpenRouter
+  // Add support for OpenRouter with multi-model fetching
   if (apiKeys.openrouter) {
-    console.log('Adding OpenRouter models to request queue');
+    console.log('Adding multiple OpenRouter models to request queue');
     
-    // Add multiple models from OpenRouter
-    const openRouterModels = [
-      { name: 'anthropic/claude-3-opus:20240229', label: 'Claude 3 Opus' },
-      { name: 'meta-llama/llama-3-70b-instruct', label: 'Llama 3 70B' },
-      { name: 'google/gemini-1.5-pro', label: 'Gemini 1.5 Pro' }
-    ];
+    // Instead of individual models, use the multi-model fetcher
+    apiPromises.push(fetchMultipleOpenRouterModels());
     
-    for (const model of openRouterModels) {
-      console.log(`Adding OpenRouter model: ${model.label}`);
-      apiPromises.push(fetchFromOpenRouter(queryText, apiKeys.openrouter, model.name));
-      apiSources.push(`OpenRouter/${model.label}`);
+    // Note: apiSources will be populated with actual model names from responses
+    function fetchMultipleOpenRouterModels() {
+      return fetchFromMultipleOpenRouterModels(queryText, apiKeys.openrouter)
+        .then(responses => {
+          console.log(`Received ${responses.length} OpenRouter responses`);
+          return responses;
+        })
+        .catch(error => {
+          console.error('Error fetching from multiple OpenRouter models:', error);
+          return [];
+        });
     }
   } else {
     console.log('Skipping OpenRouter models - No API key provided');
@@ -152,13 +155,21 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
   console.log('=== Executing API Calls in Parallel ===');
   const apiResults = await Promise.allSettled(apiPromises);
   
-  // Debug information about API responses
+  // Collect all valid responses, handling the special case of OpenRouter multi-model responses
+  let validResponses: Response[] = [];
+  
   apiResults.forEach((result, index) => {
     const source = index < apiSources.length ? apiSources[index] : 'Unknown';
+    
     if (result.status === 'fulfilled') {
-      if (result.value) {
+      if (Array.isArray(result.value)) {
+        // This is the result from OpenRouter multi-model fetcher
+        console.log(`✅ SUCCESS: Received an array of ${result.value.length} responses from OpenRouter models`);
+        validResponses = validResponses.concat(result.value);
+      } else if (result.value) {
         console.log(`✅ SUCCESS: API response from ${source}`);
         console.log(`Content preview from ${source}:`, result.value.content.substring(0, 50) + '...');
+        validResponses.push(result.value);
       } else {
         console.warn(`⚠️ WARNING: API response from ${source} was fulfilled but returned null`);
       }
@@ -166,11 +177,6 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
       console.error(`❌ ERROR: API response from ${source} failed:`, result.reason);
     }
   });
-  
-  // Filter successful responses only
-  const validResponses = apiResults
-    .filter(result => result.status === 'fulfilled' && result.value !== null)
-    .map(result => (result as PromiseFulfilledResult<Response>).value);
   
   console.log(`Received ${validResponses.length} valid API responses from:`, validResponses.map(r => r.source).join(', '));
   
