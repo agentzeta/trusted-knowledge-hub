@@ -92,10 +92,10 @@ export const fetchFromAnthropic = async (queryText: string, apiKey: string): Pro
   }
 };
 
-// Process Anthropic Claude 3.5 Sonnet response
+// Process Anthropic Claude 3.5 Sonnet response - uses the same API key as Claude 3 Haiku
 export const fetchFromAnthropicClaude35 = async (queryText: string, apiKey: string): Promise<Response | null> => {
   if (!apiKey) {
-    console.log('Anthropic Claude 3.5 API key is missing');
+    console.log('Anthropic API key is missing');
     return null;
   }
   

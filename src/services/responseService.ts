@@ -43,16 +43,18 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
     console.log('Adding Anthropic (Claude 3 Haiku) to request queue');
     apiPromises.push(fetchFromAnthropic(queryText, apiKeys.anthropic));
     apiSources.push('Claude 3 Haiku');
-  } else {
-    console.log('Skipping Anthropic (Claude 3 Haiku) - No API key provided');
-  }
-  
-  if (apiKeys.anthropicClaude35) {
-    console.log('Adding Anthropic (Claude 3.5 Sonnet) to request queue');
+    
+    // Use the same anthropic key for Claude 3.5 Sonnet
+    console.log('Adding Anthropic (Claude 3.5 Sonnet) to request queue with same API key');
+    apiPromises.push(fetchFromAnthropicClaude35(queryText, apiKeys.anthropic));
+    apiSources.push('Claude 3.5 Sonnet');
+  } else if (apiKeys.anthropicClaude35) {
+    // Backward compatibility - use specific Claude 3.5 key if provided
+    console.log('Adding Anthropic (Claude 3.5 Sonnet) to request queue with specific API key');
     apiPromises.push(fetchFromAnthropicClaude35(queryText, apiKeys.anthropicClaude35));
     apiSources.push('Claude 3.5 Sonnet');
   } else {
-    console.log('Skipping Anthropic (Claude 3.5 Sonnet) - No API key provided');
+    console.log('Skipping Anthropic models - No API key provided');
   }
   
   if (apiKeys.openai) {
