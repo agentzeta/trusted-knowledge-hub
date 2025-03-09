@@ -26,7 +26,22 @@ const LeaderboardTable: React.FC<LeaderboardTableProps> = ({
     { key: 'contradictionRate', label: 'Contradiction', icon: <Shuffle size={16} /> }
   ];
   
-  const formatPercent = (value: number) => `${Math.round(value * 100)}%`;
+  const formatPercent = (value: number | string): string => {
+    // Ensure we have a number to format
+    const numValue = typeof value === 'number' ? value : 0;
+    return `${Math.round(numValue * 100)}%`;
+  };
+  
+  const getColorClass = (metric: keyof ModelMetrics, value: number): string => {
+    // Determine color based on metric type and value
+    if (metric === 'hallucinationRate' || metric === 'contradictionRate') {
+      // For these metrics, lower is better
+      return value < 0.3 ? "text-green-600" : value > 0.6 ? "text-red-500" : "text-amber-500";
+    } else {
+      // For other metrics, higher is better
+      return value > 0.7 ? "text-green-600" : value < 0.4 ? "text-red-500" : "text-amber-500";
+    }
+  };
   
   return (
     <div className="overflow-x-auto mt-4">
@@ -73,22 +88,27 @@ const LeaderboardTable: React.FC<LeaderboardTableProps> = ({
                 {index > 2 && index + 1}
               </td>
               <td className="p-2">{metric.modelName}</td>
-              {displayMetrics.map(dm => (
-                <td 
-                  key={dm.key} 
-                  className={cn(
-                    "p-2 text-center",
-                    // Highlight the sorting column
-                    sortMetric === dm.key && "font-medium",
-                    // Color based on metric type (green for good, red for bad)
-                    dm.key === 'hallucinationRate' || dm.key === 'contradictionRate' 
-                      ? metric[dm.key] < 0.3 ? "text-green-600" : metric[dm.key] > 0.6 ? "text-red-500" : "text-amber-500" 
-                      : metric[dm.key] > 0.7 ? "text-green-600" : metric[dm.key] < 0.4 ? "text-red-500" : "text-amber-500"
-                  )}
-                >
-                  {formatPercent(metric[dm.key])}
-                </td>
-              ))}
+              {displayMetrics.map(dm => {
+                // Get the metric value and ensure it's a number
+                const metricValue = typeof metric[dm.key] === 'number' 
+                  ? metric[dm.key] as number
+                  : 0;
+                
+                return (
+                  <td 
+                    key={dm.key} 
+                    className={cn(
+                      "p-2 text-center",
+                      // Highlight the sorting column
+                      sortMetric === dm.key && "font-medium",
+                      // Color based on metric type and value
+                      getColorClass(dm.key, metricValue)
+                    )}
+                  >
+                    {formatPercent(metricValue)}
+                  </td>
+                );
+              })}
               <td className="p-2 text-center text-sm">
                 {metric.verifiedResponses}/{metric.totalResponses}
               </td>

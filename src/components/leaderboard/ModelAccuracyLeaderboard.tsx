@@ -37,9 +37,13 @@ const ModelAccuracyLeaderboard: React.FC<ModelAccuracyLeaderboardProps> = ({
     const aValue = a[sortMetric];
     const bValue = b[sortMetric];
     
+    // Ensure we're comparing numbers
+    const aNum = typeof aValue === 'number' ? aValue : 0;
+    const bNum = typeof bValue === 'number' ? bValue : 0;
+    
     return sortDirection === 'asc' 
-      ? aValue - bValue 
-      : bValue - aValue;
+      ? aNum - bNum 
+      : bNum - aNum;
   });
   
   // Handle sort changes
