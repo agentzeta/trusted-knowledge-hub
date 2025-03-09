@@ -61,15 +61,14 @@ export const fetchFromOpenRouter = async (
   }
 };
 
-// Updated function to fetch from multiple OpenRouter models SEQUENTIALLY
-// This is crucial to ensure we get distinct responses from each model
+// Updated function to fetch from multiple OpenRouter models INDIVIDUALLY
 export const fetchFromMultipleOpenRouterModels = async (
   queryText: string,
   apiKey: string
 ): Promise<Response[]> => {
   console.log('=== FETCHING FROM MULTIPLE OPENROUTER MODELS ===');
   
-  // Define models with more specific display names
+  // Define models to query individually
   const models = [
     { name: 'anthropic/claude-3-opus:20240229', displayName: 'Claude 3.7 Opus' },
     { name: 'anthropic/claude-3-sonnet:20240229', displayName: 'Claude 3.5 Sonnet' },
@@ -81,19 +80,14 @@ export const fetchFromMultipleOpenRouterModels = async (
     { name: 'perplexity/sonar-small-online', displayName: 'Perplexity Sonar' }
   ];
   
-  console.log(`Will make individual requests to ${models.length} OpenRouter models`);
+  console.log(`Will attempt to fetch from ${models.length} OpenRouter models`);
   
-  const responses: Response[] = [];
+  // Make the requests to each model one by one
+  const allResponses: Response[] = [];
   
-  // Make individual sequential requests to ensure we get all responses
   for (const model of models) {
-    console.log(`Creating request for OpenRouter model: ${model.displayName}`);
-    
     try {
-      // Add a small delay between requests to avoid rate limiting
-      if (responses.length > 0) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
+      console.log(`Starting individual request to OpenRouter model: ${model.displayName}`);
       
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
@@ -110,58 +104,50 @@ export const fetchFromMultipleOpenRouterModels = async (
             { role: 'user', content: queryText }
           ],
           temperature: 0.3,
-          // Add a unique identifier to prevent caching
-          route: `${model.displayName}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+          // Add unique client ID to prevent response caching
+          extra: {
+            nonce: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+          }
         })
       });
       
+      // Handle potential errors
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error(`Error from ${model.displayName}:`, errorData);
-        continue;
+        const errorText = await response.text();
+        console.error(`Error fetching from ${model.displayName}:`, errorText);
+        continue; // Skip to next model on error
       }
       
       const data = await response.json();
-      console.log(`Response data from ${model.displayName}:`, {
-        model: data.model,
-        hasChoices: !!data.choices,
-        choicesLength: data.choices?.length,
-        contentPreview: data.choices?.[0]?.message?.content?.substring(0, 50) + '...'
-      });
       
+      // Verify response format
       if (!data.choices || !data.choices[0] || !data.choices[0].message) {
         console.error(`Invalid response format from ${model.displayName}`);
         continue;
       }
       
-      console.log(`✅ Success: Received response from ${model.displayName}`);
+      const content = data.choices[0].message.content;
       
-      const responseObj = {
+      // Add response to array
+      const responseObj: Response = {
         id: uuidv4(),
-        content: data.choices[0].message.content,
+        content: content,
         source: model.displayName,
         verified: false,
         timestamp: Date.now(),
         confidence: 0.7
       };
       
-      responses.push(responseObj);
+      console.log(`✅ Added response from ${model.displayName}`);
+      allResponses.push(responseObj);
       
-      // Add detailed logging to verify this response was added
-      console.log(`Added response from ${model.displayName} to results array. Current count: ${responses.length}`);
-      console.log(`Latest response details:`, {
-        id: responseObj.id,
-        source: responseObj.source,
-        contentLength: responseObj.content.length,
-        contentPreview: responseObj.content.substring(0, 50) + '...'
-      });
     } catch (error) {
-      console.error(`Error fetching from ${model.displayName}:`, error);
+      console.error(`Failed to get response from ${model.displayName}:`, error);
     }
   }
   
-  console.log(`Successfully received ${responses.length} responses from OpenRouter models`);
-  console.log('OpenRouter model sources:', responses.map(r => r.source).join(', '));
+  console.log(`Successfully received ${allResponses.length} responses from OpenRouter models`);
+  console.log('OpenRouter model sources:', allResponses.map(r => r.source).join(', '));
   
-  return responses;
+  return allResponses;
 };

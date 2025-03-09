@@ -36,7 +36,7 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
   
   const apiResults = await Promise.allSettled(apiPromises);
   
-  console.log('API results received, checking status of each:');
+  console.log('API results received, processing each:');
   apiResults.forEach((result, i) => {
     if (result.status === 'fulfilled') {
       if (Array.isArray(result.value)) {
@@ -64,13 +64,6 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
   const derivedConsensus = deriveConsensusResponse(validResponses);
   console.log('Derived consensus response:', derivedConsensus.substring(0, 100) + '...');
   console.log('=== Completed fetchResponses ===');
-  
-  // Log the final response object being returned
-  console.log('Final response object:', {
-    responseCount: validResponses.length,
-    sources: validResponses.map(r => r.source).join(', '),
-    consensusLength: derivedConsensus.length
-  });
   
   return { allResponses: validResponses, derivedConsensus };
 };

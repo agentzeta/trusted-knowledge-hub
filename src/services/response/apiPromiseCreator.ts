@@ -79,35 +79,14 @@ export const createApiPromises = (queryText: string, apiKeys: ApiKeys) => {
     console.log('Skipping DeepSeek (Coder) - No API key provided');
   }
   
-  // Make sure OpenRouter is processed LAST since it returns multiple responses
-  // This ensures it doesn't get overshadowed by other API results
+  // Add OpenRouter last, which will return multiple model responses
   if (apiKeys.openrouter) {
-    console.log('Adding OpenRouter multimodel fetching to request queue (LAST)');
-    
-    // Add it directly to the apiPromises array but correctly label it for error handling
+    console.log('🔥 Adding OpenRouter multi-model fetching to queue');
+    // This will make multiple separate API requests and return an array of responses
     apiPromises.push(fetchFromMultipleOpenRouterModels(queryText, apiKeys.openrouter));
     apiSources.push('OpenRouter Models');
-    
-    console.log('OpenRouter multimodel fetching has been added as the last API call');
   } else {
     console.log('Skipping OpenRouter models - No API key provided');
-  }
-  
-  // Add support for Llama models
-  if (apiKeys.llama) {
-    console.log('Using Llama API key for all Llama models');
-    console.log('Llama API key is available for use with Llama models');
-  }
-  
-  // Handle ElevenLabs key for voice synthesis
-  if (apiKeys.elevenlabs) {
-    console.log('ElevenLabs API key is available for voice synthesis');
-    try {
-      sessionStorage.setItem('elevenLabsApiKey', apiKeys.elevenlabs);
-      console.log('ElevenLabs API key stored in session storage for voice synthesis');
-    } catch (e) {
-      console.error('Failed to store ElevenLabs API key in session storage:', e);
-    }
   }
   
   console.log(`Created ${apiPromises.length} API promises with sources:`, apiSources.join(', '));
