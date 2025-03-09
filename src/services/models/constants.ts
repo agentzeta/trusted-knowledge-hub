@@ -1,20 +1,20 @@
-
 // Available AI models with updated names to the most powerful free tier options
-export const AI_SOURCES = [
-  'GPT-4o', 
-  'Claude 3 Haiku', 
-  'Claude 3.5 Sonnet',
-  'Claude 3.7 Opus',
-  'Gemini 1.5 Pro', 
-  'Gemini 1.5 Flash',
-  'Llama 3.1 70B', 
-  'Llama 3 8B',
-  'Grok-1.5', 
-  'Perplexity Sonar', 
-  'DeepSeek Coder',
-  'Qwen2 72B',
-  'OpenRouter' // Added OpenRouter as a source
-];
+export const AI_SOURCES = {
+  OPENAI: 'GPT-4o', 
+  ANTHROPIC: 'Claude 3 Haiku',
+  ANTHROPIC_CLAUDE35: 'Claude 3.5 Sonnet',
+  ANTHROPIC_CLAUDE37: 'Claude 3.7 Opus',
+  GEMINI: 'Gemini 1.5 Pro',
+  GEMINI_PRO_EXP: 'Gemini 1.5 Flash',
+  LLAMA_70B: 'Llama 3.1 70B',
+  LLAMA_8B: 'Llama 3 8B',
+  GROK: 'Grok-1.5',
+  PERPLEXITY: 'Perplexity Sonar',
+  DEEPSEEK: 'DeepSeek Coder',
+  QWEN: 'Qwen2 72B',
+  OPENROUTER: 'OpenRouter',
+  OPENROUTER_MULTI: 'OpenRouter Multi'
+};
 
 // Default API keys
 export const DEFAULT_API_KEYS = {

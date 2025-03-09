@@ -19,7 +19,7 @@ import {
  * Create API promises for all configured models
  */
 export const createApiPromises = (queryText: string, apiKeys: ApiKeys) => {
-  const timestamp = Math.floor(Date.now() / 1000);
+  const timestamp = Date.now();
   const apiPromises: Promise<Response | Response[] | null>[] = [];
   const apiSources: string[] = [];
   
@@ -144,8 +144,8 @@ export const createApiPromises = (queryText: string, apiKeys: ApiKeys) => {
   // If no API keys are available, provide a mock response
   if (apiPromises.length === 0) {
     console.log('No API keys available, adding mock response');
-    const mockResponse: Response = getMockResponse(queryText, timestamp);
-    apiPromises.push(Promise.resolve(mockResponse));
+    const mockResponse: Promise<Response> = Promise.resolve(getMockResponse('Mock Response', queryText));
+    apiPromises.push(mockResponse);
     apiSources.push('Mock Response');
   }
   
