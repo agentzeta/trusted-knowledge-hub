@@ -26,83 +26,90 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
     return { allResponses: [], derivedConsensus: "No API keys configured. Please add API keys in the settings to use AI models." };
   }
   
-  // Map for tracking which APIs were attempted
-  const attemptedApis = new Map<string, boolean>();
-  AI_SOURCES.forEach(source => attemptedApis.set(source, false));
-  
   // Create API promises only for those with keys
   const apiPromises = [];
+  const apiSources = [];
   
+  // Add each API with a valid key to the promises array
   if (apiKeys.openai) {
     console.log('Adding OpenAI API call to queue');
     apiPromises.push(fetchFromOpenAI(queryText, apiKeys.openai));
-    attemptedApis.set('GPT-4o', true);
+    apiSources.push('GPT-4o');
   }
   
   if (apiKeys.anthropic) {
     console.log('Adding Anthropic API call to queue');
     apiPromises.push(fetchFromAnthropic(queryText, apiKeys.anthropic));
-    attemptedApis.set('Claude 3 Haiku', true);
+    apiSources.push('Claude 3 Haiku');
   }
   
   if (apiKeys.anthropicClaude35) {
     console.log('Adding Anthropic Claude 3.5 API call to queue');
     apiPromises.push(fetchFromAnthropicClaude35(queryText, apiKeys.anthropicClaude35));
-    attemptedApis.set('Claude 3.5 Sonnet', true);
+    apiSources.push('Claude 3.5 Sonnet');
   }
   
   if (apiKeys.gemini) {
     console.log('Adding Gemini API call to queue');
     apiPromises.push(fetchFromGemini(queryText, apiKeys.gemini));
-    attemptedApis.set('Gemini 1.5 Pro', true);
+    apiSources.push('Gemini 1.5 Pro');
   }
   
   if (apiKeys.geminiProExperimental) {
     console.log('Adding Gemini Pro Experimental API call to queue');
     apiPromises.push(fetchFromGeminiProExp(queryText, apiKeys.geminiProExperimental));
-    attemptedApis.set('Gemini 1.5 Flash', true);
+    apiSources.push('Gemini 1.5 Flash');
   }
   
   if (apiKeys.perplexity) {
     console.log('Adding Perplexity API call to queue');
     apiPromises.push(fetchFromPerplexity(queryText, apiKeys.perplexity));
-    attemptedApis.set('Perplexity Sonar', true);
+    apiSources.push('Perplexity Sonar');
   }
   
   if (apiKeys.deepseek) {
     console.log('Adding DeepSeek API call to queue');
     apiPromises.push(fetchFromDeepseek(queryText, apiKeys.deepseek));
-    attemptedApis.set('DeepSeek Coder', true);
+    apiSources.push('DeepSeek Coder');
   }
   
-  console.log(`Attempting to fetch from ${apiPromises.length} LLMs`);
+  console.log(`Attempting to fetch from ${apiPromises.length} LLMs:`, apiSources.join(', '));
+  
+  if (apiPromises.length === 0) {
+    console.error('No API promises created - no valid API keys found');
+    return { allResponses: [], derivedConsensus: "No valid API keys configured. Please add API keys in the settings." };
+  }
   
   // Execute all API promises simultaneously
   const apiResults = await Promise.allSettled(apiPromises);
   
   // Debug information about API responses
   apiResults.forEach((result, index) => {
+    const source = index < apiSources.length ? apiSources[index] : 'Unknown';
     if (result.status === 'fulfilled') {
-      console.log(`API response ${index+1} successful:`, result.value?.source);
+      console.log(`API response from ${source} successful:`, result.value ? 'Response received' : 'Null response');
     } else {
-      console.error(`API response ${index+1} failed:`, result.reason);
+      console.error(`API response from ${source} failed:`, result.reason);
     }
   });
   
   // Filter successful responses only
   const validResponses = apiResults
-    .filter(result => result.status === 'fulfilled' && result.value)
+    .filter(result => result.status === 'fulfilled' && result.value !== null)
     .map(result => (result as PromiseFulfilledResult<Response>).value);
   
   console.log(`Received ${validResponses.length} valid API responses from:`, validResponses.map(r => r.source).join(', '));
   
   // IMPORTANT: Add additional debug to verify response array
-  console.log('Response details:', validResponses.map(r => ({
-    source: r.source,
-    contentLength: r.content.length,
-    verified: r.verified,
-    id: r.id
-  })));
+  validResponses.forEach(r => {
+    console.log(`Response details for ${r.source}:`, {
+      id: r.id,
+      contentLength: r.content.length,
+      contentPreview: r.content.substring(0, 50) + '...',
+      verified: r.verified,
+      timestamp: r.timestamp
+    });
+  });
   
   if (validResponses.length === 0) {
     toast({

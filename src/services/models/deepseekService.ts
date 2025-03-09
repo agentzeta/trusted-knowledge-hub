@@ -6,7 +6,7 @@ export const fetchFromDeepseek = async (queryText: string, apiKey: string): Prom
   if (!apiKey) return null;
   
   try {
-    console.log('Fetching from DeepSeek Coder...');
+    console.log('Fetching from DeepSeek Coder with valid API key...');
     // Using DeepSeek Coder API
     const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
@@ -29,6 +29,7 @@ export const fetchFromDeepseek = async (queryText: string, apiKey: string): Prom
     }
     
     const data = await response.json();
+    console.log('DeepSeek raw response:', JSON.stringify(data).substring(0, 200) + '...');
     
     if (data.error) {
       console.error('Deepseek API error:', data.error);
@@ -41,7 +42,7 @@ export const fetchFromDeepseek = async (queryText: string, apiKey: string): Prom
     
     return {
       id: uniqueId,
-      content: data.choices?.[0]?.message?.content || `${queryText} - Response from DeepSeek Coder.`,
+      content: data.choices?.[0]?.message?.content || '',
       source: 'DeepSeek Coder',
       verified: true,
       timestamp: Date.now(),

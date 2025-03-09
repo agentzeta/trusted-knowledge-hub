@@ -31,6 +31,8 @@ export const useQuerySubmission = (
     
     try {
       console.log('Submitting query:', queryText);
+      console.log('Available API keys:', Object.keys(apiKeys).filter(k => !!apiKeys[k]));
+      
       const result = await fetchResponses(queryText, apiKeys);
       
       const { allResponses, derivedConsensus } = result;
@@ -42,6 +44,8 @@ export const useQuerySubmission = (
       // Verify responses based on consensus
       const verifiedResponses = verifyResponses(allResponses, derivedConsensus);
       console.log('Setting verified responses:', verifiedResponses.length);
+      console.log('Verified response sources:', verifiedResponses.map(r => r.source).join(', '));
+      
       setResponses(verifiedResponses);
 
       if (user) {

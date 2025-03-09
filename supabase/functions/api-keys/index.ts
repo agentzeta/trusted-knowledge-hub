@@ -34,12 +34,14 @@ serve(async (req) => {
     
     console.log(`Available API keys: ${availableKeys.join(', ')}`);
     
+    // Make sure we're returning a proper response with the API keys
     return new Response(
       JSON.stringify({ 
         apiKeys,
         availableKeys
       }),
       { 
+        status: 200,
         headers: { 
           ...corsHeaders, 
           'Content-Type': 'application/json' 

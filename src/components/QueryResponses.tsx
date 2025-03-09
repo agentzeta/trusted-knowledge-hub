@@ -22,6 +22,7 @@ const QueryResponses: React.FC<QueryResponsesProps> = ({
   // Get the timestamp from the first response (all responses have same timestamp)
   const timestamp = responses.length > 0 ? responses[0].timestamp : null;
   
+  // Add detailed logging for debugging
   useEffect(() => {
     console.log('QueryResponses component rendering with:', {
       isLoading,
@@ -32,6 +33,7 @@ const QueryResponses: React.FC<QueryResponsesProps> = ({
         id: r.id,
         source: r.source,
         contentLength: r.content.length,
+        contentPreview: r.content.substring(0, 50) + '...',
         verified: r.verified
       }))
     });
