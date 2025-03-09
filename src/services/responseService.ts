@@ -43,42 +43,56 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
     console.log('Adding Anthropic (Claude 3 Haiku) to request queue');
     apiPromises.push(fetchFromAnthropic(queryText, apiKeys.anthropic));
     apiSources.push('Claude 3 Haiku');
+  } else {
+    console.log('Skipping Anthropic (Claude 3 Haiku) - No API key provided');
   }
   
   if (apiKeys.anthropicClaude35) {
     console.log('Adding Anthropic (Claude 3.5 Sonnet) to request queue');
     apiPromises.push(fetchFromAnthropicClaude35(queryText, apiKeys.anthropicClaude35));
     apiSources.push('Claude 3.5 Sonnet');
+  } else {
+    console.log('Skipping Anthropic (Claude 3.5 Sonnet) - No API key provided');
   }
   
   if (apiKeys.openai) {
     console.log('Adding OpenAI (GPT-4o) to request queue');
     apiPromises.push(fetchFromOpenAI(queryText, apiKeys.openai));
     apiSources.push('GPT-4o');
+  } else {
+    console.log('Skipping OpenAI (GPT-4o) - No API key provided');
   }
   
   if (apiKeys.gemini) {
     console.log('Adding Gemini (1.5 Pro) to request queue');
     apiPromises.push(fetchFromGemini(queryText, apiKeys.gemini));
     apiSources.push('Gemini 1.5 Pro');
+  } else {
+    console.log('Skipping Gemini (1.5 Pro) - No API key provided');
   }
   
   if (apiKeys.geminiProExperimental) {
     console.log('Adding Gemini (1.5 Flash) to request queue');
     apiPromises.push(fetchFromGeminiProExp(queryText, apiKeys.geminiProExperimental));
     apiSources.push('Gemini 1.5 Flash');
+  } else {
+    console.log('Skipping Gemini (1.5 Flash) - No API key provided');
   }
   
   if (apiKeys.perplexity) {
     console.log('Adding Perplexity (Sonar) to request queue');
     apiPromises.push(fetchFromPerplexity(queryText, apiKeys.perplexity));
     apiSources.push('Perplexity Sonar');
+  } else {
+    console.log('Skipping Perplexity (Sonar) - No API key provided');
   }
   
   if (apiKeys.deepseek) {
     console.log('Adding DeepSeek (Coder) to request queue');
     apiPromises.push(fetchFromDeepseek(queryText, apiKeys.deepseek));
     apiSources.push('DeepSeek Coder');
+  } else {
+    console.log('Skipping DeepSeek (Coder) - No API key provided');
   }
   
   console.log(`Attempting to fetch from ${apiPromises.length} LLMs:`, apiSources.join(', '));

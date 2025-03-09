@@ -11,6 +11,13 @@ export const fetchFromOpenAI = async (queryText: string, apiKey: string): Promis
   try {
     console.log('Fetching from OpenAI (GPT-4o) with API key:', apiKey.substring(0, 5) + '...');
     
+    // Log request payload (without the full API key)
+    console.log('OpenAI request payload:', JSON.stringify({
+      model: 'gpt-4o',
+      messages: [{ role: 'user', content: queryText }],
+      max_tokens: 150
+    }));
+    
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -29,7 +36,7 @@ export const fetchFromOpenAI = async (queryText: string, apiKey: string): Promis
     
     if (!response.ok) {
       const errorData = await response.text();
-      console.error('OpenAI API error:', errorData);
+      console.error(`OpenAI API error (${response.status}):`, errorData);
       return null;
     }
     
@@ -60,6 +67,7 @@ export const fetchFromOpenAI = async (queryText: string, apiKey: string): Promis
     console.log('Successfully received response from OpenAI GPT-4o:', content.substring(0, 50) + '...');
     
     const uniqueId = `openai-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    console.log('Generated OpenAI response ID:', uniqueId);
     
     return {
       id: uniqueId,
