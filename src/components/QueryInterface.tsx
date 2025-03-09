@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useQueryContext } from '../hooks/useQueryContext';
@@ -8,6 +7,7 @@ import QuerySearchInput from './QuerySearchInput';
 import UserAuthStatus from './UserAuthStatus';
 import QueryResponses from './QueryResponses';
 import WelcomeGreeting from './WelcomeGreeting';
+import ExampleQueriesSection from './ExampleQueriesSection';
 
 const storedQueries = [
   { id: 1, query: "How does climate change affect coral reefs?" },
@@ -29,6 +29,7 @@ const QueryInterface: React.FC = () => {
   const [suggestions, setSuggestions] = useState<typeof storedQueries>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showChatOptions, setShowChatOptions] = useState(true);
+  const [showExamples, setShowExamples] = useState(false);
 
   useEffect(() => {
     if (inputQuery.trim() && inputQuery.length > 2) {
@@ -124,6 +125,22 @@ const QueryInterface: React.FC = () => {
       />
       
       <UserAuthStatus user={user} />
+      
+      <div className="mt-4 text-center">
+        <button 
+          onClick={() => setShowExamples(!showExamples)}
+          className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+        >
+          {showExamples ? 'Hide Example Queries' : 'Show Example Queries by Category'}
+        </button>
+        
+        {showExamples && (
+          <ExampleQueriesSection 
+            onExampleClick={handleSuggestionClick}
+            isLoading={isLoading}
+          />
+        )}
+      </div>
       
       <QueryResponses
         isLoading={isLoading}
