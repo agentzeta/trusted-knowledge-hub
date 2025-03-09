@@ -9,8 +9,7 @@ import { toast } from '@/components/ui/use-toast';
 export const useVoiceAgent = () => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isListening, setIsListening] = useState(false);
-  // Default to Laura (calm female voice)
-  const voiceId = "FGY2WhTYpPnrIDTdsKH5"; 
+  const [voiceId, setVoiceId] = useState("FGY2WhTYpPnrIDTdsKH5"); // Default to Laura (calm female voice)
   
   const { consensusResponse } = useQueryContext();
   
@@ -44,6 +43,15 @@ export const useVoiceAgent = () => {
     }
   };
   
+  // Function to change the voice ID
+  const changeVoice = (newVoiceId: string) => {
+    setVoiceId(newVoiceId);
+    toast({
+      title: "Voice Changed",
+      description: "The agent's voice has been updated",
+    });
+  };
+  
   return {
     isSpeaking,
     isListening,
@@ -52,6 +60,7 @@ export const useVoiceAgent = () => {
     stopSpeaking,
     startListening,
     stopListening,
-    voiceId
+    voiceId,
+    changeVoice
   };
 };
