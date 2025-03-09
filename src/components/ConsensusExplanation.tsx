@@ -1,10 +1,10 @@
 
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Response } from '../types/query';
 import { generateConsensusExplanation } from '../utils/consensusUtils';
-import { ChevronDown, ChevronUp, Info } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import ExplanationHeader from './explanation/ExplanationHeader';
+import ExplanationContent from './explanation/ExplanationContent';
 
 interface ConsensusExplanationProps {
   responses: Response[];
@@ -54,6 +54,8 @@ Potential reasons for divergent responses:
 - Response format differences that affect semantic similarity calculations
 ` : ''}
 `;
+
+  const toggleExpanded = () => setIsExpanded(!isExpanded);
   
   return (
     <motion.div
@@ -62,58 +64,20 @@ Potential reasons for divergent responses:
       transition={{ duration: 0.5 }}
       className="w-full max-w-3xl mx-auto mt-4 bg-white/90 dark:bg-slate-900/90 p-6 rounded-xl shadow-sm border border-blue-100 dark:border-blue-900/30"
     >
-      <div 
-        className="flex justify-between items-center cursor-pointer" 
-        onClick={() => setIsExpanded(!isExpanded)}
-      >
-        <div className="flex items-center gap-2">
-          <Info className="h-5 w-5 text-blue-500" />
-          <h3 className="text-lg font-medium">Consensus Explanation</h3>
-        </div>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className="p-1 h-auto"
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsExpanded(!isExpanded);
-          }}
-        >
-          {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-        </Button>
-      </div>
+      <ExplanationHeader 
+        isExpanded={isExpanded} 
+        toggleExpand={toggleExpanded}
+        title="Consensus Explanation"
+      />
       
-      <AnimatePresence>
-        {isExpanded && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden"
-          >
-            <div className="mt-4">
-              <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-md">
-                <p className="font-medium">Summary</p>
-                <p className="text-sm mt-1">
-                  {verifiedCount} out of {totalModels} models ({agreementPercent}%) reached consensus.
-                  Overall confidence: {Math.round(consensusConfidence * 100)}%.
-                </p>
-              </div>
-              
-              <div className="mt-4 prose prose-sm max-w-none dark:prose-invert">
-                <p className="whitespace-pre-line text-gray-700 dark:text-gray-300">{explanation}</p>
-              </div>
-              
-              <div className="mt-4">
-                <h4 className="text-sm font-medium mb-2">Technical Details</h4>
-                <pre className="text-xs whitespace-pre-wrap bg-gray-50 dark:bg-gray-800/50 p-4 rounded-md overflow-auto">
-                  {calculationExplanation}
-                </pre>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <ExplanationContent 
+        isExpanded={isExpanded}
+        responses={responses}
+        explanation={explanation}
+        calculationExplanation={calculationExplanation}
+        consensusPercentage={consensusPercentage}
+        consensusConfidence={consensusConfidence}
+      />
     </motion.div>
   );
 };
