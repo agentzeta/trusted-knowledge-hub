@@ -1,6 +1,9 @@
+
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Response } from '../../types/query';
+import OpenRouterModels from './OpenRouterModels';
+import DirectApiModels from './DirectApiModels';
 
 interface IndividualResponsesProps {
   responses: Response[];
@@ -41,24 +44,6 @@ const IndividualResponses: React.FC<IndividualResponsesProps> = ({ responses }) 
   // Sort responses alphabetically by source name for consistent display
   const sortedResponses = [...responses].sort((a, b) => a.source.localeCompare(b.source));
   
-  // Helper function to render a single response
-  const renderSingleResponse = (response: Response) => (
-    <div 
-      key={response.id} 
-      className="p-4 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow mb-4"
-    >
-      <div className="flex justify-between items-start mb-2">
-        <span className="font-medium">{response.source}</span>
-        <span className={response.verified ? 
-          "text-xs px-2 py-1 rounded-full bg-blue-50 text-blue-600 border border-blue-100" : 
-          "text-xs px-2 py-1 rounded-full bg-amber-50 text-amber-600 border border-amber-100"}>
-          {response.verified ? 'Verified' : 'Divergent'}
-        </span>
-      </div>
-      <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-line">{response.content}</p>
-    </div>
-  );
-  
   // Group responses by model family and source
   const openRouterModels = sortedResponses.filter(r => r.source.includes('OpenRouter') || 
     r.source === 'Claude 3.7 Opus' || 
@@ -71,31 +56,33 @@ const IndividualResponses: React.FC<IndividualResponsesProps> = ({ responses }) 
     r.source === 'Perplexity Sonar');
     
   const directModels = sortedResponses.filter(r => !openRouterModels.includes(r));
-  
-  // Group OpenRouter models
-  const claudeModels = openRouterModels.filter(r => r.source.includes('Claude'));
-  const geminiModels = openRouterModels.filter(r => r.source.includes('Gemini'));
-  const llamaModels = openRouterModels.filter(r => r.source.includes('Llama'));
-  const mistralModels = openRouterModels.filter(r => r.source.includes('Mistral'));
-  const deepseekModels = openRouterModels.filter(r => r.source.includes('DeepSeek'));
-  const cohereModels = openRouterModels.filter(r => r.source.includes('Cohere'));
-  const perplexityModels = openRouterModels.filter(r => r.source.includes('Perplexity'));
-  
-  // Group Direct API models
-  const directClaudeModels = directModels.filter(r => r.source.includes('Claude') && !r.source.includes('OpenRouter'));
-  const directGPTModels = directModels.filter(r => r.source.includes('GPT'));
-  const directGeminiModels = directModels.filter(r => r.source.includes('Gemini') && !r.source.includes('OpenRouter'));
-  const directPerplexityModels = directModels.filter(r => 
-    r.source.includes('Perplexity') && !r.source.includes('Sonar'));
-  const directDeepseekModels = directModels.filter(r => 
-    r.source.includes('DeepSeek') && !r.source.includes('V2'));
-  const otherDirectModels = directModels.filter(r => 
-    !directClaudeModels.includes(r) && 
-    !directGPTModels.includes(r) && 
-    !directGeminiModels.includes(r) &&
-    !directPerplexityModels.includes(r) &&
-    !directDeepseekModels.includes(r)
-  );
+
+  // Render fallback if no categorized responses
+  const renderUncategorizedResponses = () => {
+    if (openRouterModels.length === 0 && directModels.length === 0) {
+      return (
+        <div className="grid grid-cols-1 gap-4">
+          {sortedResponses.map(response => (
+            <div 
+              key={response.id} 
+              className="p-4 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow mb-4"
+            >
+              <div className="flex justify-between items-start mb-2">
+                <span className="font-medium">{response.source}</span>
+                <span className={response.verified ? 
+                  "text-xs px-2 py-1 rounded-full bg-blue-50 text-blue-600 border border-blue-100" : 
+                  "text-xs px-2 py-1 rounded-full bg-amber-50 text-amber-600 border border-amber-100"}>
+                  {response.verified ? 'Verified' : 'Divergent'}
+                </span>
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-line">{response.content}</p>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
 
   return (
     <motion.div
@@ -109,131 +96,13 @@ const IndividualResponses: React.FC<IndividualResponsesProps> = ({ responses }) 
         <h3 className="text-lg font-medium mb-4">Individual AI Responses ({responses.length}):</h3>
         
         {/* OpenRouter Models Section */}
-        {openRouterModels.length > 0 && (
-          <div className="mb-6">
-            <h4 className="text-md font-medium text-blue-600 mb-4">
-              OpenRouter Models ({openRouterModels.length})
-            </h4>
-            
-            {/* Claude models */}
-            {claudeModels.length > 0 && (
-              <div className="mb-4">
-                <h5 className="text-sm font-medium mb-2">Claude Models ({claudeModels.length})</h5>
-                {claudeModels.map(renderSingleResponse)}
-              </div>
-            )}
-            
-            {/* Gemini models */}
-            {geminiModels.length > 0 && (
-              <div className="mb-4">
-                <h5 className="text-sm font-medium mb-2">Gemini Models ({geminiModels.length})</h5>
-                {geminiModels.map(renderSingleResponse)}
-              </div>
-            )}
-            
-            {/* Llama models */}
-            {llamaModels.length > 0 && (
-              <div className="mb-4">
-                <h5 className="text-sm font-medium mb-2">Llama Models ({llamaModels.length})</h5>
-                {llamaModels.map(renderSingleResponse)}
-              </div>
-            )}
-            
-            {/* Mistral models */}
-            {mistralModels.length > 0 && (
-              <div className="mb-4">
-                <h5 className="text-sm font-medium mb-2">Mistral Models ({mistralModels.length})</h5>
-                {mistralModels.map(renderSingleResponse)}
-              </div>
-            )}
-            
-            {/* DeepSeek models */}
-            {deepseekModels.length > 0 && (
-              <div className="mb-4">
-                <h5 className="text-sm font-medium mb-2">DeepSeek Models ({deepseekModels.length})</h5>
-                {deepseekModels.map(renderSingleResponse)}
-              </div>
-            )}
-            
-            {/* Cohere models */}
-            {cohereModels.length > 0 && (
-              <div className="mb-4">
-                <h5 className="text-sm font-medium mb-2">Cohere Models ({cohereModels.length})</h5>
-                {cohereModels.map(renderSingleResponse)}
-              </div>
-            )}
-            
-            {/* Perplexity models */}
-            {perplexityModels.length > 0 && (
-              <div className="mb-4">
-                <h5 className="text-sm font-medium mb-2">Perplexity Models ({perplexityModels.length})</h5>
-                {perplexityModels.map(renderSingleResponse)}
-              </div>
-            )}
-          </div>
-        )}
+        <OpenRouterModels responses={openRouterModels} />
         
         {/* Direct API Models Section */}
-        {directModels.length > 0 && (
-          <div>
-            <h4 className="text-md font-medium mb-4 text-green-600">Direct API Models ({directModels.length})</h4>
-            
-            {/* Claude direct models */}
-            {directClaudeModels.length > 0 && (
-              <div className="mb-4">
-                <h5 className="text-sm font-medium mb-2">Claude Models ({directClaudeModels.length})</h5>
-                {directClaudeModels.map(renderSingleResponse)}
-              </div>
-            )}
-            
-            {/* GPT direct models */}
-            {directGPTModels.length > 0 && (
-              <div className="mb-4">
-                <h5 className="text-sm font-medium mb-2">GPT Models ({directGPTModels.length})</h5>
-                {directGPTModels.map(renderSingleResponse)}
-              </div>
-            )}
-            
-            {/* Gemini direct models */}
-            {directGeminiModels.length > 0 && (
-              <div className="mb-4">
-                <h5 className="text-sm font-medium mb-2">Gemini Models ({directGeminiModels.length})</h5>
-                {directGeminiModels.map(renderSingleResponse)}
-              </div>
-            )}
-            
-            {/* Perplexity direct models */}
-            {directPerplexityModels.length > 0 && (
-              <div className="mb-4">
-                <h5 className="text-sm font-medium mb-2">Perplexity Models ({directPerplexityModels.length})</h5>
-                {directPerplexityModels.map(renderSingleResponse)}
-              </div>
-            )}
-            
-            {/* DeepSeek direct models */}
-            {directDeepseekModels.length > 0 && (
-              <div className="mb-4">
-                <h5 className="text-sm font-medium mb-2">DeepSeek Models ({directDeepseekModels.length})</h5>
-                {directDeepseekModels.map(renderSingleResponse)}
-              </div>
-            )}
-            
-            {/* Other direct models */}
-            {otherDirectModels.length > 0 && (
-              <div className="mb-4">
-                <h5 className="text-sm font-medium mb-2">Other Models ({otherDirectModels.length})</h5>
-                {otherDirectModels.map(renderSingleResponse)}
-              </div>
-            )}
-          </div>
-        )}
+        <DirectApiModels responses={directModels} />
         
-        {/* Fallback if no categorized responses */}
-        {openRouterModels.length === 0 && directModels.length === 0 && (
-          <div className="grid grid-cols-1 gap-4">
-            {sortedResponses.map(renderSingleResponse)}
-          </div>
-        )}
+        {/* Fallback for uncategorized responses */}
+        {renderUncategorizedResponses()}
       </div>
     </motion.div>
   );
