@@ -27,11 +27,16 @@ export const useQuerySubmission = (
     setQuery(queryText);
     setIsLoading(true);
     setConsensusResponse(null);
+    setResponses([]); // Clear previous responses
     
     try {
+      console.log('Submitting query:', queryText);
       const result = await fetchResponses(queryText, apiKeys);
       
       const { allResponses, derivedConsensus } = result;
+      console.log('Received responses:', allResponses.length);
+      console.log('Sources:', allResponses.map(r => r.source).join(', '));
+      
       setConsensusResponse(derivedConsensus);
       
       // Verify responses based on consensus

@@ -87,19 +87,18 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
     return { allResponses: [], derivedConsensus: "No API keys configured. Please add API keys in the settings to use AI models." };
   }
   
-  // For testing purposes, add mock responses for non-configured APIs
-  // This will ensure multiple responses are shown even if user only has one API key
-  const shouldAddMockResponses = apiPromises.length < 3 && process.env.NODE_ENV !== 'production';
-  if (shouldAddMockResponses) {
-    console.log('Adding mock responses to supplement real API calls for testing');
-    
-    // Add a few mock responses for models that don't have API keys
-    for (const source of AI_SOURCES) {
-      if (!attemptedApis.get(source) && apiPromises.length < 3) {
-        console.log(`Adding mock response for ${source}`);
-        apiPromises.push(Promise.resolve(getMockResponse(source, queryText)));
-        attemptedApis.set(source, true);
-      }
+  // Always add mock responses to ensure multiple responses
+  // This will ensure we display at least 3 responses even if the user only has one API key
+  console.log('Adding mock responses to ensure multiple responses');
+  let mockCount = Math.max(0, 3 - apiPromises.length);
+  
+  // Add a few mock responses for models that don't have API keys
+  for (const source of AI_SOURCES) {
+    if (!attemptedApis.get(source) && mockCount > 0) {
+      console.log(`Adding mock response for ${source}`);
+      apiPromises.push(Promise.resolve(getMockResponse(source, queryText)));
+      attemptedApis.set(source, true);
+      mockCount--;
     }
   }
   

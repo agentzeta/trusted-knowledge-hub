@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -50,8 +49,8 @@ export const VoiceVideoAgent: React.FC<VoiceVideoAgentProps> = ({
   const [currentStep, setCurrentStep] = useState(0);
   const agentScript = [
     "Hello! Would you rather speak to our Agent or use text in the chat?",
-    "Would you like to speak to Agent Veritas through video, so the agent can see you and your background, or just voice is enough?",
-    "Welcome to Truthful, I'm Agent Veritas. I'm here to help provide verified information from multiple AI models. What field do you have questions about today?"
+    "Would you like to speak to Agent Vera through video, so the agent can see you and your background, or just voice is enough?",
+    "Welcome to Truthful, I'm Agent Vera. I'm here to help provide verified information from multiple AI models. What field do you have questions about today?"
   ];
 
   useEffect(() => {
@@ -239,7 +238,7 @@ export const VoiceVideoAgent: React.FC<VoiceVideoAgentProps> = ({
     
     toast({
       title: "Video Saved",
-      description: "Your conversation with Agent Veritas has been saved.",
+      description: "Your conversation with Agent Vera has been saved.",
     });
     
     handleOpenChange(false);

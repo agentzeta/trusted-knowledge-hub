@@ -20,7 +20,10 @@ const IndividualResponses: React.FC<IndividualResponsesProps> = ({ responses }) 
         <h3 className="text-lg font-medium mb-4">Individual AI Responses ({responses.length}):</h3>
         <div className="space-y-4">
           {responses.map((response) => (
-            <div key={response.id} className="p-4 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700">
+            <div 
+              key={response.id} 
+              className="p-4 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow"
+            >
               <div className="flex justify-between items-start mb-2">
                 <span className="font-medium">{response.source}</span>
                 <span className={response.verified ? 
