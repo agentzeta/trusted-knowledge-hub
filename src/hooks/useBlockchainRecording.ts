@@ -67,20 +67,10 @@ export const useBlockchainRecording = () => {
         title: "Blockchain Verification Complete",
         description: `Your consensus response has been recorded on the Flare blockchain. Transaction Hash: ${txHash.substring(0, 18)}...${txHash.substring(txHash.length - 6)}`,
         duration: 10000,
-        action: (
-          <a 
-            href={`https://flare-explorer.flare.network/tx/${txHash}`} 
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-500 hover:text-blue-700 flex items-center gap-1 text-xs mt-1"
-            onClick={(e) => {
-              e.stopPropagation();
-              window.open(`https://flare-explorer.flare.network/tx/${txHash}`, '_blank');
-            }}
-          >
-            View on Flare Explorer
-          </a>
-        ),
+        action: {
+          label: "View on Flare Explorer",
+          onClick: () => window.open(`https://flare-explorer.flare.network/tx/${txHash}`, '_blank')
+        }
       });
       
       return { txHash, attestationUID };
