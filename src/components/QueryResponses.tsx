@@ -5,6 +5,8 @@ import { Response } from '../types/query';
 import LoadingIndicator from './query/LoadingIndicator';
 import ConsensusResponse from './query/ConsensusResponse';
 import IndividualResponses from './query/IndividualResponses';
+import ConsensusVisual from './ConsensusVisual';
+import ConsensusStatistics from './ConsensusStatistics';
 
 interface QueryResponsesProps {
   isLoading: boolean;
@@ -33,8 +35,16 @@ const QueryResponses: React.FC<QueryResponsesProps> = ({
         />
       )}
       
+      {responses.length > 1 && !isLoading && (
+        <ConsensusVisual responses={responses} />
+      )}
+      
       {responses.length > 0 && !isLoading && (
         <IndividualResponses responses={responses} />
+      )}
+      
+      {responses.length > 1 && !isLoading && (
+        <ConsensusStatistics responses={responses} />
       )}
     </>
   );

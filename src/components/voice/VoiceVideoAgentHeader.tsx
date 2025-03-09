@@ -29,18 +29,18 @@ const VoiceVideoAgentHeader: React.FC<VoiceVideoAgentHeaderProps> = ({
   return (
     <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
       <div className="flex items-center gap-2">
-        <div className="flex items-center justify-center bg-gradient-to-r from-pink-300 to-purple-400 rounded-full p-1">
+        <div className="flex items-center justify-center bg-gradient-to-r from-slate-200 to-slate-300 rounded-full p-1 border border-slate-100 shadow-sm">
           <AgentVeritasAvatar 
             size="md" 
             withPulse={isListening}
           />
         </div>
         <div>
-          <DialogTitle>{title}</DialogTitle>
-          <p className="text-sm text-gray-500">{subtitle}</p>
+          <DialogTitle className="text-slate-800">{title}</DialogTitle>
+          <p className="text-sm text-slate-500">{subtitle}</p>
         </div>
       </div>
-      <DialogClose className="rounded-full hover:bg-gray-100 p-1">
+      <DialogClose className="rounded-full hover:bg-slate-100 p-1 text-slate-600">
         <X className="h-4 w-4" />
         <span className="sr-only">Close</span>
       </DialogClose>

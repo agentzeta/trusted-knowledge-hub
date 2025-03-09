@@ -8,7 +8,8 @@ import {
   fetchFromGemini, 
   fetchFromGeminiProExp, 
   fetchFromPerplexity, 
-  fetchFromDeepseek
+  fetchFromDeepseek,
+  getMockResponse
 } from './modelService';
 import { deriveConsensusResponse } from '../utils/consensusUtils';
 import { toast } from '@/components/ui/use-toast';
@@ -84,6 +85,22 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
       variant: "destructive",
     });
     return { allResponses: [], derivedConsensus: "No API keys configured. Please add API keys in the settings to use AI models." };
+  }
+  
+  // For testing purposes, add mock responses for non-configured APIs
+  // This will ensure multiple responses are shown even if user only has one API key
+  const shouldAddMockResponses = apiPromises.length < 3 && process.env.NODE_ENV !== 'production';
+  if (shouldAddMockResponses) {
+    console.log('Adding mock responses to supplement real API calls for testing');
+    
+    // Add a few mock responses for models that don't have API keys
+    for (const source of AI_SOURCES) {
+      if (!attemptedApis.get(source) && apiPromises.length < 3) {
+        console.log(`Adding mock response for ${source}`);
+        apiPromises.push(Promise.resolve(getMockResponse(source, queryText)));
+        attemptedApis.set(source, true);
+      }
+    }
   }
   
   // Execute all API promises simultaneously

@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useQueryContext } from './useQueryContext';
+import { useQueryContext } from '@/hooks/useQueryContext';
 import { useSpeechRecognition } from './voice/useSpeechRecognition';
 import { useSpeechSynthesis } from './voice/useSpeechSynthesis';
 import { useVoiceIntents } from './voice/useVoiceIntents';
