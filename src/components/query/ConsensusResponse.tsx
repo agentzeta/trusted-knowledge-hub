@@ -3,7 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
-import { Shield, Clock, CheckCircle, Upload, TrendingUp, FileText } from 'lucide-react';
+import { Shield, Clock, CheckCircle, Upload, TrendingUp, FileText, ExternalLink } from 'lucide-react';
 import { useQueryContext } from '@/hooks/useQueryContext';
 import { toast } from '@/components/ui/use-toast';
 
@@ -21,6 +21,7 @@ const ConsensusResponse: React.FC<ConsensusResponseProps> = ({
     privateKey, 
     isRecordingOnChain, 
     blockchainReference, 
+    attestationId,
     query,
     exportToGoogleDocs,
     user
@@ -52,6 +53,53 @@ const ConsensusResponse: React.FC<ConsensusResponseProps> = ({
         title: "Export failed",
         description: error.message || "Failed to export to Google Docs",
         variant: "destructive",
+      });
+    }
+  };
+
+  // Function to open Flare Explorer with the transaction hash
+  const openFlareExplorer = (txHash: string) => {
+    window.open(`https://flare-explorer.flare.network/tx/${txHash}`, '_blank');
+  };
+
+  // Function to open EAS Explorer with the attestation ID
+  const openEASExplorer = (attestId: string) => {
+    window.open(`https://attestation.flare.network/attestation/${attestId}`, '_blank');
+  };
+
+  // Handle blockchain verification with enhanced notifications
+  const handleVerifyOnBlockchain = async () => {
+    if (!privateKey) {
+      toast({
+        title: "Private Key Required",
+        description: "Please add your Ethereum wallet private key in Settings to verify on blockchain.",
+        duration: 3000,
+      });
+      return;
+    }
+
+    if (!query || !consensusResponse) {
+      toast({
+        title: "No Content to Verify",
+        description: "Please run a query first to generate content for verification.",
+        duration: 3000,
+      });
+      return;
+    }
+
+    try {
+      // Start the verification process
+      await verifyOnBlockchain();
+      
+      // We don't show success here as it will be shown after the process completes
+      // in the useBlockchainRecording hook
+    } catch (error: any) {
+      console.error('Blockchain verification error:', error);
+      toast({
+        title: "Verification Failed",
+        description: error.message || "Failed to verify on blockchain",
+        variant: "destructive",
+        duration: 5000,
       });
     }
   };
@@ -114,7 +162,7 @@ const ConsensusResponse: React.FC<ConsensusResponseProps> = ({
               
               {privateKey && (
                 <Button 
-                  onClick={verifyOnBlockchain}
+                  onClick={handleVerifyOnBlockchain}
                   className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white flex items-center gap-2 self-end transition-all shadow-sm"
                   disabled={isRecordingOnChain || !!blockchainReference}
                 >

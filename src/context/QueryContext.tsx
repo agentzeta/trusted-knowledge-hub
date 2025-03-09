@@ -1,4 +1,3 @@
-
 import React, { createContext, ReactNode } from 'react';
 import { QueryContextType } from '../types/query';
 import { useSupabaseAuth } from '../hooks/useSupabaseAuth';
@@ -15,6 +14,7 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const { user } = useSupabaseAuth();
   const { apiKeys, setApiKey } = useApiKeys();
   const { privateKey, setWalletKey } = useWalletKey();
+  
   const { 
     blockchainReference, 
     attestationId, 
@@ -30,7 +30,6 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     submitQuery 
   } = useQuerySubmission(apiKeys, user, privateKey);
 
-  // Manual blockchain verification function
   const verifyOnBlockchain = async () => {
     if (!privateKey) {
       toast({
