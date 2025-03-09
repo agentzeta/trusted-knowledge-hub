@@ -21,6 +21,13 @@ const QueryResponses: React.FC<QueryResponsesProps> = ({
 }) => {
   // Get the timestamp from the first response (all responses have same timestamp)
   const timestamp = responses.length > 0 ? responses[0].timestamp : null;
+  
+  console.log('QueryResponses component rendering with:', {
+    isLoading,
+    hasConsensus: !!consensusResponse,
+    responseCount: responses.length,
+    responseSources: responses.map(r => r.source)
+  });
 
   return (
     <>

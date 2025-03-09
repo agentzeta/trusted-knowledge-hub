@@ -8,6 +8,9 @@ interface IndividualResponsesProps {
 }
 
 const IndividualResponses: React.FC<IndividualResponsesProps> = ({ responses }) => {
+  console.log('IndividualResponses rendering with:', responses.length, 'responses');
+  console.log('Response sources:', responses.map(r => r.source).join(', '));
+  
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}

@@ -40,20 +40,20 @@ export const useAgentInteraction = (initialMode: 'voice' | 'video' = 'voice') =>
 
   const processUserInput = (input: string) => {
     const normalizedInput = input.trim().toLowerCase();
-    console.log('Processing user input:', normalizedInput);
+    console.log('Agent: Processing user input:', normalizedInput);
     
     if (currentStep === 0) {
       if (normalizedInput.includes('speak') || 
           normalizedInput.includes('agent') || 
           normalizedInput.includes('voice') || 
           normalizedInput.includes('talk')) {
-        console.log('User chose to speak to agent');
+        console.log('Agent: User chose to speak to agent');
         setCurrentStep(1);
         setMode('voice');
       } else if (normalizedInput.includes('text') || 
                 normalizedInput.includes('chat') || 
                 normalizedInput.includes('type')) {
-        console.log('User chose text chat');
+        console.log('Agent: User chose text chat');
         submitUserQuery(input);
         return 'close';
       } else {
@@ -64,7 +64,7 @@ export const useAgentInteraction = (initialMode: 'voice' | 'video' = 'voice') =>
     } 
     else if (currentStep === 1) {
       if (normalizedInput.includes('video')) {
-        console.log('User chose video mode');
+        console.log('Agent: User chose video mode');
         setMode('video');
         setCurrentStep(2);
         return 'video';
@@ -72,7 +72,7 @@ export const useAgentInteraction = (initialMode: 'voice' | 'video' = 'voice') =>
                 normalizedInput.includes('audio') || 
                 normalizedInput.includes('just voice') || 
                 normalizedInput.includes('enough')) {
-        console.log('User chose voice mode');
+        console.log('Agent: User chose voice mode');
         handleVoiceMode();
       } else {
         setAgentResponding(true);
@@ -81,7 +81,7 @@ export const useAgentInteraction = (initialMode: 'voice' | 'video' = 'voice') =>
       }
     }
     else if (currentStep === 2) {
-      console.log('Processing query:', normalizedInput);
+      console.log('Agent: Processing query:', normalizedInput);
       submitUserQuery(input);
     }
     
@@ -98,6 +98,7 @@ export const useAgentInteraction = (initialMode: 'voice' | 'video' = 'voice') =>
     if (!query.trim()) return;
     
     setAgentResponding(true);
+    console.log('Agent: Submitting user query to get multiple LLM responses:', query);
     submitQuery(query);
     
     const checkForResponse = setInterval(() => {

@@ -6,6 +6,7 @@ export const fetchFromGemini = async (queryText: string, apiKey: string): Promis
   if (!apiKey) return null;
   
   try {
+    console.log('Fetching from Gemini 1.5 Pro...');
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: {
@@ -26,6 +27,8 @@ export const fetchFromGemini = async (queryText: string, apiKey: string): Promis
       return null;
     }
     
+    console.log('Gemini 1.5 Pro response received successfully');
+    
     return {
       id: `gemini-${Date.now()}`,
       content: data.candidates[0].content.parts[0].text,
@@ -45,6 +48,7 @@ export const fetchFromGeminiProExp = async (queryText: string, apiKey: string): 
   if (!apiKey) return null;
   
   try {
+    console.log('Fetching from Gemini 1.5 Flash...');
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: {
@@ -64,6 +68,8 @@ export const fetchFromGeminiProExp = async (queryText: string, apiKey: string): 
       console.error('Gemini 1.5 Flash API error:', data.error);
       return null;
     }
+    
+    console.log('Gemini 1.5 Flash response received successfully');
     
     return {
       id: `gemini-flash-${Date.now()}`,

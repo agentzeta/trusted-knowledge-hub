@@ -35,12 +35,13 @@ export const useQuerySubmission = (
       
       const { allResponses, derivedConsensus } = result;
       console.log('Received responses:', allResponses.length);
-      console.log('Sources:', allResponses.map(r => r.source).join(', '));
+      console.log('Response sources:', allResponses.map(r => r.source).join(', '));
       
       setConsensusResponse(derivedConsensus);
       
       // Verify responses based on consensus
       const verifiedResponses = verifyResponses(allResponses, derivedConsensus);
+      console.log('Setting verified responses:', verifiedResponses.length);
       setResponses(verifiedResponses);
 
       if (user) {

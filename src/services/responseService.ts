@@ -78,15 +78,6 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
   
   console.log(`Attempting to fetch from ${apiPromises.length} LLMs`);
   
-  if (apiPromises.length === 0) {
-    toast({
-      title: "No API Keys Configured",
-      description: "Please add API keys in the settings to use AI models",
-      variant: "destructive",
-    });
-    return { allResponses: [], derivedConsensus: "No API keys configured. Please add API keys in the settings to use AI models." };
-  }
-  
   // Always add mock responses to ensure multiple responses
   // This will ensure we display at least 3 responses even if the user only has one API key
   console.log('Adding mock responses to ensure multiple responses');
@@ -121,9 +112,12 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
   
   console.log(`Received ${validResponses.length} valid API responses from:`, validResponses.map(r => r.source).join(', '));
   
-  // Track which sources we already have responses from
-  const sourcesWithResponses = validResponses.map(r => r.source);
-  console.log('Sources with responses:', sourcesWithResponses);
+  // IMPORTANT: Add additional debug to verify response array
+  console.log('Response details:', validResponses.map(r => ({
+    source: r.source,
+    contentLength: r.content.length,
+    verified: r.verified,
+  })));
   
   if (validResponses.length === 0) {
     toast({
