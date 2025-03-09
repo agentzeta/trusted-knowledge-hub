@@ -75,26 +75,26 @@ const QueryResponses: React.FC<QueryResponsesProps> = ({
       )}
       
       {responses.length > 1 && !isLoading && (
-        <div className="mt-12">
+        <div className="mt-8">
+          <ConsensusExplanation responses={responses} />
+        </div>
+      )}
+      
+      {responses.length > 1 && !isLoading && (
+        <div className="mt-8">
           <ConsensusVisual responses={responses} />
         </div>
       )}
       
       {responses.length > 1 && !isLoading && (
-        <div className="mt-10">
-          <ConsensusExplanation responses={responses} />
+        <div className="mt-8">
+          <ConsensusStatistics responses={responses} />
         </div>
       )}
       
       {responses.length > 0 && !isLoading && (
         <div className="mt-10">
           <IndividualResponses responses={responses} />
-        </div>
-      )}
-      
-      {responses.length > 1 && !isLoading && (
-        <div className="mt-10">
-          <ConsensusStatistics responses={responses} />
         </div>
       )}
       

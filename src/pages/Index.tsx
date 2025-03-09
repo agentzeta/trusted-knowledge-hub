@@ -1,20 +1,18 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import Header from '../components/Header';
 import QueryInterface from '../components/QueryInterface';
-import ConsensusVisual from '../components/ConsensusVisual';
-import ConsensusStatistics from '../components/ConsensusStatistics';
 import BlockchainVerification from '../components/BlockchainVerification';
 import CommunityQueries from '../components/CommunityQueries';
 import { useQueryContext } from '../hooks/useQueryContext';
-import { Shield, Settings } from 'lucide-react';
+import { Shield, ChevronDown, ChevronUp } from 'lucide-react';
 import GoogleAuth from '../components/GoogleAuth';
 import VoiceAgentButton from '../components/VoiceAgentButton';
 import VideoAgentButton from '../components/VideoAgentButton';
 import AgentVeritasAvatar from '../components/AgentVeritasAvatar';
-import VoiceSettings from '../components/voice/VoiceSettings';
 import { Button } from '@/components/ui/button';
+import ExampleQueriesSection from '../components/ExampleQueriesSection';
 
 const TruthfulLogo = () => (
   <div className="p-2 bg-gradient-to-r from-indigo-500 to-blue-600 rounded-lg shadow-md">
@@ -44,7 +42,13 @@ const AgentVeraLogo = () => (
 );
 
 const Index = () => {
-  const { responses, query } = useQueryContext();
+  const { responses, query, submitQuery } = useQueryContext();
+  const [showExamples, setShowExamples] = useState(false);
+  
+  const handleExampleClick = (query: string) => {
+    submitQuery(query);
+    setShowExamples(false);
+  };
   
   return (
     <div className="relative min-h-screen pt-20 pb-16 px-4 sm:px-6">
@@ -63,7 +67,7 @@ const Index = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-12"
+          className="text-center mb-8"
         >
           <motion.div 
             initial={{ scale: 0.9, opacity: 0 }}
@@ -84,6 +88,32 @@ const Index = () => {
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Verifiable knowledge you can trust from AI - powered by Consensus Learning
           </p>
+          
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="mt-6"
+          >
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowExamples(!showExamples)}
+              className="flex items-center gap-2"
+            >
+              {showExamples ? 'Hide Example Queries' : 'Show Example Queries'}
+              {showExamples ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </Button>
+            
+            {showExamples && (
+              <div className="mt-4">
+                <ExampleQueriesSection 
+                  onExampleClick={handleExampleClick}
+                  isLoading={false}
+                />
+              </div>
+            )}
+          </motion.div>
         </motion.div>
         
         <QueryInterface />
@@ -95,8 +125,6 @@ const Index = () => {
             transition={{ duration: 0.5, delay: 0.4 }}
             className="mt-6"
           >
-            <ConsensusVisual responses={responses} />
-            <ConsensusStatistics responses={responses} />
             <BlockchainVerification />
           </motion.div>
         )}

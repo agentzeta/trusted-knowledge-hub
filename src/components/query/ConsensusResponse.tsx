@@ -3,7 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
-import { Shield, Clock } from 'lucide-react';
+import { Shield, Clock, CheckCircle, Upload } from 'lucide-react';
 import { useQueryContext } from '@/hooks/useQueryContext';
 
 interface ConsensusResponseProps {
@@ -15,7 +15,7 @@ const ConsensusResponse: React.FC<ConsensusResponseProps> = ({
   consensusResponse, 
   timestamp 
 }) => {
-  const { verifyOnBlockchain, privateKey, isRecordingOnChain } = useQueryContext();
+  const { verifyOnBlockchain, privateKey, isRecordingOnChain, blockchainReference } = useQueryContext();
   
   const formattedDate = timestamp 
     ? format(new Date(timestamp), 'MMM d, yyyy h:mm a') 
@@ -47,16 +47,31 @@ const ConsensusResponse: React.FC<ConsensusResponseProps> = ({
               </span>
             )}
             
-            {privateKey && verifyOnBlockchain && (
-              <Button 
-                onClick={verifyOnBlockchain}
-                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white flex items-center gap-2 self-end transition-all shadow-sm"
-                disabled={isRecordingOnChain}
-              >
-                <Shield className="h-4 w-4" />
-                {isRecordingOnChain ? 'Recording on Blockchain...' : 'Verify on Blockchain'}
-              </Button>
-            )}
+            <div className="flex items-center gap-2">
+              {blockchainReference && (
+                <span className="flex items-center text-green-600 text-sm">
+                  <CheckCircle className="h-4 w-4 mr-1.5" />
+                  Verified on blockchain
+                </span>
+              )}
+              
+              {privateKey && (
+                <Button 
+                  onClick={verifyOnBlockchain}
+                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white flex items-center gap-2 self-end transition-all shadow-sm"
+                  disabled={isRecordingOnChain || !!blockchainReference}
+                >
+                  {blockchainReference ? (
+                    <CheckCircle className="h-4 w-4" />
+                  ) : isRecordingOnChain ? (
+                    <Shield className="h-4 w-4 animate-pulse" />
+                  ) : (
+                    <Upload className="h-4 w-4" />
+                  )}
+                  {isRecordingOnChain ? 'Recording...' : blockchainReference ? 'Exported' : 'Export to Blockchain'}
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>

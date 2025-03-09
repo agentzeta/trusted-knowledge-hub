@@ -5,7 +5,6 @@ import { useQueryContext } from '../hooks/useQueryContext';
 import { useSupabaseAuth } from '../hooks/useSupabaseAuth';
 import QueryHeader from './QueryHeader';
 import QuerySearchInput from './QuerySearchInput';
-import ExampleQueriesSection from './ExampleQueriesSection';
 import UserAuthStatus from './UserAuthStatus';
 import QueryResponses from './QueryResponses';
 import WelcomeGreeting from './WelcomeGreeting';
@@ -18,9 +17,9 @@ const storedQueries = [
   { id: 5, query: "What caused the 2008 financial crisis?" },
   { id: 6, query: "How are black holes formed?" },
   { id: 7, query: "What is the theory of relativity?" },
-  { id: 8, query: "How does machine learning work?" },
-  { id: 9, query: "What are the effects of meditation on the brain?" },
-  { id: 10, query: "How do electric cars work?" }
+  { id: 8, query: "What are the events that are inflection points in evolution of AI industry?" },
+  { id: 9, query: "What escape velocity can a space shuttle not exceed when orbiting earth, on its trajectory to Mars?" },
+  { id: 10, query: "How have advancements in genomics changed medicine in the past decade?" }
 ];
 
 const QueryInterface: React.FC = () => {
@@ -50,11 +49,6 @@ const QueryInterface: React.FC = () => {
     if (inputQuery.trim()) {
       submitQuery(inputQuery.trim());
     }
-  };
-
-  const handleExampleClick = (query: string) => {
-    setInputQuery(query);
-    submitQuery(query);
   };
 
   const handleSuggestionClick = (query: string) => {
@@ -127,11 +121,6 @@ const QueryInterface: React.FC = () => {
         showSuggestions={showSuggestions}
         setShowSuggestions={setShowSuggestions}
         handleSuggestionClick={handleSuggestionClick}
-      />
-      
-      <ExampleQueriesSection
-        onExampleClick={handleExampleClick}
-        isLoading={isLoading}
       />
       
       <UserAuthStatus user={user} />
