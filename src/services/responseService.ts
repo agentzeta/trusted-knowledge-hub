@@ -101,22 +101,8 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
   // Add support for OpenRouter with multi-model fetching
   if (apiKeys.openrouter) {
     console.log('Adding multiple OpenRouter models to request queue');
-    
-    // Instead of individual models, use the multi-model fetcher
-    apiPromises.push(fetchMultipleOpenRouterModels());
-    
-    // Note: apiSources will be populated with actual model names from responses
-    function fetchMultipleOpenRouterModels() {
-      return fetchFromMultipleOpenRouterModels(queryText, apiKeys.openrouter)
-        .then(responses => {
-          console.log(`Received ${responses.length} OpenRouter responses`);
-          return responses;
-        })
-        .catch(error => {
-          console.error('Error fetching from multiple OpenRouter models:', error);
-          return [];
-        });
-    }
+    apiPromises.push(fetchFromMultipleOpenRouterModels(queryText, apiKeys.openrouter));
+    apiSources.push('Multiple OpenRouter Models');
   } else {
     console.log('Skipping OpenRouter models - No API key provided');
   }
@@ -141,7 +127,7 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
     }
   }
   
-  console.log(`Attempting to fetch from ${apiPromises.length} LLMs:`, apiSources.join(', '));
+  console.log(`Attempting to fetch from ${apiPromises.length} API promises with sources:`, apiSources.join(', '));
   
   if (apiPromises.length === 0) {
     console.error('No API promises created - no valid API keys found');
@@ -164,7 +150,7 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
     if (result.status === 'fulfilled') {
       if (Array.isArray(result.value)) {
         // This is the result from OpenRouter multi-model fetcher
-        console.log(`✅ SUCCESS: Received an array of ${result.value.length} responses from OpenRouter models`);
+        console.log(`✅ SUCCESS: Received an array of ${result.value.length} responses from ${source}`);
         validResponses = validResponses.concat(result.value);
       } else if (result.value) {
         console.log(`✅ SUCCESS: API response from ${source}`);

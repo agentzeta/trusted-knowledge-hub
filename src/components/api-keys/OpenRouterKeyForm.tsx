@@ -20,7 +20,7 @@ const OpenRouterKeyForm: React.FC = () => {
       <Alert className="bg-blue-50 border-blue-200 mb-4">
         <InfoIcon className="h-4 w-4 text-blue-500" />
         <AlertDescription className="text-blue-700">
-          OpenRouter provides access to 300+ LLM models through a single API key
+          When enabled, Truthful will fetch responses from 8 different models through OpenRouter
         </AlertDescription>
       </Alert>
       
@@ -34,7 +34,7 @@ const OpenRouterKeyForm: React.FC = () => {
           onChange={(e) => setOpenRouterKey(e.target.value)}
         />
         <p className="text-xs text-gray-500">
-          Provides access to 300+ AI models through the OpenRouter API.
+          Provides access to models like Claude 3.7, Llama 3, Gemini 1.5 Pro, Mistral, DeepSeek, and more through a single API.
           Get your key at <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">openrouter.ai/keys</a>
         </p>
       </div>

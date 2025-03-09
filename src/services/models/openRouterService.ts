@@ -66,7 +66,7 @@ export const fetchFromMultipleOpenRouterModels = async (
   queryText: string,
   apiKey: string
 ): Promise<Response[]> => {
-  console.log('Fetching from multiple OpenRouter models');
+  console.log('Fetching from multiple OpenRouter models with query:', queryText.substring(0, 50) + '...');
   
   // Define a list of interesting and diverse models to query
   const models = [
@@ -80,22 +80,65 @@ export const fetchFromMultipleOpenRouterModels = async (
     { name: 'perplexity/sonar-small-online', label: 'Perplexity Sonar' }
   ];
   
+  console.log(`Attempting to fetch from ${models.length} OpenRouter models:`, 
+    models.map(m => m.label).join(', '));
+  
   // Create an array of promises, each fetching from a different model
-  const promises = models.map(model => 
-    fetchFromOpenRouter(queryText, apiKey, model.name)
-      .catch(error => {
-        console.error(`Error fetching from OpenRouter model ${model.label}:`, error);
-        return null;
+  const promises = models.map(model => {
+    console.log(`Sending request to OpenRouter model: ${model.label}`);
+    return fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+        'HTTP-Referer': window.location.origin,
+        'X-Title': 'Agent Veritas Consensus App'
+      },
+      body: JSON.stringify({
+        model: model.name,
+        messages: [
+          { role: 'system', content: 'You are a helpful assistant providing factual, concise information.' },
+          { role: 'user', content: queryText }
+        ],
+        temperature: 0.3
       })
-  );
+    })
+    .then(response => {
+      if (!response.ok) {
+        console.error(`Error from ${model.label}: ${response.status} - ${response.statusText}`);
+        return null;
+      }
+      return response.json();
+    })
+    .then(data => {
+      if (!data || !data.choices || !data.choices[0] || !data.choices[0].message) {
+        console.error(`Invalid response format from ${model.label}`);
+        return null;
+      }
+      
+      console.log(`Successful response from ${model.label}`);
+      
+      return {
+        id: uuidv4(),
+        content: data.choices[0].message.content,
+        source: model.label,
+        verified: false,
+        timestamp: Date.now(),
+        confidence: 0.7
+      };
+    })
+    .catch(error => {
+      console.error(`Error fetching from ${model.label}:`, error);
+      return null;
+    });
+  });
   
-  // Wait for all promises to resolve
-  const results = await Promise.allSettled(promises);
+  // Wait for all promises to settle and filter out nulls
+  const results = await Promise.all(promises);
+  const validResponses = results.filter(response => response !== null) as Response[];
   
-  // Filter out failed requests and return successful responses
-  return results
-    .filter((result): result is PromiseFulfilledResult<Response> => 
-      result.status === 'fulfilled' && result.value !== null
-    )
-    .map(result => result.value);
+  console.log(`Received ${validResponses.length} valid OpenRouter responses from:`, 
+    validResponses.map(r => r.source).join(', '));
+  
+  return validResponses;
 };

@@ -42,6 +42,25 @@ const IndividualResponses: React.FC<IndividualResponsesProps> = ({ responses }) 
   // Sort responses by source name for consistent display
   const sortedResponses = [...responses].sort((a, b) => a.source.localeCompare(b.source));
   
+  // Group OpenRouter responses separate from other models
+  const openRouterResponses = sortedResponses.filter(r => 
+    r.source.includes('Claude') || 
+    r.source.includes('Llama') || 
+    r.source.includes('Mistral') ||
+    r.source.includes('DeepSeek') ||
+    r.source.includes('Cohere') ||
+    r.source.includes('Perplexity Sonar')
+  );
+  
+  const otherResponses = sortedResponses.filter(r => 
+    !r.source.includes('Claude') && 
+    !r.source.includes('Llama') && 
+    !r.source.includes('Mistral') &&
+    !r.source.includes('DeepSeek') &&
+    !r.source.includes('Cohere') &&
+    !r.source.includes('Perplexity Sonar')
+  );
+  
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -52,32 +71,54 @@ const IndividualResponses: React.FC<IndividualResponsesProps> = ({ responses }) 
     >
       <div className="p-6">
         <h3 className="text-lg font-medium mb-4">Individual AI Responses ({responses.length}):</h3>
-        <div className="space-y-4">
-          {sortedResponses.map((response) => {
-            console.log(`Rendering response card for ${response.source}:`, {
-              id: response.id,
-              contentPreview: response.content.substring(0, 50) + '...',
-              verified: response.verified
-            });
-            
-            return (
-              <div 
-                key={response.id} 
-                className="p-4 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow"
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <span className="font-medium">{response.source}</span>
-                  <span className={response.verified ? 
-                    "text-xs px-2 py-1 rounded-full bg-blue-50 text-blue-600 border border-blue-100" : 
-                    "text-xs px-2 py-1 rounded-full bg-amber-50 text-amber-600 border border-amber-100"}>
-                    {response.verified ? 'Verified' : 'Divergent'}
-                  </span>
+        
+        {openRouterResponses.length > 0 && (
+          <div className="mb-6">
+            <h4 className="text-md font-medium mb-2 text-blue-600">OpenRouter Models ({openRouterResponses.length})</h4>
+            <div className="space-y-4">
+              {openRouterResponses.map((response) => (
+                <div 
+                  key={response.id} 
+                  className="p-4 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow"
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <span className="font-medium">{response.source}</span>
+                    <span className={response.verified ? 
+                      "text-xs px-2 py-1 rounded-full bg-blue-50 text-blue-600 border border-blue-100" : 
+                      "text-xs px-2 py-1 rounded-full bg-amber-50 text-amber-600 border border-amber-100"}>
+                      {response.verified ? 'Verified' : 'Divergent'}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-line">{response.content}</p>
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-line">{response.content}</p>
-              </div>
-            );
-          })}
-        </div>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {otherResponses.length > 0 && (
+          <div>
+            <h4 className="text-md font-medium mb-2 text-green-600">Direct API Models ({otherResponses.length})</h4>
+            <div className="space-y-4">
+              {otherResponses.map((response) => (
+                <div 
+                  key={response.id} 
+                  className="p-4 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow"
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <span className="font-medium">{response.source}</span>
+                    <span className={response.verified ? 
+                      "text-xs px-2 py-1 rounded-full bg-blue-50 text-blue-600 border border-blue-100" : 
+                      "text-xs px-2 py-1 rounded-full bg-amber-50 text-amber-600 border border-amber-100"}>
+                      {response.verified ? 'Verified' : 'Divergent'}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-line">{response.content}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </motion.div>
   );
