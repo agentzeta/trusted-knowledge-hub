@@ -21,8 +21,8 @@ const VoiceAgentButtonUI: React.FC<VoiceAgentButtonUIProps> = ({
 }) => {
   // More elegant, professional Apple-style color schemes
   const defaultClass = type === 'voice' 
-    ? "rounded-full bg-gradient-to-r from-slate-700 to-slate-900 text-white shadow-lg hover:shadow-xl transition-all duration-300" 
-    : "rounded-full bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-300";
+    ? "rounded-full bg-gradient-to-r from-slate-50 to-slate-100 text-slate-800 shadow-md hover:shadow-lg border border-slate-200 transition-all duration-300" 
+    : "rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md hover:shadow-lg border border-blue-400 transition-all duration-300";
   
   return (
     <Button
@@ -32,7 +32,7 @@ const VoiceAgentButtonUI: React.FC<VoiceAgentButtonUIProps> = ({
     >
       {type === 'voice' ? (
         isListening ? 
-          <Mic className="h-5 w-5 animate-pulse text-white" /> : 
+          <Mic className="h-5 w-5 animate-pulse text-blue-600" /> : 
           <AgentVeritasAvatar size="sm" />
       ) : (
         <MessageSquare className="h-5 w-5" />

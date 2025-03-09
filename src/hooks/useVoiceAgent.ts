@@ -9,7 +9,8 @@ import { toast } from '@/components/ui/use-toast';
 export const useVoiceAgent = () => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isListening, setIsListening] = useState(false);
-  const [voiceId, setVoiceId] = useState("FGY2WhTYpPnrIDTdsKH5"); // Default to Laura (calm female voice)
+  // Default to Lily - energetic young female voice
+  const [voiceId, setVoiceId] = useState("pFZP5JQG7iQjIQuC4Bku");
   
   const { consensusResponse } = useQueryContext();
   

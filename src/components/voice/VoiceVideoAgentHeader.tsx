@@ -13,7 +13,7 @@ const VoiceVideoAgentHeader: React.FC<VoiceVideoAgentHeaderProps> = ({
   mode, 
   isListening = false 
 }) => {
-  let title = 'Agent Veritas';
+  let title = 'Agent Vera';
   let subtitle = 'Your AI Assistant';
   
   if (mode === 'initial') {
@@ -29,7 +29,7 @@ const VoiceVideoAgentHeader: React.FC<VoiceVideoAgentHeaderProps> = ({
   return (
     <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
       <div className="flex items-center gap-2">
-        <div className="flex items-center justify-center bg-gradient-to-r from-purple-400 to-indigo-600 rounded-full p-1">
+        <div className="flex items-center justify-center bg-gradient-to-r from-pink-300 to-purple-400 rounded-full p-1">
           <AgentVeritasAvatar 
             size="md" 
             withPulse={isListening}

@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Settings, Mic, Volume2 } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { Slider } from '@/components/ui/slider';
 import { availableVoices, useVoiceAgentSettings, Voice } from '@/hooks/useVoiceAgentSettings';
 import { useVoiceAgent } from '@/hooks/useVoiceAgent';
 
@@ -41,7 +40,7 @@ const VoiceSettings: React.FC<VoiceSettingsProps> = ({
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px] bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 shadow-xl">
         <DialogHeader>
-          <DialogTitle className="text-lg font-semibold text-gray-900 dark:text-white">Voice Agent Settings</DialogTitle>
+          <DialogTitle className="text-lg font-semibold text-gray-900 dark:text-white">Agent Vera Voice Settings</DialogTitle>
         </DialogHeader>
         
         <div className="mt-4 space-y-6">
@@ -85,7 +84,7 @@ const VoiceSettings: React.FC<VoiceSettingsProps> = ({
               <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Agent's Personality</h3>
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              <p>Agent Veritas is configured to provide verifiable information from multiple AI models, focusing on consensus knowledge and highlighting areas of agreement and disagreement.</p>
+              <p>Agent Vera is configured to provide verifiable information from multiple AI models, focusing on consensus knowledge and highlighting areas of agreement and disagreement.</p>
             </div>
           </div>
         </div>

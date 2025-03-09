@@ -10,17 +10,22 @@ export interface Voice {
 
 export const availableVoices: Voice[] = [
   { id: "9BWtsMINqrJLrRacOk9x", name: "Aria", description: "Professional female voice" },
-  { id: "CwhRBWXzGAHq8TQ4Fs17", name: "Roger", description: "Professional male voice" },
   { id: "EXAVITQu4vr4xnSDxMaL", name: "Sarah", description: "Friendly female voice" },
-  { id: "FGY2WhTYpPnrIDTdsKH5", name: "Laura", description: "Calm female voice" },
   { id: "IKne3meq5aSn9XLyUdCD", name: "Charlie", description: "Enthusiastic male voice" },
-  { id: "JBFqnCBsd6RMkjVDRZzb", name: "George", description: "Deep male voice" },
+  { id: "FGY2WhTYpPnrIDTdsKH5", name: "Laura", description: "Calm female voice" },
   { id: "N2lVS1w4EtoT3dr4eOWO", name: "Callum", description: "Young male voice" },
+  { id: "pFZP5JQG7iQjIQuC4Bku", name: "Lily", description: "Energetic young female voice" },
+  { id: "XB0fDUnXU5powFXDhCwa", name: "Charlotte", description: "Friendly female voice" },
+  { id: "CwhRBWXzGAHq8TQ4Fs17", name: "Roger", description: "Professional male voice" },
+  { id: "JBFqnCBsd6RMkjVDRZzb", name: "George", description: "Deep male voice" },
   { id: "SAz9YHcvj6GT2YYXdXww", name: "River", description: "Neutral voice" }
 ];
 
 export const useVoiceAgentSettings = () => {
-  const [selectedVoice, setSelectedVoice] = useState<Voice>(availableVoices[0]);
+  // Default to Lily - an energetic young female voice
+  const defaultVoice = availableVoices.find(v => v.name === "Lily") || availableVoices[0];
+  
+  const [selectedVoice, setSelectedVoice] = useState<Voice>(defaultVoice);
   const [voicePreferences, setVoicePreferences] = useState<{[key: string]: string}>({});
   
   // Load saved preferences from local storage
@@ -38,6 +43,9 @@ export const useVoiceAgentSettings = () => {
             setSelectedVoice(voice);
           }
         }
+      } else {
+        // No saved preferences, set default to Lily
+        savePreferences({ selectedVoiceId: defaultVoice.id });
       }
     } catch (error) {
       console.error('Error loading voice preferences:', error);
