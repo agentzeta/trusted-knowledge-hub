@@ -4,6 +4,8 @@ import { toast } from '@/components/ui/use-toast';
 import { recordOnFlareBlockchain, createAttestation } from '../services/blockchainService';
 import { Response } from '../types/query';
 import { saveResponseToDatabase } from '../services/databaseService';
+import { ToastAction } from '@/components/ui/toast';
+import React from 'react';
 
 export const useBlockchainRecording = () => {
   const [blockchainReference, setBlockchainReference] = useState<string | null>(null);
@@ -67,10 +69,10 @@ export const useBlockchainRecording = () => {
         title: "Blockchain Verification Complete",
         description: `Your consensus response has been recorded on the Flare blockchain. Transaction Hash: ${txHash.substring(0, 18)}...${txHash.substring(txHash.length - 6)}`,
         duration: 10000,
-        action: {
-          label: "View on Flare Explorer",
+        action: React.createElement(ToastAction, {
+          altText: "View on Flare Explorer",
           onClick: () => window.open(`https://flare-explorer.flare.network/tx/${txHash}`, '_blank')
-        }
+        }, "View on Flare Explorer")
       });
       
       return { txHash, attestationUID };
