@@ -39,6 +39,7 @@ export const fetchFromDeepseek = async (queryText: string, apiKey: string): Prom
     console.log('Successfully received response from DeepSeek');
     
     const uniqueId = `deepseek-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    console.log('Generated DeepSeek response ID:', uniqueId);
     
     return {
       id: uniqueId,

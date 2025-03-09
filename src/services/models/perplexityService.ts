@@ -36,6 +36,7 @@ export const fetchFromPerplexity = async (queryText: string, apiKey: string): Pr
     }
     
     const data = await response.json();
+    console.log('Perplexity raw response:', JSON.stringify(data).substring(0, 200) + '...');
     
     if (data.error) {
       console.error('Perplexity API error:', data.error);
@@ -44,8 +45,11 @@ export const fetchFromPerplexity = async (queryText: string, apiKey: string): Pr
     
     console.log('Perplexity Sonar response received successfully');
     
+    const response_id = `perplexity-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    console.log('Generated Perplexity response ID:', response_id);
+    
     return {
-      id: `perplexity-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      id: response_id,
       content: data.choices[0].message.content,
       source: 'Perplexity Sonar',
       verified: true,

@@ -14,24 +14,29 @@ import { deriveConsensusResponse } from '../utils/consensusUtils';
 import { toast } from '@/components/ui/use-toast';
 
 export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
+  console.log('=== Starting fetchResponses ===');
+  console.log('Query text:', queryText);
   const availableKeys = Object.keys(apiKeys).filter(k => !!apiKeys[k as keyof ApiKeys]);
-  console.log('Fetching responses with available API keys:', availableKeys);
+  console.log('Available API keys:', availableKeys);
   
   if (availableKeys.length === 0) {
+    console.warn('No API keys configured');
     toast({
       title: "No API Keys Configured",
       description: "Please add API keys in the settings to use AI models",
       variant: "destructive",
     });
-    return { allResponses: [], derivedConsensus: "No API keys configured. Please add API keys in the settings to use AI models." };
+    return { 
+      allResponses: [], 
+      derivedConsensus: "No API keys configured. Please add API keys in the settings to use AI models." 
+    };
   }
   
   // Create API promises only for those with keys
   const apiPromises = [];
   const apiSources = [];
   
-  // Track which APIs we're calling
-  console.log("Creating separate promise for each API with valid key");
+  console.log('=== Creating API Promises ===');
   
   // Add each API with a valid key to the promises array
   if (apiKeys.openai) {
@@ -80,10 +85,14 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
   
   if (apiPromises.length === 0) {
     console.error('No API promises created - no valid API keys found');
-    return { allResponses: [], derivedConsensus: "No valid API keys configured. Please add API keys in the settings." };
+    return { 
+      allResponses: [], 
+      derivedConsensus: "No valid API keys configured. Please add API keys in the settings." 
+    };
   }
   
   // Execute all API promises simultaneously
+  console.log('=== Executing API Calls ===');
   const apiResults = await Promise.allSettled(apiPromises);
   
   // Debug information about API responses
