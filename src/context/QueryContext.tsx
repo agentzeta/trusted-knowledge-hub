@@ -1,5 +1,6 @@
+
 import React, { createContext, ReactNode, useState } from 'react';
-import { QueryContextType } from '../types/query';
+import { QueryContextType, Response } from '../types/query';
 import { useSupabaseAuth } from '../hooks/useSupabaseAuth';
 import { useApiKeys } from '../hooks/useApiKeys';
 import { useWalletKey } from '../hooks/useWalletKey';
@@ -10,26 +11,6 @@ import { toast } from '@/components/ui/use-toast';
 
 const QueryContext = createContext<QueryContextType | undefined>(undefined);
 
-export interface QueryContextType {
-  query: string;
-  responses: string[];
-  isLoading: boolean;
-  consensusResponse: string;
-  submitQuery: (query: string) => void;
-  setApiKey: (apiKey: string) => void;
-  setWalletKey: (walletKey: string) => void;
-  privateKey: string | null;
-  apiKeys: string[];
-  consensusResponse: string;
-  blockchainReference: string | null;
-  attestationId: string | null;
-  teeVerificationId: string | null;
-  isRecordingOnChain: boolean;
-  verifyOnBlockchain: () => Promise<void>;
-  exportToGoogleDocs: () => Promise<void>;
-  user: any;
-}
-
 export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { user } = useSupabaseAuth();
   const { apiKeys, setApiKey } = useApiKeys();
@@ -37,7 +18,8 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   
   const { 
     blockchainReference, 
-    attestationId, 
+    attestationId,
+    teeVerificationId,
     isRecordingOnChain,
     recordResponseOnBlockchain 
   } = useBlockchainRecording();
@@ -49,8 +31,6 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     consensusResponse, 
     submitQuery 
   } = useQuerySubmission(apiKeys, user, privateKey);
-
-  const [teeVerificationId, setTeeVerificationId] = useState<string | null>(null);
 
   const verifyOnBlockchain = async () => {
     if (!privateKey || !user || !consensusResponse || !query) return;
@@ -64,11 +44,8 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         responses
       );
       
-      if (result) {
-        setBlockchainReference(result.txHash);
-        setAttestationId(result.attestationUID);
-        setTeeVerificationId(result.teeVerificationId || null);
-      }
+      // These are now managed by the useBlockchainRecording hook
+      // so we don't need to set them here
     } catch (error) {
       console.error('Error verifying on blockchain:', error);
       throw error;

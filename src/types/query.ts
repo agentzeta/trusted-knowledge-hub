@@ -36,8 +36,9 @@ export interface QueryContextType {
   consensusResponse: string | null;
   blockchainReference: string | null;
   attestationId: string | null;
+  teeVerificationId: string | null; // Added TEE verification ID
   isRecordingOnChain: boolean;
   user: any;
   exportToGoogleDocs: () => Promise<void>;
-  verifyOnBlockchain?: () => Promise<void>; // Added for blockchain verification button
+  verifyOnBlockchain?: () => Promise<void>; 
 }
