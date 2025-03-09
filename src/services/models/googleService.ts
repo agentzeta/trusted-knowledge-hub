@@ -20,10 +20,21 @@ export const fetchFromGemini = async (queryText: string, apiKey: string): Promis
       })
     });
     
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Gemini API error (${response.status}):`, errorText);
+      return null;
+    }
+    
     const data = await response.json();
     
     if (data.error) {
       console.error('Gemini API error:', data.error);
+      return null;
+    }
+    
+    if (!data.candidates || !data.candidates[0]?.content?.parts?.[0]?.text) {
+      console.error('Gemini API returned unexpected structure:', data);
       return null;
     }
     
@@ -62,10 +73,21 @@ export const fetchFromGeminiProExp = async (queryText: string, apiKey: string): 
       })
     });
     
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Gemini 1.5 Flash API error (${response.status}):`, errorText);
+      return null;
+    }
+    
     const data = await response.json();
     
     if (data.error) {
       console.error('Gemini 1.5 Flash API error:', data.error);
+      return null;
+    }
+    
+    if (!data.candidates || !data.candidates[0]?.content?.parts?.[0]?.text) {
+      console.error('Gemini 1.5 Flash API returned unexpected structure:', data);
       return null;
     }
     

@@ -8,8 +8,7 @@ import {
   fetchFromGemini, 
   fetchFromGeminiProExp, 
   fetchFromPerplexity, 
-  fetchFromDeepseek,
-  getMockResponse
+  fetchFromDeepseek
 } from './modelService';
 import { deriveConsensusResponse } from '../utils/consensusUtils';
 import { toast } from '@/components/ui/use-toast';
@@ -78,20 +77,7 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
   
   console.log(`Attempting to fetch from ${apiPromises.length} LLMs`);
   
-  // Always add mock responses to ensure multiple responses
-  // This will ensure we display at least 3 responses even if the user only has one API key
-  console.log('Adding mock responses to ensure multiple responses');
-  let mockCount = Math.max(0, 3 - apiPromises.length);
-  
-  // Add a few mock responses for models that don't have API keys
-  for (const source of AI_SOURCES) {
-    if (!attemptedApis.get(source) && mockCount > 0) {
-      console.log(`Adding mock response for ${source}`);
-      apiPromises.push(Promise.resolve(getMockResponse(source, queryText)));
-      attemptedApis.set(source, true);
-      mockCount--;
-    }
-  }
+  // No mock responses - we'll only use real API responses
   
   // Execute all API promises simultaneously
   const apiResults = await Promise.allSettled(apiPromises);

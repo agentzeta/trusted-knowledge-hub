@@ -99,17 +99,33 @@ export const useAgentInteraction = (initialMode: 'voice' | 'video' = 'voice') =>
     
     setAgentResponding(true);
     console.log('Agent: Submitting user query to get multiple LLM responses:', query);
+    
+    // This uses the same submitQuery function that the main QueryInterface uses
     submitQuery(query);
     
+    // Wait for consensusResponse to be available
     const checkForResponse = setInterval(() => {
+      console.log('Checking for consensus response...', {isLoading, hasConsensus: !!consensusResponse});
       if (consensusResponse && !isLoading) {
         clearInterval(checkForResponse);
         speakResponse(consensusResponse);
         setAgentResponding(false);
+      } else if (!isLoading && !consensusResponse) {
+        // If loading finished but no consensus response
+        clearInterval(checkForResponse);
+        speakResponse("I'm sorry, I couldn't get a response from our AI models. Please try again.");
+        setAgentResponding(false);
       }
     }, 1000);
     
-    setTimeout(() => clearInterval(checkForResponse), 30000);
+    // Safety timeout
+    setTimeout(() => {
+      clearInterval(checkForResponse);
+      if (agentResponding) {
+        speakResponse("I'm sorry, it's taking longer than expected to get a response. Please try again later.");
+        setAgentResponding(false);
+      }
+    }, 30000);
     
     return 'close';
   };
