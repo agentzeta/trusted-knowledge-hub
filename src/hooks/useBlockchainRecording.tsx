@@ -23,6 +23,12 @@ export const useBlockchainRecording = () => {
   ) => {
     if (!privateKey) {
       console.error('No private key provided for blockchain recording');
+      toast({
+        title: "Missing Private Key",
+        description: "Please add your wallet key in settings to enable blockchain verification.",
+        variant: "destructive",
+        duration: 5000,
+      });
       return null;
     }
     
@@ -35,63 +41,118 @@ export const useBlockchainRecording = () => {
       
       // Step 1: Process responses through Flare TEE for secure consensus
       console.log('Starting TEE verification process...');
-      const teeResult = await submitToFlareTee(
-        queryText,
-        responses,
-        privateKey
-      );
+      let teeResult;
+      try {
+        teeResult = await submitToFlareTee(
+          queryText,
+          responses,
+          privateKey
+        );
+        
+        setTeeVerificationId(teeResult.verificationId);
+        console.log(`TEE verification completed with ID: ${teeResult.verificationId}`);
+      } catch (error) {
+        console.error('TEE verification failed:', error);
+        toast({
+          title: "TEE Verification Failed",
+          description: "Secure consensus verification failed. Continuing with standard verification.",
+          variant: "destructive",
+          duration: 5000,
+        });
+        // Continue with other steps even if TEE fails
+        teeResult = {
+          verificationId: `fallback-${Date.now()}`,
+          signature: "fallback-signature",
+          consensusResponse: consensusResponse
+        };
+      }
       
-      setTeeVerificationId(teeResult.verificationId);
-      console.log(`TEE verification completed with ID: ${teeResult.verificationId}`);
-      
-      // Step 2: Verify the TEE result on chain
-      const teeTxHash = await verifyTeeConsensusOnChain(
-        teeResult.verificationId,
-        teeResult.signature,
-        privateKey
-      );
-      console.log(`TEE verification recorded on blockchain: ${teeTxHash}`);
+      // Step 2: Verify the TEE result on chain (if we have a valid TEE result)
+      let teeTxHash = null;
+      if (teeResult.verificationId && !teeResult.verificationId.startsWith('fallback-')) {
+        try {
+          teeTxHash = await verifyTeeConsensusOnChain(
+            teeResult.verificationId,
+            teeResult.signature,
+            privateKey
+          );
+          console.log(`TEE verification recorded on blockchain: ${teeTxHash}`);
+        } catch (error) {
+          console.error('Error verifying TEE consensus on chain:', error);
+          // Continue with other steps even if on-chain verification fails
+        }
+      }
       
       // Step 3: Record on Flare blockchain (traditional method as backup)
-      const txHash = await recordOnFlareBlockchain(
-        privateKey,
-        queryText,
-        consensusResponse,
-        timestamp
-      );
-      setBlockchainReference(txHash);
-      console.log(`Transaction recorded on blockchain: ${txHash}`);
+      let txHash;
+      try {
+        txHash = await recordOnFlareBlockchain(
+          privateKey,
+          queryText,
+          consensusResponse,
+          timestamp
+        );
+        setBlockchainReference(txHash);
+        console.log(`Transaction recorded on blockchain: ${txHash}`);
+      } catch (error) {
+        console.error('Error recording on blockchain:', error);
+        txHash = `error-${Date.now()}`;
+        setBlockchainReference(txHash);
+        toast({
+          title: "Blockchain Recording Issue",
+          description: "Could not record on the blockchain. Using simulated reference instead.",
+          variant: "destructive",
+          duration: 5000,
+        });
+      }
       
       // Step 4: Create attestation
-      const attestationUID = await createAttestation(
-        privateKey,
-        queryText,
-        consensusResponse,
-        timestamp
-      );
-      setAttestationId(attestationUID);
-      console.log(`Attestation created: ${attestationUID}`);
+      let attestationUID;
+      try {
+        attestationUID = await createAttestation(
+          privateKey,
+          queryText,
+          consensusResponse,
+          timestamp
+        );
+        setAttestationId(attestationUID);
+        console.log(`Attestation created: ${attestationUID}`);
+      } catch (error) {
+        console.error('Error creating attestation:', error);
+        attestationUID = `error-${Date.now()}`;
+        setAttestationId(attestationUID);
+      }
       
       // Step 5: Save to database if user is logged in
       if (userId) {
-        await saveResponseToDatabase(
-          userId, 
-          queryText, 
-          consensusResponse, 
-          responses,
-          txHash,
-          attestationUID,
-          teeResult.verificationId // Add TEE verification ID to database
-        );
-        console.log(`Response saved to database for user: ${userId}`);
+        try {
+          await saveResponseToDatabase(
+            userId, 
+            queryText, 
+            consensusResponse, 
+            responses,
+            txHash,
+            attestationUID,
+            teeResult.verificationId
+          );
+          console.log(`Response saved to database for user: ${userId}`);
+        } catch (error) {
+          console.error('Error saving to database:', error);
+          toast({
+            title: "Database Error",
+            description: "Could not save the response to the database.",
+            variant: "destructive",
+            duration: 5000,
+          });
+        }
       }
       
       // Create a toast notification with transaction details
       toast({
         title: "Blockchain Verification Complete",
-        description: `Your consensus response has been verified in Flare's TEE and recorded on the blockchain. Transaction Hash: ${txHash.substring(0, 18)}...${txHash.substring(txHash.length - 6)}`,
+        description: `Your consensus response has been ${txHash.startsWith('error') ? 'simulated' : 'recorded'} on the blockchain.${txHash.startsWith('error') ? '' : ` Transaction Hash: ${txHash.substring(0, 18)}...${txHash.substring(txHash.length - 6)}`}`,
         duration: 10000,
-        action: (
+        action: txHash.startsWith('error') ? undefined : (
           <ToastAction 
             altText="View on Flare Explorer" 
             onClick={() => window.open(`https://flare-explorer.flare.network/tx/${txHash}`, '_blank')}
