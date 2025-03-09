@@ -3,7 +3,7 @@ import { Response } from '../../types/query';
 import { toast } from '@/components/ui/use-toast';
 
 /**
- * Process API results and extract valid responses
+ * Process API results and extract valid responses with improved error handling
  */
 export const processApiResults = (apiResults: PromiseSettledResult<any>[], apiSources: string[]) => {
   let validResponses: Response[] = [];
@@ -28,19 +28,23 @@ export const processApiResults = (apiResults: PromiseSettledResult<any>[], apiSo
           });
         });
         
-        // Validate each response in the array
+        // Validate each response in the array - with more detailed logging
         const validArrayResponses = result.value.filter((item: Response) => {
           if (item && item.content && item.source) {
             return true;
           } else {
-            console.warn(`Invalid item in response array:`, item);
+            console.warn(`❌ Invalid item in response array from ${source}:`, item);
             return false;
           }
         });
         
         // Add each validated response to our valid responses
-        validResponses = [...validResponses, ...validArrayResponses];
-        console.log(`Added ${validArrayResponses.length} responses from array`);
+        if (validArrayResponses.length > 0) {
+          validResponses = [...validResponses, ...validArrayResponses];
+          console.log(`✅ Added ${validArrayResponses.length} valid responses from ${source} array`);
+        } else {
+          console.warn(`⚠️ WARNING: Received ${result.value.length} responses from ${source}, but NONE were valid`);
+        }
         
       } else if (result.value && result.value.content) {
         // Single response case
@@ -57,17 +61,17 @@ export const processApiResults = (apiResults: PromiseSettledResult<any>[], apiSo
     }
   });
   
-  // Final validation of response array
+  // Final validation of response array with detailed logging
   validResponses = validResponses.filter(r => {
     if (!r || !r.content || !r.source) {
-      console.warn('Filtering out invalid response:', r);
+      console.warn('❌ Filtering out invalid response:', r);
       return false;
     }
     return true;
   });
   
   // Log the final validated responses
-  console.log(`Final processed responses: ${validResponses.length}`);
+  console.log(`🏁 Final processed responses: ${validResponses.length}`);
   console.log('Valid response sources:', validResponses.map(r => r.source).join(', '));
   
   return validResponses;

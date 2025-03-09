@@ -12,10 +12,10 @@ import {
 } from '../modelService';
 
 /**
- * Creates API promises based on available API keys
+ * Creates API promises based on available API keys with improved error handling
  */
 export const createApiPromises = (queryText: string, apiKeys: ApiKeys) => {
-  console.log('=== Creating API Promises ===');
+  console.log('=== Creating API Promises with Improved Error Handling ===');
   
   const apiPromises = [];
   const apiSources = [];
@@ -23,17 +23,36 @@ export const createApiPromises = (queryText: string, apiKeys: ApiKeys) => {
   // Create promises for each API with a key
   if (apiKeys.anthropic) {
     console.log('Adding Anthropic (Claude 3 Haiku) to request queue');
-    apiPromises.push(fetchFromAnthropic(queryText, apiKeys.anthropic));
+    apiPromises.push(
+      // Wrap in Promise.resolve().catch to ensure errors don't break the whole process
+      Promise.resolve(fetchFromAnthropic(queryText, apiKeys.anthropic))
+        .catch(error => {
+          console.error('Error fetching from Anthropic (Claude 3 Haiku):', error);
+          throw error; // Re-throw for Promise.allSettled to catch
+        })
+    );
     apiSources.push('Claude 3 Haiku');
     
     // Use the same anthropic key for Claude 3.5 Sonnet
     console.log('Adding Anthropic (Claude 3.5 Sonnet) to request queue with same API key');
-    apiPromises.push(fetchFromAnthropicClaude35(queryText, apiKeys.anthropic));
+    apiPromises.push(
+      Promise.resolve(fetchFromAnthropicClaude35(queryText, apiKeys.anthropic))
+        .catch(error => {
+          console.error('Error fetching from Anthropic (Claude 3.5 Sonnet):', error);
+          throw error;
+        })
+    );
     apiSources.push('Claude 3.5 Sonnet');
   } else if (apiKeys.anthropicClaude35) {
     // Backward compatibility - use specific Claude 3.5 key if provided
     console.log('Adding Anthropic (Claude 3.5 Sonnet) to request queue with specific API key');
-    apiPromises.push(fetchFromAnthropicClaude35(queryText, apiKeys.anthropicClaude35));
+    apiPromises.push(
+      Promise.resolve(fetchFromAnthropicClaude35(queryText, apiKeys.anthropicClaude35))
+        .catch(error => {
+          console.error('Error fetching from Anthropic (Claude 3.5 Sonnet):', error);
+          throw error;
+        })
+    );
     apiSources.push('Claude 3.5 Sonnet');
   } else {
     console.log('Skipping Anthropic models - No API key provided');
@@ -41,7 +60,13 @@ export const createApiPromises = (queryText: string, apiKeys: ApiKeys) => {
   
   if (apiKeys.openai) {
     console.log('Adding OpenAI (GPT-4o) to request queue');
-    apiPromises.push(fetchFromOpenAI(queryText, apiKeys.openai));
+    apiPromises.push(
+      Promise.resolve(fetchFromOpenAI(queryText, apiKeys.openai))
+        .catch(error => {
+          console.error('Error fetching from OpenAI (GPT-4o):', error);
+          throw error;
+        })
+    );
     apiSources.push('GPT-4o');
   } else {
     console.log('Skipping OpenAI (GPT-4o) - No API key provided');
@@ -49,7 +74,13 @@ export const createApiPromises = (queryText: string, apiKeys: ApiKeys) => {
   
   if (apiKeys.gemini) {
     console.log('Adding Gemini (1.5 Pro) to request queue');
-    apiPromises.push(fetchFromGemini(queryText, apiKeys.gemini));
+    apiPromises.push(
+      Promise.resolve(fetchFromGemini(queryText, apiKeys.gemini))
+        .catch(error => {
+          console.error('Error fetching from Gemini (1.5 Pro):', error);
+          throw error;
+        })
+    );
     apiSources.push('Gemini 1.5 Pro');
   } else {
     console.log('Skipping Gemini (1.5 Pro) - No API key provided');
@@ -57,7 +88,13 @@ export const createApiPromises = (queryText: string, apiKeys: ApiKeys) => {
   
   if (apiKeys.geminiProExperimental) {
     console.log('Adding Gemini (1.5 Flash) to request queue');
-    apiPromises.push(fetchFromGeminiProExp(queryText, apiKeys.geminiProExperimental));
+    apiPromises.push(
+      Promise.resolve(fetchFromGeminiProExp(queryText, apiKeys.geminiProExperimental))
+        .catch(error => {
+          console.error('Error fetching from Gemini (1.5 Flash):', error);
+          throw error;
+        })
+    );
     apiSources.push('Gemini 1.5 Flash');
   } else {
     console.log('Skipping Gemini (1.5 Flash) - No API key provided');
@@ -65,7 +102,13 @@ export const createApiPromises = (queryText: string, apiKeys: ApiKeys) => {
   
   if (apiKeys.perplexity) {
     console.log('Adding Perplexity (Sonar) to request queue');
-    apiPromises.push(fetchFromPerplexity(queryText, apiKeys.perplexity));
+    apiPromises.push(
+      Promise.resolve(fetchFromPerplexity(queryText, apiKeys.perplexity))
+        .catch(error => {
+          console.error('Error fetching from Perplexity (Sonar):', error);
+          throw error;
+        })
+    );
     apiSources.push('Perplexity Sonar');
   } else {
     console.log('Skipping Perplexity (Sonar) - No API key provided');
@@ -73,22 +116,30 @@ export const createApiPromises = (queryText: string, apiKeys: ApiKeys) => {
   
   if (apiKeys.deepseek) {
     console.log('Adding DeepSeek (Coder) to request queue');
-    apiPromises.push(fetchFromDeepseek(queryText, apiKeys.deepseek));
+    apiPromises.push(
+      Promise.resolve(fetchFromDeepseek(queryText, apiKeys.deepseek))
+        .catch(error => {
+          console.error('Error fetching from DeepSeek (Coder):', error);
+          throw error;
+        })
+    );
     apiSources.push('DeepSeek Coder');
   } else {
     console.log('Skipping DeepSeek (Coder) - No API key provided');
   }
   
-  // Add OpenRouter with better error handling
+  // Enhance OpenRouter with better error handling
   if (apiKeys.openrouter) {
-    console.log('🔥 Adding OpenRouter multi-model fetching to queue');
-    // This will make separate API requests for each model and return an array of responses
-    const openRouterPromise = fetchFromMultipleOpenRouterModels(queryText, apiKeys.openrouter)
-      .catch(error => {
-        console.error('OpenRouter multi-model fetch failed:', error);
-        // Return empty array on error to prevent blocking other models
-        return [];
-      });
+    console.log('🔥 Adding OpenRouter multi-model fetching to queue with improved error handling');
+    
+    // This version prevents one failure from affecting all models
+    const openRouterPromise = Promise.resolve(
+      fetchFromMultipleOpenRouterModels(queryText, apiKeys.openrouter)
+    ).catch(error => {
+      console.error('OpenRouter multi-model fetch failed:', error);
+      // Return empty array on error to prevent blocking other models
+      return [];
+    });
     
     apiPromises.push(openRouterPromise);
     apiSources.push('OpenRouter Models');

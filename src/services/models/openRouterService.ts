@@ -2,12 +2,13 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Response } from '../../types/query';
 
+// Single OpenRouter model fetch with improved error handling
 export const fetchFromOpenRouter = async (
   queryText: string, 
   apiKey: string, 
   modelName: string = 'anthropic/claude-3-opus:20240229'
 ): Promise<Response> => {
-  console.log('Fetching from OpenRouter:', modelName);
+  console.log(`Fetching from OpenRouter with specific model: ${modelName}`);
   
   try {
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -19,36 +20,40 @@ export const fetchFromOpenRouter = async (
         'X-Title': 'Agent Veritas Consensus App'
       },
       body: JSON.stringify({
-        model: modelName,
+        model: modelName, // Explicitly specify the model here
         messages: [
           { role: 'system', content: 'You are a helpful assistant providing factual, concise information.' },
           { role: 'user', content: queryText }
         ],
         temperature: 0.3,
-        // Add unique request ID to prevent response caching
+        // Add unique request ID to prevent caching
         extra: {
-          nonce: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+          nonce: `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`
         }
       })
     });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error('OpenRouter API Error:', errorData);
-      throw new Error(`OpenRouter API error: ${response.status} - ${errorData.error?.message || response.statusText}`);
+      const errorMessage = `OpenRouter API error: ${response.status} - ${errorData.error?.message || response.statusText}`;
+      console.error('OpenRouter API Error:', errorData, errorMessage);
+      throw new Error(errorMessage);
     }
 
     const data = await response.json();
-    console.log('OpenRouter API Response:', data);
+    console.log(`OpenRouter API Response for ${modelName}:`, {
+      model: data.model,
+      responseLength: data.choices?.[0]?.message?.content?.length || 0
+    });
 
     if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-      throw new Error('Invalid response format from OpenRouter API');
+      throw new Error(`Invalid response format from OpenRouter API for model ${modelName}`);
     }
 
     const content = data.choices[0].message.content;
     
     // Extract model name from the response or use the provided model name
-    const modelUsed = data.model.split('/').pop() || modelName;
+    const modelUsed = data.model.split('/').pop() || modelName.split('/').pop() || modelName;
     
     return {
       id: uuidv4(),
@@ -59,77 +64,100 @@ export const fetchFromOpenRouter = async (
       confidence: 0.7
     };
   } catch (error) {
-    console.error('Error fetching from OpenRouter:', error);
+    // Log the full error
+    console.error(`Error fetching from OpenRouter model ${modelName}:`, error);
+    // Re-throw the error to be handled by the caller
     throw error;
   }
 };
 
-// Improved function to fetch from multiple OpenRouter models in parallel with better handling
+// Define a fixed set of models with API-compatible IDs and user-friendly display names
+const OPENROUTER_MODELS = [
+  { id: 'anthropic/claude-3-opus:20240229', displayName: 'Claude 3.7 Opus' },
+  { id: 'anthropic/claude-3-sonnet:20240229', displayName: 'Claude 3.5 Sonnet' },
+  { id: 'google/gemini-1.5-pro', displayName: 'Gemini 1.5 Pro (OpenRouter)' },
+  { id: 'mistralai/mistral-large', displayName: 'Mistral Large' },
+  { id: 'meta-llama/llama-3-70b-instruct', displayName: 'Llama 3 70B' },
+  { id: 'deepseek-ai/deepseek-v2', displayName: 'DeepSeek V2' },
+  { id: 'cohere/command-r-plus', displayName: 'Cohere Command-R+' },
+  { id: 'perplexity/sonar-small-online', displayName: 'Perplexity Sonar' }
+];
+
+// Completely rewritten function to implement API key cycling and parallel model requests
 export const fetchFromMultipleOpenRouterModels = async (
   queryText: string,
   apiKey: string
 ): Promise<Response[]> => {
-  console.log('=== FETCHING FROM MULTIPLE OPENROUTER MODELS ===');
+  console.log('=== FETCHING FROM MULTIPLE OPENROUTER MODELS WITH IMPROVED ERROR HANDLING ===');
+  console.log(`Will attempt to fetch from ${OPENROUTER_MODELS.length} OpenRouter models`);
   
-  // Define models to query with user-friendly display names
-  const models = [
-    { id: 'anthropic/claude-3-opus:20240229', displayName: 'Claude 3.7 Opus' },
-    { id: 'anthropic/claude-3-sonnet:20240229', displayName: 'Claude 3.5 Sonnet' },
-    { id: 'google/gemini-1.5-pro', displayName: 'Gemini 1.5 Pro (OpenRouter)' },
-    { id: 'mistralai/mistral-large', displayName: 'Mistral Large' },
-    { id: 'meta-llama/llama-3-70b-instruct', displayName: 'Llama 3 70B' },
-    { id: 'deepseek-ai/deepseek-v2', displayName: 'DeepSeek V2' },
-    { id: 'cohere/command-r-plus', displayName: 'Cohere Command-R+' },
-    { id: 'perplexity/sonar-small-online', displayName: 'Perplexity Sonar' }
-  ];
+  // If we have multiple API keys (comma-separated), split them for round-robin assignment
+  const apiKeys = apiKey.includes(',') ? apiKey.split(',').map(k => k.trim()) : [apiKey];
+  console.log(`Using ${apiKeys.length} OpenRouter API key(s) for round-robin assignment`);
   
-  console.log(`Will attempt to fetch from ${models.length} OpenRouter models`);
-  
-  // Create an array of promises for parallel execution
-  const modelPromises = models.map(model => {
-    return fetchSingleOpenRouterModel(queryText, apiKey, model.id, model.displayName);
+  // Create model request promises using round-robin API key assignment
+  const modelPromises = OPENROUTER_MODELS.map((model, index) => {
+    // Select API key in round-robin fashion
+    const selectedApiKey = apiKeys[index % apiKeys.length];
+    
+    // Create unique nonce for this specific request
+    const nonce = `${model.id}-${Date.now()}-${Math.random().toString(36).substring(2, 15)}-${index}`;
+    
+    console.log(`Starting request #${index+1} to OpenRouter model: ${model.displayName} (${model.id}) with API key index ${index % apiKeys.length}`);
+    
+    // Return a promise to fetch from this model
+    return fetchSingleOpenRouterModelWithErrorHandling(
+      queryText, 
+      selectedApiKey,
+      model.id, 
+      model.displayName,
+      nonce,
+      index
+    );
   });
   
-  try {
-    // Wait for all promises to settle and collect results
-    const results = await Promise.allSettled(modelPromises);
+  // Wait for all requests to settle, capture results
+  const results = await Promise.allSettled(modelPromises);
+  
+  // Process results
+  console.log(`All ${results.length} OpenRouter model requests completed. Processing results...`);
+  
+  // Filter successful results
+  const validResponses: Response[] = [];
+  
+  results.forEach((result, index) => {
+    const modelInfo = index < OPENROUTER_MODELS.length ? OPENROUTER_MODELS[index] : { displayName: 'Unknown', id: 'unknown' };
     
-    // Filter successful results
-    const validResponses = results
-      .filter((result): result is PromiseFulfilledResult<Response> => result.status === 'fulfilled')
-      .map(result => result.value);
-    
-    // Log failed models
-    results
-      .filter(result => result.status === 'rejected')
-      .forEach((result: PromiseRejectedResult) => {
-        console.error(`Failed to get response from OpenRouter model:`, result.reason);
-      });
-    
-    console.log(`Successfully received ${validResponses.length} responses from OpenRouter models`);
+    if (result.status === 'fulfilled') {
+      console.log(`✅ Model #${index+1} (${modelInfo.displayName}) succeeded with content length: ${result.value.content.length}`);
+      validResponses.push(result.value);
+    } else {
+      console.error(`❌ Model #${index+1} (${modelInfo.displayName}) failed:`, result.reason);
+    }
+  });
+  
+  console.log(`Retrieved ${validResponses.length} valid responses from OpenRouter models`);
+  if (validResponses.length > 0) {
     console.log('OpenRouter model sources:', validResponses.map(r => r.source).join(', '));
-    
-    return validResponses;
-  } catch (error) {
-    console.error('Error fetching from multiple OpenRouter models:', error);
-    // Return empty array rather than throwing to prevent one failure from blocking all models
-    return [];
+  } else {
+    console.warn('NO VALID RESPONSES from any OpenRouter models');
   }
+  
+  return validResponses;
 };
 
 // Helper function to fetch from a single OpenRouter model with proper error handling
-async function fetchSingleOpenRouterModel(
+async function fetchSingleOpenRouterModelWithErrorHandling(
   queryText: string,
   apiKey: string,
   modelId: string,
-  displayName: string
+  displayName: string,
+  nonce: string,
+  index: number
 ): Promise<Response> {
-  console.log(`Starting request to OpenRouter model: ${displayName} (${modelId})`);
+  console.log(`Starting request for OpenRouter model #${index+1}: ${displayName} (${modelId})`);
   
   try {
-    // Create a unique nonce for this specific model request to prevent caching
-    const nonce = `${modelId}-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
-    
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -139,7 +167,7 @@ async function fetchSingleOpenRouterModel(
         'X-Title': 'Agent Veritas Consensus App'
       },
       body: JSON.stringify({
-        model: modelId,
+        model: modelId, // Explicitly specify the model ID
         messages: [
           { role: 'system', content: 'You are a helpful assistant providing factual, concise information.' },
           { role: 'user', content: queryText }
@@ -151,15 +179,17 @@ async function fetchSingleOpenRouterModel(
     
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`Error fetching from ${displayName} (${modelId}):`, errorText);
-      throw new Error(`Error from ${displayName}: ${response.status} - ${errorText}`);
+      const errorMessage = `Error from ${displayName}: ${response.status} - ${errorText}`;
+      console.error(errorMessage);
+      throw new Error(errorMessage);
     }
     
     const data = await response.json();
     
     if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-      console.error(`Invalid response format from ${displayName} (${modelId})`, data);
-      throw new Error(`Invalid response format from ${displayName}`);
+      const invalidFormatMessage = `Invalid response format from ${displayName}`;
+      console.error(invalidFormatMessage, data);
+      throw new Error(invalidFormatMessage);
     }
     
     const content = data.choices[0].message.content;
@@ -177,6 +207,6 @@ async function fetchSingleOpenRouterModel(
     return responseObj;
   } catch (error) {
     console.error(`Failed to get response from ${displayName} (${modelId}):`, error);
-    throw error;
+    throw error; // Re-throw to be caught by Promise.allSettled
   }
 }

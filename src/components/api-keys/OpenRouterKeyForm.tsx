@@ -3,9 +3,10 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea"; 
 import { useQueryContext } from '@/hooks/useQueryContext';
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { BadgeCheck, InfoIcon } from 'lucide-react';
+import { BadgeCheck, InfoIcon, KeyRound } from 'lucide-react';
 
 const OpenRouterKeyForm: React.FC = () => {
   const { setApiKey, apiKeys } = useQueryContext();
@@ -43,21 +44,30 @@ const OpenRouterKeyForm: React.FC = () => {
         </div>
       
         <div className="space-y-2">
-          <Label htmlFor="openrouter-key">OpenRouter API Key</Label>
-          <Input
+          <Label htmlFor="openrouter-key" className="flex items-center gap-1">
+            <KeyRound className="h-4 w-4" />
+            OpenRouter API Key(s)
+          </Label>
+          <Textarea
             id="openrouter-key"
-            type="password"
-            placeholder="sk-or-..."
+            placeholder="sk-or-... (You can paste multiple keys separated by commas)"
             value={openRouterKey}
             onChange={(e) => setOpenRouterKey(e.target.value)}
+            className="font-mono text-sm"
+            rows={3}
           />
-          <p className="text-xs text-gray-500">
-            Get your key at <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">openrouter.ai/keys</a>
-          </p>
+          <div className="text-xs text-gray-500 space-y-1">
+            <p>
+              Get your key at <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">openrouter.ai/keys</a>
+            </p>
+            <p className="text-green-600 font-medium">
+              NEW: You can enter multiple OpenRouter API keys separated by commas for round-robin assignment to models
+            </p>
+          </div>
         </div>
       </div>
       
-      <Button onClick={handleSaveOpenRouter} disabled={!openRouterKey} className="w-full">Save OpenRouter API Key</Button>
+      <Button onClick={handleSaveOpenRouter} disabled={!openRouterKey} className="w-full">Save OpenRouter API Key(s)</Button>
     </div>
   );
 };
