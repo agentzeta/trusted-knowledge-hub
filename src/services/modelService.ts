@@ -1,9 +1,26 @@
 
-// Re-export all individual model services
-export * from './models/openaiService';
-export * from './models/anthropicService';
-export * from './models/googleService';
-export * from './models/perplexityService';
-export * from './models/deepseekService';
-export * from './models/mockService';
-export * from './models/openRouter'; // Updated to use our new refactored module
+import { Response } from '../types/query';
+import { AI_SOURCES, DEFAULT_API_KEYS } from './models/constants';
+import { fetchFromOpenAI } from './models/openaiService';
+import { fetchFromAnthropic, fetchFromAnthropicClaude35 } from './models/anthropicService';
+import { fetchFromGemini, fetchFromGeminiProExp } from './models/googleService';
+import { fetchFromPerplexity } from './models/perplexityService';
+import { fetchFromDeepseek } from './models/deepseekService';
+import { fetchFromOpenRouter, fetchFromMultipleOpenRouterModels } from './models/openRouterService';
+import { getMockResponse } from './models/mockService';
+
+// Re-export everything
+export {
+  AI_SOURCES,
+  DEFAULT_API_KEYS,
+  fetchFromOpenAI,
+  fetchFromAnthropic,
+  fetchFromAnthropicClaude35,
+  fetchFromGemini,
+  fetchFromGeminiProExp,
+  fetchFromPerplexity,
+  fetchFromDeepseek,
+  fetchFromOpenRouter,
+  fetchFromMultipleOpenRouterModels,
+  getMockResponse
+};

@@ -22,7 +22,6 @@ const OpenRouterModels: React.FC<OpenRouterModelsProps> = ({ responses }) => {
   const qwenModels = responses.filter(r => r.source.includes('Qwen'));
   const kimiModels = responses.filter(r => r.source.includes('Kimi'));
   const o3MiniModels = responses.filter(r => r.source.includes('O3 Mini'));
-  const openChatModels = responses.filter(r => r.source.includes('OpenChat'));
   
   return (
     <div className="mb-6">
@@ -41,7 +40,6 @@ const OpenRouterModels: React.FC<OpenRouterModelsProps> = ({ responses }) => {
       <ResponseGroup title="Qwen Models" responses={qwenModels} count={qwenModels.length} />
       <ResponseGroup title="Kimi Models" responses={kimiModels} count={kimiModels.length} />
       <ResponseGroup title="O3 Mini Models" responses={o3MiniModels} count={o3MiniModels.length} />
-      <ResponseGroup title="OpenChat Models" responses={openChatModels} count={openChatModels.length} />
     </div>
   );
 };
