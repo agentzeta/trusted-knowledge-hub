@@ -106,7 +106,7 @@ const calculateConsensusConfidence = (
 export const verifyResponses = (
   responses: Response[], 
   consensusText: string,
-  verificationThreshold: number = 0.6
+  verificationThreshold: number = 0.5 // Lowered from 0.6 to 0.5 to be more inclusive
 ): Response[] => {
   return responses.map(response => {
     // Calculate similarity with consensus
@@ -129,7 +129,7 @@ export const deriveConsensusResponse = (allResponses: Response[]): string => {
   if (allResponses.length === 1) return allResponses[0].content;
   
   // Step 1: Filter out clear outliers based on similarity
-  const outlierThreshold = 0.15; // Responses with less than 15% average similarity are outliers
+  const outlierThreshold = 0.12; // Lowered from 0.15 to be more inclusive
   const nonOutliers = allResponses.filter(r => !isOutlier(r, allResponses, outlierThreshold));
   
   if (nonOutliers.length === 0) {
@@ -139,7 +139,7 @@ export const deriveConsensusResponse = (allResponses: Response[]): string => {
   }
   
   // Step 2: Cluster similar responses
-  const similarityThreshold = 0.35; // Responses need 35% similarity to be in the same cluster
+  const similarityThreshold = 0.30; // Lowered from 0.35 to be more inclusive
   const clusters = clusterResponses(nonOutliers, similarityThreshold);
   
   // Step 3: Find the largest cluster (majority opinion)
@@ -168,7 +168,7 @@ export const analyzeConsensus = (allResponses: Response[]) => {
   if (allResponses.length === 0) return { confidence: 0, agreementRate: 0, clusters: [] };
   
   // Cluster the responses
-  const similarityThreshold = 0.35;
+  const similarityThreshold = 0.30; // Lowered from 0.35 to be more inclusive
   const clusters = clusterResponses(allResponses, similarityThreshold);
   
   // Sort clusters by size (largest first)
