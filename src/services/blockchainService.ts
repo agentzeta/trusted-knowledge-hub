@@ -16,10 +16,15 @@ export const recordOnFlareBlockchain = async (
   privateKey: string,
   query: string,
   response: string,
-  timestamp: number = Math.floor(Date.now() / 1000)
+  timestamp: number = Date.now()
 ): Promise<string> => {
   try {
-    console.log(`Recording on Flare blockchain at timestamp: ${timestamp}`);
+    // Convert timestamp to seconds if it's in milliseconds
+    const timestampInSeconds = timestamp > 10000000000 
+      ? Math.floor(timestamp / 1000) 
+      : timestamp;
+    
+    console.log(`Recording on Flare blockchain at timestamp: ${timestampInSeconds}`);
     
     // Initialize the provider
     const provider = new ethers.providers.JsonRpcProvider(FLARE_RPC_URL, FLARE_CHAIN_ID);
@@ -36,7 +41,7 @@ export const recordOnFlareBlockchain = async (
           JSON.stringify({
             query,
             responseHash: ethers.utils.keccak256(ethers.utils.toUtf8Bytes(response)),
-            timestamp: timestamp
+            timestamp: timestampInSeconds
           })
         )
       ),
@@ -61,10 +66,15 @@ export const createAttestation = async (
   privateKey: string,
   query: string,
   response: string,
-  timestamp: number = Math.floor(Date.now() / 1000)
+  timestamp: number = Date.now()
 ): Promise<string> => {
   try {
-    console.log(`Creating attestation at timestamp: ${timestamp}`);
+    // Convert timestamp to seconds if it's in milliseconds
+    const timestampInSeconds = timestamp > 10000000000 
+      ? Math.floor(timestamp / 1000) 
+      : timestamp;
+    
+    console.log(`Creating attestation at timestamp: ${timestampInSeconds}`);
     
     // Initialize the provider
     const provider = new ethers.providers.JsonRpcProvider(FLARE_RPC_URL, FLARE_CHAIN_ID);
@@ -83,7 +93,7 @@ export const createAttestation = async (
     const schemaEncoder = new SchemaEncoder('string query,string responseHash,uint256 timestamp');
     
     // Current timestamp as BigInt
-    const currentTimestamp = BigInt(timestamp);
+    const currentTimestamp = BigInt(timestampInSeconds);
     
     // Encode the data
     const encodedData = schemaEncoder.encodeData([

@@ -55,7 +55,7 @@ serve(async (req) => {
             "Accept": "audio/mpeg"
           },
           body: JSON.stringify({
-            text: text,
+            text: text.substring(0, 1000), // Limit text length to prevent quota issues
             model_id: "eleven_multilingual_v2",
             voice_settings: {
               stability: 0.5,
@@ -71,16 +71,36 @@ serve(async (req) => {
 
     // Check for API error response
     if (!response.ok) {
-      let errorText;
+      let errorData;
+      let errorMessage;
+      
       try {
-        const errorJson = await response.json();
-        errorText = JSON.stringify(errorJson);
-      } catch {
-        errorText = await response.text();
+        errorData = await response.json();
+        console.error("ElevenLabs API error data:", errorData);
+        
+        // Check for quota exceeded error
+        if (errorData.detail && errorData.detail.status === "quota_exceeded") {
+          errorMessage = "ElevenLabs quota exceeded. Please try again later or upgrade your plan.";
+        } else {
+          errorMessage = errorData.detail?.message || `API error (${response.status})`;
+        }
+      } catch (e) {
+        // If response is not JSON
+        const errorText = await response.text();
+        errorMessage = `API error (${response.status}): ${errorText.substring(0, 100)}`;
       }
       
-      console.error("ElevenLabs API error:", response.status, errorText);
-      throw new Error(`ElevenLabs API error (${response.status}): ${errorText}`);
+      return new Response(
+        JSON.stringify({ 
+          error: errorMessage,
+          code: "ELEVENLABS_API_ERROR",
+          status: response.status
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
     // Get the audio as an ArrayBuffer
@@ -123,7 +143,8 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         error: error.message || "Unknown error occurred",
-        details: error.stack || "No stack trace available"
+        details: error.stack || "No stack trace available",
+        code: "INTERNAL_SERVER_ERROR"
       }),
       { 
         status: 500, 

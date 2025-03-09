@@ -7,8 +7,8 @@ import FlareExplorerDialog from './FlareExplorerDialog';
 import EASExplorerDialog from './EASExplorerDialog';
 
 interface BlockchainVerificationDetailsProps {
-  blockchainReference: string;
-  attestationId: string;
+  blockchainReference: string | null;
+  attestationId: string | null;
   timestamp: number | null;
 }
 
@@ -20,8 +20,9 @@ const BlockchainVerificationDetails: React.FC<BlockchainVerificationDetailsProps
   const [showFlareExplorer, setShowFlareExplorer] = useState(false);
   const [showEASExplorer, setShowEASExplorer] = useState(false);
   
+  // Format timestamp properly, handling both seconds and milliseconds formats
   const formattedDate = timestamp 
-    ? format(new Date(timestamp * 1000), 'PPpp') // Detailed date and time format
+    ? format(new Date(timestamp > 10000000000 ? timestamp : timestamp * 1000), 'PPpp') // Detailed date and time format
     : null;
     
   const openFlareExplorer = (txHash: string) => {
@@ -64,7 +65,7 @@ const BlockchainVerificationDetails: React.FC<BlockchainVerificationDetailsProps
                 variant="ghost" 
                 size="sm" 
                 className="text-xs text-blue-600 p-0 h-auto flex items-center" 
-                onClick={() => openFlareExplorer(blockchainReference)}
+                onClick={() => blockchainReference && openFlareExplorer(blockchainReference)}
               >
                 <ExternalLink className="w-3 h-3 mr-1" />
                 Explorer
@@ -72,11 +73,13 @@ const BlockchainVerificationDetails: React.FC<BlockchainVerificationDetailsProps
             </div>
           </div>
           <p className="text-xs text-gray-500 break-all">{blockchainReference.substring(0, 20)}...</p>
-          <FlareExplorerDialog 
-            txHash={blockchainReference} 
-            showDialog={showFlareExplorer} 
-            setShowDialog={setShowFlareExplorer} 
-          />
+          {blockchainReference && (
+            <FlareExplorerDialog 
+              txHash={blockchainReference} 
+              showDialog={showFlareExplorer} 
+              setShowDialog={setShowFlareExplorer} 
+            />
+          )}
         </div>
       )}
       
@@ -100,7 +103,7 @@ const BlockchainVerificationDetails: React.FC<BlockchainVerificationDetailsProps
                 variant="ghost" 
                 size="sm" 
                 className="text-xs text-blue-600 p-0 h-auto flex items-center" 
-                onClick={() => openEASExplorer(attestationId)}
+                onClick={() => attestationId && openEASExplorer(attestationId)}
               >
                 <ExternalLink className="w-3 h-3 mr-1" />
                 Explorer
@@ -108,11 +111,13 @@ const BlockchainVerificationDetails: React.FC<BlockchainVerificationDetailsProps
             </div>
           </div>
           <p className="text-xs text-gray-500 break-all">{attestationId.substring(0, 20)}...</p>
-          <EASExplorerDialog 
-            attestId={attestationId} 
-            showDialog={showEASExplorer} 
-            setShowDialog={setShowEASExplorer} 
-          />
+          {attestationId && (
+            <EASExplorerDialog 
+              attestId={attestationId} 
+              showDialog={showEASExplorer} 
+              setShowDialog={setShowEASExplorer} 
+            />
+          )}
         </div>
       )}
       

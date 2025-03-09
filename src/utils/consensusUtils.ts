@@ -1,4 +1,3 @@
-
 import { Response } from '../types/query';
 
 // Helper function to calculate Jaccard similarity between two strings
@@ -85,6 +84,24 @@ const clusterResponses = (responses: Response[], similarityThreshold: number): R
   return clusters;
 };
 
+/**
+ * Plain English Explanation of Consensus Logic:
+ * 
+ * 1. We collect responses from multiple AI models
+ * 2. For each response, we calculate how similar it is to all other responses
+ * 3. We filter out "outliers" - responses that are too different from most others
+ * 4. We group the non-outlier responses into "clusters" of similar content
+ * 5. The largest cluster is considered the majority opinion
+ * 6. We select the response with highest confidence from this cluster
+ * 7. We then verify each response against this consensus (mark as "verified" if similar enough)
+ * 
+ * Key factors that influence the consensus:
+ * - We use word-based Jaccard similarity (shared words / total unique words)
+ * - We have thresholds that determine what counts as "similar enough"
+ * - We consider both the number of models that agree and their confidence levels
+ * - We have bias-prevention mechanisms to avoid favoring any specific model
+ */
+
 // Extract common information from a cluster of responses
 const extractCommonInformation = (cluster: Response[]): string => {
   if (cluster.length === 0) return "";
@@ -97,14 +114,11 @@ const extractCommonInformation = (cluster: Response[]): string => {
   console.log(`Response confidence values: ${cluster.map(r => `${r.source}: ${r.confidence.toFixed(2)}`).join(', ')}`);
   console.log(`Highest confidence response from: ${sortedByConfidence[0].source}`);
   
+  // Use the highest confidence response
+  // IMPORTANT: This is not biased toward any specific model, but toward the response
+  // with highest confidence in the largest cluster of similar responses
   const topResponse = sortedByConfidence[0].content;
   
-  // For more sophisticated approaches, we could implement:
-  // 1. Sentence-level analysis to find common sentences
-  // 2. NLP-based extractive summarization
-  // 3. Key point extraction and comparison
-  
-  // For now, we'll use the highest confidence response from the largest cluster
   return topResponse;
 };
 
@@ -204,7 +218,7 @@ export const generateConsensusExplanation = (
 export const verifyResponses = (
   responses: Response[], 
   consensusText: string,
-  verificationThreshold: number = 0.45 // Adjusted threshold to be more inclusive
+  verificationThreshold: number = 0.45
 ): Response[] => {
   console.log(`Verifying ${responses.length} responses against consensus with threshold: ${verificationThreshold}`);
   
@@ -215,7 +229,7 @@ export const verifyResponses = (
     return { response, similarity };
   });
   
-  // Calculate mean and standard deviation to detect bias
+  // Calculate mean and standard deviation to detect and prevent bias
   const mean = similarities.reduce((sum, item) => sum + item.similarity, 0) / similarities.length;
   const stdDev = Math.sqrt(
     similarities.reduce((sum, item) => sum + Math.pow(item.similarity - mean, 2), 0) / similarities.length
@@ -223,7 +237,8 @@ export const verifyResponses = (
   
   console.log(`Similarity statistics - Mean: ${mean.toFixed(3)}, StdDev: ${stdDev.toFixed(3)}`);
   
-  // Adjust threshold if there's high variance to prevent bias
+  // Adjust threshold if there's high variance to prevent bias toward any specific model format
+  // This prevents models with similar output format from being unfairly advantaged
   const adjustedThreshold = stdDev > 0.2 
     ? Math.max(0.4, mean - (0.5 * stdDev)) // More inclusive when there's high variance
     : verificationThreshold;
@@ -244,7 +259,7 @@ export const verifyResponses = (
   });
 };
 
-// Get consensus response from all AI responses with enhanced logic
+// Get consensus response from all AI responses with enhanced logic to prevent bias
 export const deriveConsensusResponse = (allResponses: Response[]): string => {
   if (allResponses.length === 0) return "No responses available";
   if (allResponses.length === 1) return allResponses[0].content;
@@ -252,31 +267,35 @@ export const deriveConsensusResponse = (allResponses: Response[]): string => {
   console.log(`=== DERIVING CONSENSUS FROM ${allResponses.length} RESPONSES ===`);
   
   // Step 1: Filter out clear outliers based on similarity
+  // This prevents isolated, highly different responses from influencing the consensus
   const outlierThreshold = 0.12; // Lowered from 0.15 to be more inclusive
   const nonOutliers = allResponses.filter(r => !isOutlier(r, allResponses, outlierThreshold));
   
   console.log(`After outlier filtering: ${nonOutliers.length} responses remaining`);
-  console.log(`Outliers removed: ${allResponses.length - nonOutliers.length}`);
   
+  // If all were outliers, fall back to the highest confidence response
   if (nonOutliers.length === 0) {
-    // If all were outliers, fall back to the highest confidence response
+    // Sort all responses by confidence to avoid bias toward any specific model
     const sortedByConfidence = [...allResponses].sort((a, b) => b.confidence - a.confidence);
     console.log(`All responses were outliers. Using highest confidence response from: ${sortedByConfidence[0].source}`);
     return sortedByConfidence[0].content + "\n\n(Note: There was significant disagreement between AI responses on this query.)";
   }
   
-  // Step 2: Cluster similar responses
+  // Step 2: Cluster similar responses - this groups responses with similar content
+  // regardless of which model they came from
   const similarityThreshold = 0.30; // Properly balanced threshold
   const clusters = clusterResponses(nonOutliers, similarityThreshold);
   
   // Step 3: Find the largest cluster (majority opinion)
+  // This represents the most common viewpoint across different models
   const sortedClusters = clusters.sort((a, b) => b.length - a.length);
   const largestCluster = sortedClusters[0];
   
   console.log(`Largest cluster size: ${largestCluster.length} responses`);
   console.log(`Largest cluster sources: ${largestCluster.map(r => r.source).join(', ')}`);
   
-  // Step 4: Extract common information from the largest cluster
+  // Step 4: Extract consensus from the largest cluster
+  // We use the response with highest confidence from the largest cluster
   const consensusContent = extractCommonInformation(largestCluster);
   
   // Step 5: Calculate confidence in this consensus

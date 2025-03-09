@@ -2,6 +2,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
+import { Button } from '@/components/ui/button';
+import { Shield } from 'lucide-react';
+import { useQueryContext } from '@/hooks/useQueryContext';
 
 interface ConsensusResponseProps {
   consensusResponse: string;
@@ -12,6 +15,8 @@ const ConsensusResponse: React.FC<ConsensusResponseProps> = ({
   consensusResponse, 
   timestamp 
 }) => {
+  const { verifyOnBlockchain, privateKey, isRecordingOnChain } = useQueryContext();
+  
   const formattedDate = timestamp 
     ? format(new Date(timestamp), 'MMM d, yyyy h:mm a') 
     : null;
@@ -34,16 +39,28 @@ const ConsensusResponse: React.FC<ConsensusResponseProps> = ({
         <div className="prose prose-lg max-w-none">
           <p className="text-gray-700 dark:text-gray-300 text-lg whitespace-pre-line">{consensusResponse}</p>
           
-          {formattedDate && (
-            <div className="mt-4 pt-4 border-t text-sm text-gray-500">
-              <span className="flex items-center">
+          <div className="mt-4 pt-4 border-t flex flex-col sm:flex-row justify-between items-center gap-4">
+            {formattedDate && (
+              <span className="flex items-center text-sm text-gray-500">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
                 </svg>
                 Generated on {formattedDate}
               </span>
-            </div>
-          )}
+            )}
+            
+            {/* Add Blockchain Verification Button */}
+            {privateKey && verifyOnBlockchain && (
+              <Button 
+                onClick={verifyOnBlockchain}
+                className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2 self-end"
+                disabled={isRecordingOnChain}
+              >
+                <Shield className="h-4 w-4" />
+                {isRecordingOnChain ? 'Recording on Blockchain...' : 'Verify on Blockchain'}
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </motion.div>

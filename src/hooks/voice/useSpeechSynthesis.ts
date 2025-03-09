@@ -1,113 +1,158 @@
 
-import { useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
-import { AudioRefValue } from './types';
 
 export const useSpeechSynthesis = (
-  setIsSpeaking: (value: boolean) => void,
-  voiceId: string
+  setIsSpeaking: (speaking: boolean) => void,
+  voiceId: string = "pFZP5JQG7iQjIQuC4Bku" // Default to Lily voice
 ) => {
-  const audioRef: AudioRefValue = useRef(null);
-
-  // Create audio element
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Initialize audio element
   useEffect(() => {
     if (!audioRef.current) {
       audioRef.current = new Audio();
+      
+      audioRef.current.addEventListener('ended', () => {
+        setIsPlaying(false);
+        setIsSpeaking(false);
+      });
+      
+      audioRef.current.addEventListener('pause', () => {
+        setIsPlaying(false);
+        setIsSpeaking(false);
+      });
+      
+      audioRef.current.addEventListener('play', () => {
+        setIsPlaying(true);
+        setIsSpeaking(true);
+      });
     }
     
-    // Cleanup
     return () => {
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current = null;
       }
     };
-  }, []);
-
+  }, [setIsSpeaking]);
+  
+  // Function to speak text using ElevenLabs
   const speakResponse = async (text: string) => {
-    if (!text) return;
-    
     try {
-      setIsSpeaking(true);
+      if (!text) {
+        console.error('No text provided for speech');
+        return;
+      }
       
-      console.log("Calling ElevenLabs TTS with text:", text.substring(0, 50) + "...");
+      // Limit text length for ElevenLabs
+      const truncatedText = text.length > 1000 
+        ? text.substring(0, 997) + '...' 
+        : text;
+      
+      setIsLoading(true);
+      console.log('Calling ElevenLabs TTS with text:', truncatedText.substring(0, 30) + '...');
+      
+      // Stop any current playback
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
       
       const { data, error } = await supabase.functions.invoke('elevenlabs-tts', {
-        body: { text, voiceId }
+        body: { 
+          text: truncatedText,
+          voiceId
+        }
       });
       
       if (error) {
-        console.error("TTS error:", error);
-        throw new Error(error.message || 'Error generating speech');
+        console.error('TTS error:', error);
+        throw new Error(`ElevenLabs API error: ${error.message || 'Unknown error'}`);
       }
       
       if (!data || !data.audioContent) {
-        console.error("No audio content returned");
-        throw new Error('No audio content returned');
+        console.error('No audio content received');
+        throw new Error('Failed to generate audio content');
       }
       
-      console.log("Received audio response, length:", data.audioContent.length);
-      
-      // Convert base64 to blob URL
-      const binary = atob(data.audioContent);
-      const bytes = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i++) {
-        bytes[i] = binary.charCodeAt(i);
-      }
-      
-      const blob = new Blob([bytes], { type: 'audio/mp3' });
-      const audioUrl = URL.createObjectURL(blob);
-      
-      // Play audio
-      if (audioRef.current) {
-        audioRef.current.src = audioUrl;
+      if (data.error) {
+        // API returned an error in the data
+        console.error('API returned error:', data.error);
         
-        audioRef.current.onended = () => {
-          setIsSpeaking(false);
-          URL.revokeObjectURL(audioUrl);
-        };
-        
-        audioRef.current.onerror = (e) => {
-          console.error('Audio playback error:', e);
-          setIsSpeaking(false);
-          URL.revokeObjectURL(audioUrl);
+        if (data.code === "ELEVENLABS_API_ERROR" && data.status === 401) {
           toast({
-            title: "Playback Error",
-            description: "There was an error playing the voice response",
+            title: "ElevenLabs Quota Exceeded",
+            description: "Your ElevenLabs account has reached its quota limit. Please try again later or upgrade your plan.",
             variant: "destructive",
           });
-        };
-        
-        try {
-          await audioRef.current.play();
-        } catch (playError) {
-          console.error("Audio play error:", playError);
-          setIsSpeaking(false);
-          throw playError;
+        } else {
+          toast({
+            title: "Text-to-Speech Error",
+            description: data.error,
+            variant: "destructive",
+          });
         }
+        return;
       }
-    } catch (error: any) {
+      
+      // Create blob URL from base64
+      const blob = base64ToBlob(data.audioContent, 'audio/mpeg');
+      const url = URL.createObjectURL(blob);
+      
+      // Set the audio source and play
+      if (audioRef.current) {
+        audioRef.current.src = url;
+        await audioRef.current.play();
+      }
+    } catch (error) {
       console.error('Speech synthesis error:', error);
-      setIsSpeaking(false);
+      
       toast({
-        title: "Voice Error",
-        description: error.message || "Failed to generate voice response",
+        title: "Speech Synthesis Failed",
+        description: error.message || "Failed to generate speech",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
-
+  
+  // Helper to convert base64 to blob
+  const base64ToBlob = (base64: string, mimeType: string) => {
+    const byteCharacters = atob(base64);
+    const byteArrays = [];
+    
+    for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+      const slice = byteCharacters.slice(offset, offset + 512);
+      const byteNumbers = new Array(slice.length);
+      
+      for (let i = 0; i < slice.length; i++) {
+        byteNumbers[i] = slice.charCodeAt(i);
+      }
+      
+      const byteArray = new Uint8Array(byteNumbers);
+      byteArrays.push(byteArray);
+    }
+    
+    return new Blob(byteArrays, { type: mimeType });
+  };
+  
+  // Function to stop speaking
   const stopSpeaking = () => {
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
-      setIsSpeaking(false);
     }
   };
-
+  
   return {
     audioRef,
+    isPlaying,
+    isLoading,
     speakResponse,
     stopSpeaking
   };
