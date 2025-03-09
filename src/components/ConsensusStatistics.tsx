@@ -1,35 +1,14 @@
-
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Response } from '../types/query';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp, BarChart2 } from 'lucide-react';
-import { calculateJaccardSimilarity } from '../utils/consensusUtils';
+import { calculateJaccardSimilarity, calculateAverageSimilarity } from '../utils/consensusUtils';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface ConsensusStatisticsProps {
   responses: Response[];
 }
-
-const calculateAverageSimilarity = (responses: Response[]): number => {
-  if (responses.length <= 1) return 1;
-  
-  let totalSimilarity = 0;
-  let comparisons = 0;
-  
-  for (let i = 0; i < responses.length; i++) {
-    for (let j = i + 1; j < responses.length; j++) {
-      const similarity = calculateJaccardSimilarity(
-        responses[i].content, 
-        responses[j].content
-      );
-      totalSimilarity += similarity;
-      comparisons++;
-    }
-  }
-  
-  return comparisons > 0 ? totalSimilarity / comparisons : 0;
-};
 
 const ConsensusStatistics: React.FC<ConsensusStatisticsProps> = ({ responses }) => {
   const [isExpanded, setIsExpanded] = useState(false);
