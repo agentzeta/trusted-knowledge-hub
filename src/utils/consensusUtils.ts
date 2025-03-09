@@ -64,7 +64,8 @@ const clusterResponses = (responses: Response[], similarityThreshold: number): R
     clusters.push(cluster);
   }
   
-  return clusters;
+  // Sort clusters by size (largest first)
+  return clusters.sort((a, b) => b.length - a.length);
 };
 
 // Extract common information from a cluster of responses
@@ -156,9 +157,15 @@ export const generateConsensusExplanation = (
   // Explain consensus level reasoning
   explanation += `This represents a ${consensusLevel} consensus among the queried AI models. `;
   
+  // List models contributing to consensus
+  if (verifiedCount > 0) {
+    const verifiedModels = allResponses.filter(r => r.verified).map(r => r.source).join(', ');
+    explanation += `\n\nModels in agreement: ${verifiedModels}`;
+  }
+  
   // Explain possible reasons for low consensus when applicable
   if (consensusLevel === "weak" || consensusLevel === "very low") {
-    explanation += 'Possible reasons for low consensus include:\n';
+    explanation += '\n\nPossible reasons for low consensus include:\n';
     explanation += '- The question may be ambiguous or open to multiple interpretations\n';
     explanation += '- The topic might involve subjective perspectives rather than objective facts\n'; 
     explanation += '- Different AI models may have different training data or knowledge cutoffs\n';
@@ -174,14 +181,22 @@ export const generateConsensusExplanation = (
 export const verifyResponses = (
   responses: Response[], 
   consensusText: string,
-  verificationThreshold: number = 0.5 // Lowered from 0.6 to 0.5 to be more inclusive
+  verificationThreshold: number = 0.5 
 ): Response[] => {
+  // Add debugging logs to track verification process
+  console.log('Verifying responses against consensus text:');
+  console.log('Consensus text length:', consensusText.length);
+  console.log('Verification threshold:', verificationThreshold);
+  
   return responses.map(response => {
     // Calculate similarity with consensus
     const similarity = calculateJaccardSimilarity(response.content, consensusText);
     
-    // Determine verification status based on similarity and confidence
+    // Determine verification status based on similarity
     const isVerified = similarity >= verificationThreshold;
+    
+    // Log the verification details
+    console.log(`Model: ${response.source}, Similarity: ${(similarity * 100).toFixed(1)}%, Verified: ${isVerified}`);
     
     // Return a new object with updated verification status
     return {
@@ -196,13 +211,19 @@ export const deriveConsensusResponse = (allResponses: Response[]): string => {
   if (allResponses.length === 0) return "No responses available";
   if (allResponses.length === 1) return allResponses[0].content;
   
+  console.log(`Deriving consensus from ${allResponses.length} responses`);
+  console.log('Response sources:', allResponses.map(r => r.source).join(', '));
+  
   // Step 1: Filter out clear outliers based on similarity
   const outlierThreshold = 0.12; // Lowered from 0.15 to be more inclusive
   const nonOutliers = allResponses.filter(r => !isOutlier(r, allResponses, outlierThreshold));
   
+  console.log(`Filtered out ${allResponses.length - nonOutliers.length} outliers, remaining: ${nonOutliers.length}`);
+  
   if (nonOutliers.length === 0) {
     // If all were outliers, fall back to the highest confidence response
     const sortedByConfidence = [...allResponses].sort((a, b) => b.confidence - a.confidence);
+    console.log(`All responses were outliers, selecting highest confidence response from ${sortedByConfidence[0].source}`);
     return sortedByConfidence[0].content + "\n\n(Note: There was significant disagreement between AI responses on this query.)";
   }
   
@@ -210,9 +231,16 @@ export const deriveConsensusResponse = (allResponses: Response[]): string => {
   const similarityThreshold = 0.30; // Lowered from 0.35 to be more inclusive
   const clusters = clusterResponses(nonOutliers, similarityThreshold);
   
+  console.log(`Formed ${clusters.length} clusters of responses`);
+  clusters.forEach((cluster, i) => {
+    console.log(`Cluster #${i+1} has ${cluster.length} responses: ${cluster.map(r => r.source).join(', ')}`);
+  });
+  
   // Step 3: Find the largest cluster (majority opinion)
   const sortedClusters = clusters.sort((a, b) => b.length - a.length);
   const largestCluster = sortedClusters[0];
+  
+  console.log(`Largest cluster has ${largestCluster.length} responses: ${largestCluster.map(r => r.source).join(', ')}`);
   
   // Step 4: Extract common information from the largest cluster
   const consensusContent = extractCommonInformation(largestCluster);
@@ -221,6 +249,8 @@ export const deriveConsensusResponse = (allResponses: Response[]): string => {
   const consensusConfidence = calculateConsensusConfidence(largestCluster, allResponses);
   const confidenceLevel = consensusConfidence >= 0.8 ? "High" : 
                           consensusConfidence >= 0.5 ? "Moderate" : "Low";
+  
+  console.log(`Consensus confidence: ${(consensusConfidence * 100).toFixed(1)}%, level: ${confidenceLevel}`);
   
   // Add confidence information to the response
   return `${consensusContent}

@@ -93,8 +93,7 @@ export const createApiPromises = (queryText: string, apiKeys: ApiKeys, signal?: 
     try {
       console.log('Adding Grok-1.5 to API calls');
       // We need to create or call the correct function name here
-      // Assuming fetchFromGrok exists elsewhere in the codebase
-      // For now, we'll skip this to avoid errors
+      // Commenting out for now as this model is not fully implemented
       // apiPromises.push(modelService.fetchFromGrok(queryText, apiKeys.grok));
       // apiSources.push('Grok-1.5');
       console.warn('Grok model support is currently disabled - function not available');
@@ -108,8 +107,7 @@ export const createApiPromises = (queryText: string, apiKeys: ApiKeys, signal?: 
     try {
       console.log('Adding Qwen2 72B to API calls');
       // We need to create or call the correct function name here
-      // Assuming fetchFromQwen exists elsewhere in the codebase
-      // For now, we'll skip this to avoid errors
+      // Commenting out for now as this model is not fully implemented
       // apiPromises.push(modelService.fetchFromQwen(queryText, apiKeys.qwen));
       // apiSources.push('Qwen2 72B');
       console.warn('Qwen model support is currently disabled - function not available');
@@ -134,8 +132,7 @@ export const createApiPromises = (queryText: string, apiKeys: ApiKeys, signal?: 
     try {
       console.log('Adding Llama models to API calls');
       // We need to create or call the correct function name here
-      // Assuming fetchFromLlama exists elsewhere in the codebase
-      // For now, we'll skip this to avoid errors
+      // Commenting out for now as this model is not fully implemented
       // apiPromises.push(modelService.fetchFromLlama(queryText, apiKeys.llama));
       // apiSources.push('Llama 3 8B');
       console.warn('Llama model support is currently disabled - function not available');

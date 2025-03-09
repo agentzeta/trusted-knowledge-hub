@@ -88,6 +88,7 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       blockchainReference,
       attestationId,
       isRecordingOnChain,
+      recordResponseOnBlockchain,
       user,
       exportToGoogleDocs
     }}>
