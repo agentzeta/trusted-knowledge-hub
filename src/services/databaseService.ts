@@ -23,6 +23,7 @@ export const saveResponseToDatabase = async (
           source_responses: responses,
           blockchain_reference: blockchainReference || null,
           attestation_id: attestationId || null,
+          tee_verification_id: teeVerificationId || null,
           created_at: new Date().toISOString()
         }
       ]);
