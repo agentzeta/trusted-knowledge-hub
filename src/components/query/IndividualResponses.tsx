@@ -39,7 +39,7 @@ const IndividualResponses: React.FC<IndividualResponsesProps> = ({ responses }) 
     return null;
   }
   
-  // Sort responses by source name for consistent display
+  // Sort responses alphabetically by source name for consistent display
   const sortedResponses = [...responses].sort((a, b) => a.source.localeCompare(b.source));
   
   // Group OpenRouter responses separate from other models
@@ -49,7 +49,8 @@ const IndividualResponses: React.FC<IndividualResponsesProps> = ({ responses }) 
     r.source.includes('Mistral') ||
     r.source.includes('DeepSeek') ||
     r.source.includes('Cohere') ||
-    r.source.includes('Perplexity Sonar')
+    r.source.includes('Sonar') ||
+    r.source.includes('Gemini 1.5 Pro (OpenRouter)')
   );
   
   const otherResponses = sortedResponses.filter(r => 
@@ -58,7 +59,8 @@ const IndividualResponses: React.FC<IndividualResponsesProps> = ({ responses }) 
     !r.source.includes('Mistral') &&
     !r.source.includes('DeepSeek') &&
     !r.source.includes('Cohere') &&
-    !r.source.includes('Perplexity Sonar')
+    !r.source.includes('Sonar') &&
+    !r.source.includes('Gemini 1.5 Pro (OpenRouter)')
   );
   
   return (
@@ -75,7 +77,7 @@ const IndividualResponses: React.FC<IndividualResponsesProps> = ({ responses }) 
         {openRouterResponses.length > 0 && (
           <div className="mb-6">
             <h4 className="text-md font-medium mb-2 text-blue-600">OpenRouter Models ({openRouterResponses.length})</h4>
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {openRouterResponses.map((response) => (
                 <div 
                   key={response.id} 
@@ -99,7 +101,7 @@ const IndividualResponses: React.FC<IndividualResponsesProps> = ({ responses }) 
         {otherResponses.length > 0 && (
           <div>
             <h4 className="text-md font-medium mb-2 text-green-600">Direct API Models ({otherResponses.length})</h4>
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {otherResponses.map((response) => (
                 <div 
                   key={response.id} 

@@ -61,31 +61,32 @@ export const fetchFromOpenRouter = async (
   }
 };
 
-// New function to fetch from multiple models in parallel
+// Updated function to fetch from multiple models individually instead of in a batch
 export const fetchFromMultipleOpenRouterModels = async (
   queryText: string,
   apiKey: string
 ): Promise<Response[]> => {
-  console.log('Fetching from multiple OpenRouter models with query:', queryText.substring(0, 50) + '...');
+  console.log('Fetching from multiple OpenRouter models individually');
   
-  // Define a list of interesting and diverse models to query
+  // Define models with more specific display names
   const models = [
-    { name: 'anthropic/claude-3-opus:20240229', label: 'Claude 3.7 Opus' },
-    { name: 'anthropic/claude-3-sonnet:20240229', label: 'Claude 3.5 Sonnet' },
-    { name: 'google/gemini-1.5-pro', label: 'Gemini 1.5 Pro' },
-    { name: 'mistralai/mistral-large', label: 'Mistral Large' },
-    { name: 'meta-llama/llama-3-70b-instruct', label: 'Llama 3 70B' },
-    { name: 'deepseek-ai/deepseek-v2', label: 'DeepSeek V2' },
-    { name: 'cohere/command-r-plus', label: 'Cohere Command-R+' },
-    { name: 'perplexity/sonar-small-online', label: 'Perplexity Sonar' }
+    { name: 'anthropic/claude-3-opus:20240229', displayName: 'Claude 3.7 Opus' },
+    { name: 'anthropic/claude-3-sonnet:20240229', displayName: 'Claude 3.5 Sonnet' },
+    { name: 'google/gemini-1.5-pro', displayName: 'Gemini 1.5 Pro (OpenRouter)' },
+    { name: 'mistralai/mistral-large', displayName: 'Mistral Large' },
+    { name: 'meta-llama/llama-3-70b-instruct', displayName: 'Llama 3 70B' },
+    { name: 'deepseek-ai/deepseek-v2', displayName: 'DeepSeek V2' },
+    { name: 'cohere/command-r-plus', displayName: 'Cohere Command-R+' },
+    { name: 'perplexity/sonar-small-online', displayName: 'Perplexity Sonar' }
   ];
   
-  console.log(`Attempting to fetch from ${models.length} OpenRouter models:`, 
-    models.map(m => m.label).join(', '));
+  console.log(`Making individual requests to ${models.length} OpenRouter models`);
   
-  // Create an array of promises, each fetching from a different model
+  // Make individual requests for each model to ensure we get distinct responses
+  const responses: Response[] = [];
+  
+  // Create an array of promises for all the API calls
   const promises = models.map(model => {
-    console.log(`Sending request to OpenRouter model: ${model.label}`);
     return fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -103,42 +104,43 @@ export const fetchFromMultipleOpenRouterModels = async (
         temperature: 0.3
       })
     })
-    .then(response => {
+    .then(async response => {
       if (!response.ok) {
-        console.error(`Error from ${model.label}: ${response.status} - ${response.statusText}`);
-        return null;
-      }
-      return response.json();
-    })
-    .then(data => {
-      if (!data || !data.choices || !data.choices[0] || !data.choices[0].message) {
-        console.error(`Invalid response format from ${model.label}`);
+        console.error(`Error from ${model.displayName}: ${response.status}`);
         return null;
       }
       
-      console.log(`Successful response from ${model.label}`);
+      const data = await response.json();
+      
+      if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+        console.error(`Invalid response format from ${model.displayName}`);
+        return null;
+      }
+      
+      console.log(`✅ Success: Received response from ${model.displayName}`);
       
       return {
         id: uuidv4(),
         content: data.choices[0].message.content,
-        source: model.label,
+        source: model.displayName,
         verified: false,
         timestamp: Date.now(),
         confidence: 0.7
       };
     })
     .catch(error => {
-      console.error(`Error fetching from ${model.label}:`, error);
+      console.error(`Error fetching from ${model.displayName}:`, error);
       return null;
     });
   });
   
-  // Wait for all promises to settle and filter out nulls
+  // Wait for all promises to settle
   const results = await Promise.all(promises);
+  
+  // Filter out nulls (failed requests)
   const validResponses = results.filter(response => response !== null) as Response[];
   
-  console.log(`Received ${validResponses.length} valid OpenRouter responses from:`, 
-    validResponses.map(r => r.source).join(', '));
+  console.log(`Successfully received ${validResponses.length} responses from OpenRouter models`);
   
   return validResponses;
 };

@@ -15,7 +15,23 @@ export const processApiResults = (apiResults: PromiseSettledResult<any>[], apiSo
       if (Array.isArray(result.value)) {
         // This is the result from OpenRouter multi-model fetcher
         console.log(`✅ SUCCESS: Received an array of ${result.value.length} responses from ${source}`);
-        validResponses = validResponses.concat(result.value);
+        
+        // Ensure each OpenRouter response has a unique source identifier
+        const openRouterResponses = result.value.map((resp: Response) => ({
+          ...resp,
+          source: resp.source  // The individual model response already has a source field set
+        }));
+        
+        validResponses = validResponses.concat(openRouterResponses);
+        
+        // Log details of each OpenRouter response
+        openRouterResponses.forEach((resp: Response) => {
+          console.log(`OpenRouter response from ${resp.source}:`, {
+            id: resp.id,
+            contentLength: resp.content.length,
+            contentPreview: resp.content.substring(0, 50) + '...'
+          });
+        });
       } else if (result.value) {
         console.log(`✅ SUCCESS: API response from ${source}`);
         console.log(`Content preview from ${source}:`, result.value.content.substring(0, 50) + '...');
