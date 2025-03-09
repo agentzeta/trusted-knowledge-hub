@@ -1,152 +1,153 @@
 
-import { ApiKeys } from '../../types/query';
-import { 
-  fetchFromOpenAI, 
-  fetchFromAnthropic, 
-  fetchFromAnthropicClaude35, 
-  fetchFromGemini, 
-  fetchFromGeminiProExp, 
-  fetchFromPerplexity, 
-  fetchFromDeepseek,
-  fetchFromMultipleOpenRouterModels
+import { v4 as uuidv4 } from 'uuid';
+import { ApiKeys, Response } from '../../types/query';
+import {
+  AI_SOURCES,
+  fetchFromOpenAI,
+  fetchFromAnthropic,
+  fetchFromAnthropicClaude35,
+  fetchFromGemini,
+  fetchFromGeminiProExp,
+  fetchFromPerplexity,
+  fetchFromDeepseek, // Correct casing
+  fetchFromOpenRouter,
+  fetchFromMultipleOpenRouterModels,
+  getMockResponse
 } from '../modelService';
 
 /**
- * Creates API promises based on available API keys with improved error handling
+ * Create API promises for all configured models
  */
 export const createApiPromises = (queryText: string, apiKeys: ApiKeys) => {
-  console.log('=== Creating API Promises with Improved Error Handling ===');
+  const timestamp = Math.floor(Date.now() / 1000);
+  const apiPromises: Promise<Response | Response[] | null>[] = [];
+  const apiSources: string[] = [];
   
-  const apiPromises = [];
-  const apiSources = [];
+  console.log('Creating API promises for query:', queryText.substring(0, 30) + '...');
   
-  // Create promises for each API with a key
-  if (apiKeys.anthropic) {
-    console.log('Adding Anthropic (Claude 3 Haiku) to request queue');
-    apiPromises.push(
-      // Wrap in Promise.resolve().catch to ensure errors don't break the whole process
-      Promise.resolve(fetchFromAnthropic(queryText, apiKeys.anthropic))
-        .catch(error => {
-          console.error('Error fetching from Anthropic (Claude 3 Haiku):', error);
-          return null; // Return null to be filtered out later
-        })
-    );
-    apiSources.push('Claude 3 Haiku');
-    
-    // Use the same anthropic key for Claude 3.5 Sonnet
-    console.log('Adding Anthropic (Claude 3.5 Sonnet) to request queue with same API key');
-    apiPromises.push(
-      Promise.resolve(fetchFromAnthropicClaude35(queryText, apiKeys.anthropic))
-        .catch(error => {
-          console.error('Error fetching from Anthropic (Claude 3.5 Sonnet):', error);
-          return null;
-        })
-    );
-    apiSources.push('Claude 3.5 Sonnet');
-  } else if (apiKeys.anthropicClaude35) {
-    // Backward compatibility - use specific Claude 3.5 key if provided
-    console.log('Adding Anthropic (Claude 3.5 Sonnet) to request queue with specific API key');
-    apiPromises.push(
-      Promise.resolve(fetchFromAnthropicClaude35(queryText, apiKeys.anthropicClaude35))
-        .catch(error => {
-          console.error('Error fetching from Anthropic (Claude 3.5 Sonnet):', error);
-          return null;
-        })
-    );
-    apiSources.push('Claude 3.5 Sonnet');
-  } else {
-    console.log('Skipping Anthropic models - No API key provided');
-  }
-  
+  // Wrap each API call in a try/catch to prevent one failure from blocking all responses
+  // OpenAI Models
   if (apiKeys.openai) {
-    console.log('Adding OpenAI (GPT-4o) to request queue');
-    apiPromises.push(
-      Promise.resolve(fetchFromOpenAI(queryText, apiKeys.openai))
-        .catch(error => {
-          console.error('Error fetching from OpenAI (GPT-4o):', error);
-          return null;
-        })
-    );
-    apiSources.push('GPT-4o');
-  } else {
-    console.log('Skipping OpenAI (GPT-4o) - No API key provided');
+    try {
+      console.log('Adding OpenAI API call');
+      apiPromises.push(fetchFromOpenAI(queryText, apiKeys.openai).catch(error => {
+        console.error('Error in OpenAI API call:', error);
+        return null;
+      }));
+      apiSources.push(AI_SOURCES.OPENAI);
+    } catch (error) {
+      console.error('Error setting up OpenAI API call:', error);
+    }
   }
   
+  // Claude 3 Opus
+  if (apiKeys.anthropic) {
+    try {
+      console.log('Adding Claude API call');
+      apiPromises.push(fetchFromAnthropic(queryText, apiKeys.anthropic).catch(error => {
+        console.error('Error in Claude API call:', error);
+        return null;
+      }));
+      apiSources.push(AI_SOURCES.ANTHROPIC);
+    } catch (error) {
+      console.error('Error setting up Claude API call:', error);
+    }
+  }
+  
+  // Claude 3.5 Sonnet
+  if (apiKeys.anthropicClaude35) {
+    try {
+      console.log('Adding Claude 3.5 API call');
+      apiPromises.push(fetchFromAnthropicClaude35(queryText, apiKeys.anthropicClaude35).catch(error => {
+        console.error('Error in Claude 3.5 API call:', error);
+        return null;
+      }));
+      apiSources.push(AI_SOURCES.ANTHROPIC_CLAUDE35);
+    } catch (error) {
+      console.error('Error setting up Claude 3.5 API call:', error);
+    }
+  }
+  
+  // Gemini 1.5 Pro
   if (apiKeys.gemini) {
-    console.log('Adding Gemini (1.5 Pro) to request queue');
-    apiPromises.push(
-      Promise.resolve(fetchFromGemini(queryText, apiKeys.gemini))
-        .catch(error => {
-          console.error('Error fetching from Gemini (1.5 Pro):', error);
-          return null;
-        })
-    );
-    apiSources.push('Gemini 1.5 Pro');
-  } else {
-    console.log('Skipping Gemini (1.5 Pro) - No API key provided');
+    try {
+      console.log('Adding Gemini API call');
+      apiPromises.push(fetchFromGemini(queryText, apiKeys.gemini).catch(error => {
+        console.error('Error in Gemini API call:', error);
+        return null;
+      }));
+      apiSources.push(AI_SOURCES.GEMINI);
+    } catch (error) {
+      console.error('Error setting up Gemini API call:', error);
+    }
   }
   
+  // Gemini Pro Experimental
   if (apiKeys.geminiProExperimental) {
-    console.log('Adding Gemini (1.5 Flash) to request queue');
-    apiPromises.push(
-      Promise.resolve(fetchFromGeminiProExp(queryText, apiKeys.geminiProExperimental))
-        .catch(error => {
-          console.error('Error fetching from Gemini (1.5 Flash):', error);
-          return null;
-        })
-    );
-    apiSources.push('Gemini 1.5 Flash');
-  } else {
-    console.log('Skipping Gemini (1.5 Flash) - No API key provided');
+    try {
+      console.log('Adding Gemini Pro Experimental API call');
+      apiPromises.push(fetchFromGeminiProExp(queryText, apiKeys.geminiProExperimental).catch(error => {
+        console.error('Error in Gemini Pro Experimental API call:', error);
+        return null;
+      }));
+      apiSources.push(AI_SOURCES.GEMINI_PRO_EXP);
+    } catch (error) {
+      console.error('Error setting up Gemini Pro Experimental API call:', error);
+    }
   }
   
+  // Perplexity
   if (apiKeys.perplexity) {
-    console.log('Adding Perplexity (Sonar) to request queue');
-    apiPromises.push(
-      Promise.resolve(fetchFromPerplexity(queryText, apiKeys.perplexity))
-        .catch(error => {
-          console.error('Error fetching from Perplexity (Sonar):', error);
-          return null;
-        })
-    );
-    apiSources.push('Perplexity Sonar');
-  } else {
-    console.log('Skipping Perplexity (Sonar) - No API key provided');
+    try {
+      console.log('Adding Perplexity API call');
+      apiPromises.push(fetchFromPerplexity(queryText, apiKeys.perplexity).catch(error => {
+        console.error('Error in Perplexity API call:', error);
+        return null;
+      }));
+      apiSources.push(AI_SOURCES.PERPLEXITY);
+    } catch (error) {
+      console.error('Error setting up Perplexity API call:', error);
+    }
   }
   
+  // DeepSeek
   if (apiKeys.deepseek) {
-    console.log('Adding DeepSeek (Coder) to request queue');
-    apiPromises.push(
-      Promise.resolve(fetchFromDeepseek(queryText, apiKeys.deepseek))
-        .catch(error => {
-          console.error('Error fetching from DeepSeek (Coder):', error);
-          return null;
-        })
-    );
-    apiSources.push('DeepSeek Coder');
-  } else {
-    console.log('Skipping DeepSeek (Coder) - No API key provided');
+    try {
+      console.log('Adding DeepSeek API call');
+      apiPromises.push(fetchFromDeepseek(queryText, apiKeys.deepseek).catch(error => {
+        console.error('Error in DeepSeek API call:', error);
+        return null;
+      }));
+      apiSources.push(AI_SOURCES.DEEPSEEK);
+    } catch (error) {
+      console.error('Error setting up DeepSeek API call:', error);
+    }
   }
   
-  // Handle OpenRouter specially with enhanced error handling
+  // OpenRouter - for multiple models in one call
   if (apiKeys.openrouter) {
-    console.log('Adding OpenRouter multi-model fetching to request queue');
-    
-    // Return the promise directly without wrapping in Promise.resolve
-    // The fetchFromMultipleOpenRouterModels function already has internal error handling
-    const openRouterPromise = fetchFromMultipleOpenRouterModels(queryText, apiKeys.openrouter)
-      .catch(error => {
-        console.error('Uncaught error in OpenRouter multi-model fetch:', error);
-        return []; // Return empty array on error
+    try {
+      console.log('Adding OpenRouter multi-model API call');
+      // Use the proper function
+      const openRouterPromise = fetchFromMultipleOpenRouterModels(queryText, apiKeys.openrouter).catch(error => {
+        console.error('Error in OpenRouter multi-model API call:', error);
+        // Return empty array instead of null to maintain type consistency
+        return [] as Response[];
       });
-    
-    apiPromises.push(openRouterPromise);
-    apiSources.push('OpenRouter Models');
-  } else {
-    console.log('Skipping OpenRouter models - No API key provided');
+      apiPromises.push(openRouterPromise);
+      apiSources.push(AI_SOURCES.OPENROUTER_MULTI);
+    } catch (error) {
+      console.error('Error setting up OpenRouter multi-model API call:', error);
+    }
   }
   
-  console.log(`Created ${apiPromises.length} API promises with sources:`, apiSources.join(', '));
+  // If no API keys are available, provide a mock response
+  if (apiPromises.length === 0) {
+    console.log('No API keys available, adding mock response');
+    const mockResponse: Response = getMockResponse(queryText, timestamp);
+    apiPromises.push(Promise.resolve(mockResponse));
+    apiSources.push('Mock Response');
+  }
   
   return { apiPromises, apiSources };
 };

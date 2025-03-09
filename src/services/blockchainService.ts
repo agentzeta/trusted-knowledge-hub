@@ -15,9 +15,12 @@ const EAS_SCHEMA_UID = '0x46df939f1a5a33dcfcf7c2048b5a04440f05e3200077dbd86509b5
 export const recordOnFlareBlockchain = async (
   privateKey: string,
   query: string,
-  response: string
+  response: string,
+  timestamp: number = Math.floor(Date.now() / 1000)
 ): Promise<string> => {
   try {
+    console.log(`Recording on Flare blockchain at timestamp: ${timestamp}`);
+    
     // Initialize the provider
     const provider = new ethers.providers.JsonRpcProvider(FLARE_RPC_URL, FLARE_CHAIN_ID);
     
@@ -33,15 +36,18 @@ export const recordOnFlareBlockchain = async (
           JSON.stringify({
             query,
             responseHash: ethers.utils.keccak256(ethers.utils.toUtf8Bytes(response)),
-            timestamp: Math.floor(Date.now() / 1000)
+            timestamp: timestamp
           })
         )
       ),
       gasLimit: 100000
     });
     
+    console.log(`Transaction sent: ${tx.hash}`);
+    
     // Wait for transaction to be mined
     await tx.wait();
+    console.log(`Transaction confirmed on chain`);
     
     return tx.hash;
   } catch (error) {
@@ -54,9 +60,12 @@ export const recordOnFlareBlockchain = async (
 export const createAttestation = async (
   privateKey: string,
   query: string,
-  response: string
+  response: string,
+  timestamp: number = Math.floor(Date.now() / 1000)
 ): Promise<string> => {
   try {
+    console.log(`Creating attestation at timestamp: ${timestamp}`);
+    
     // Initialize the provider
     const provider = new ethers.providers.JsonRpcProvider(FLARE_RPC_URL, FLARE_CHAIN_ID);
     
@@ -74,7 +83,7 @@ export const createAttestation = async (
     const schemaEncoder = new SchemaEncoder('string query,string responseHash,uint256 timestamp');
     
     // Current timestamp as BigInt
-    const currentTimestamp = BigInt(Math.floor(Date.now() / 1000));
+    const currentTimestamp = BigInt(timestamp);
     
     // Encode the data
     const encodedData = schemaEncoder.encodeData([
@@ -87,6 +96,8 @@ export const createAttestation = async (
       { name: 'timestamp', value: currentTimestamp, type: 'uint256' }
     ]);
     
+    console.log(`Attestation data encoded, sending transaction`);
+    
     // Create the attestation
     const tx = await contract.attest({
       schema: EAS_SCHEMA_UID,
@@ -98,8 +109,11 @@ export const createAttestation = async (
       }
     });
     
+    console.log(`Attestation transaction sent: ${tx.hash}`);
+    
     // Wait for transaction to be mined
     const receipt = await tx.wait();
+    console.log(`Attestation transaction confirmed on chain`);
     
     // Use transaction hash as the attestation identifier
     return receipt.transactionHash;

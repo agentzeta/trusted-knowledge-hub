@@ -16,12 +16,23 @@ serve(async (req) => {
     const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
     
     if (!ELEVENLABS_API_KEY) {
+      console.error('ELEVENLABS_API_KEY is not set in environment variables');
       throw new Error('ELEVENLABS_API_KEY is not set');
     }
     
-    const { text, voiceId } = await req.json();
+    // Parse request body
+    let requestBody;
+    try {
+      requestBody = await req.json();
+    } catch (error) {
+      console.error('Error parsing request body:', error);
+      throw new Error('Invalid JSON in request body');
+    }
+    
+    const { text, voiceId } = requestBody;
     
     if (!text) {
+      console.error('Text parameter is missing in request');
       throw new Error('Text is required');
     }
     
@@ -31,36 +42,62 @@ serve(async (req) => {
     console.log(`Converting text to speech using voice ID: ${voice}`);
     console.log(`Text to convert (first 50 chars): ${text.substring(0, 50)}...`);
     
-    // Make request to ElevenLabs API
-    const response = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${voice}/stream`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "xi-api-key": ELEVENLABS_API_KEY,
-        },
-        body: JSON.stringify({
-          text: text,
-          model_id: "eleven_multilingual_v2",
-          voice_settings: {
-            stability: 0.5,
-            similarity_boost: 0.75,
+    // Make request to ElevenLabs API with proper error handling
+    let response;
+    try {
+      response = await fetch(
+        `https://api.elevenlabs.io/v1/text-to-speech/${voice}/stream`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "xi-api-key": ELEVENLABS_API_KEY,
+            "Accept": "audio/mpeg"
           },
-        }),
-      }
-    );
+          body: JSON.stringify({
+            text: text,
+            model_id: "eleven_multilingual_v2",
+            voice_settings: {
+              stability: 0.5,
+              similarity_boost: 0.75,
+            },
+          }),
+        }
+      );
+    } catch (fetchError) {
+      console.error("Network error calling ElevenLabs API:", fetchError);
+      throw new Error(`Network error: ${fetchError.message}`);
+    }
 
+    // Check for API error response
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error("ElevenLabs API error:", errorText);
-      throw new Error(`ElevenLabs API error: ${errorText}`);
+      let errorText;
+      try {
+        const errorJson = await response.json();
+        errorText = JSON.stringify(errorJson);
+      } catch {
+        errorText = await response.text();
+      }
+      
+      console.error("ElevenLabs API error:", response.status, errorText);
+      throw new Error(`ElevenLabs API error (${response.status}): ${errorText}`);
     }
 
     // Get the audio as an ArrayBuffer
-    const audioArrayBuffer = await response.arrayBuffer();
+    let audioArrayBuffer;
+    try {
+      audioArrayBuffer = await response.arrayBuffer();
+    } catch (error) {
+      console.error("Error reading audio response:", error);
+      throw new Error(`Error processing audio: ${error.message}`);
+    }
     
     console.log(`Received audio response, size: ${audioArrayBuffer.byteLength} bytes`);
+    
+    if (audioArrayBuffer.byteLength === 0) {
+      console.error("Received empty audio response");
+      throw new Error("Received empty audio from ElevenLabs");
+    }
     
     // Convert to base64
     const audioBase64 = btoa(
@@ -84,7 +121,10 @@ serve(async (req) => {
     console.error("Error in ElevenLabs TTS function:", error);
     
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message || "Unknown error occurred",
+        details: error.stack || "No stack trace available"
+      }),
       { 
         status: 500, 
         headers: { 

@@ -28,7 +28,52 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     isLoading, 
     consensusResponse, 
     submitQuery 
-  } = useQuerySubmission(apiKeys, user, recordResponseOnBlockchain, privateKey);
+  } = useQuerySubmission(apiKeys, user, privateKey);
+
+  // Manual blockchain verification function
+  const verifyOnBlockchain = async () => {
+    if (!privateKey) {
+      toast({
+        title: "Private Key Required",
+        description: "Please add your Ethereum wallet private key in Settings to verify on blockchain.",
+        duration: 3000,
+      });
+      return;
+    }
+
+    if (!query || !consensusResponse) {
+      toast({
+        title: "No Content to Verify",
+        description: "Please run a query first to generate content for verification.",
+        duration: 3000,
+      });
+      return;
+    }
+
+    try {
+      await recordResponseOnBlockchain(
+        privateKey,
+        user?.id || null,
+        query,
+        consensusResponse,
+        responses
+      );
+      
+      toast({
+        title: "Verification Started",
+        description: "Your consensus response is being recorded on the Flare blockchain.",
+        duration: 3000,
+      });
+    } catch (error: any) {
+      console.error('Blockchain verification error:', error);
+      toast({
+        title: "Verification Failed",
+        description: error.message || "Failed to verify on blockchain",
+        variant: "destructive",
+        duration: 3000,
+      });
+    }
+  };
 
   const exportToGoogleDocs = async () => {
     if (!user) {
@@ -87,7 +132,8 @@ export const QueryProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       attestationId,
       isRecordingOnChain,
       user,
-      exportToGoogleDocs
+      exportToGoogleDocs,
+      verifyOnBlockchain
     }}>
       {children}
     </QueryContext.Provider>

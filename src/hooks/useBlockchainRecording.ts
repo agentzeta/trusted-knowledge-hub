@@ -17,25 +17,39 @@ export const useBlockchainRecording = () => {
     consensusResponse: string,
     responses: Response[]
   ) => {
-    if (!privateKey) return;
+    if (!privateKey) {
+      console.error('No private key provided for blockchain recording');
+      return null;
+    }
     
     setIsRecordingOnChain(true);
     
     try {
+      // Add timestamp to blockchain record
+      const timestamp = Math.floor(Date.now() / 1000);
+      console.log(`Recording on blockchain with timestamp: ${timestamp}`);
+      
+      // Record on Flare blockchain
       const txHash = await recordOnFlareBlockchain(
         privateKey,
         queryText,
-        consensusResponse
+        consensusResponse,
+        timestamp
       );
       setBlockchainReference(txHash);
+      console.log(`Transaction recorded on blockchain: ${txHash}`);
       
+      // Create attestation
       const attestationUID = await createAttestation(
         privateKey,
         queryText,
-        consensusResponse
+        consensusResponse,
+        timestamp
       );
       setAttestationId(attestationUID);
+      console.log(`Attestation created: ${attestationUID}`);
       
+      // Save to database if user is logged in
       if (userId) {
         await saveResponseToDatabase(
           userId, 
@@ -45,6 +59,7 @@ export const useBlockchainRecording = () => {
           txHash,
           attestationUID
         );
+        console.log(`Response saved to database for user: ${userId}`);
       }
       
       toast({

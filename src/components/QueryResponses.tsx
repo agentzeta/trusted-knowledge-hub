@@ -10,6 +10,8 @@ import ConsensusStatistics from './ConsensusStatistics';
 import ConsensusExplanation from './ConsensusExplanation';
 import FollowUpQuestion from './query/FollowUpQuestion';
 import { useQueryContext } from '../hooks/useQueryContext';
+import { Button } from '@/components/ui/button';
+import { Shield } from 'lucide-react';
 
 interface QueryResponsesProps {
   isLoading: boolean;
@@ -22,8 +24,8 @@ const QueryResponses: React.FC<QueryResponsesProps> = ({
   consensusResponse,
   responses
 }) => {
-  // Get access to the submitQuery function
-  const { submitQuery } = useQueryContext();
+  // Get access to the submitQuery function and blockchain verification
+  const { submitQuery, privateKey, isRecordingOnChain, verifyOnBlockchain } = useQueryContext();
 
   // Get the timestamp from the first response (all responses have same timestamp)
   const timestamp = responses.length > 0 ? responses[0].timestamp : null;
@@ -68,10 +70,26 @@ const QueryResponses: React.FC<QueryResponsesProps> = ({
       </AnimatePresence>
       
       {consensusResponse && !isLoading && (
-        <ConsensusResponse 
-          consensusResponse={consensusResponse} 
-          timestamp={timestamp} 
-        />
+        <>
+          <ConsensusResponse 
+            consensusResponse={consensusResponse} 
+            timestamp={timestamp} 
+          />
+          
+          {/* Add Blockchain Verification Button */}
+          {privateKey && verifyOnBlockchain && !isRecordingOnChain && (
+            <div className="flex justify-center mt-4">
+              <Button 
+                onClick={verifyOnBlockchain}
+                className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2"
+                disabled={isRecordingOnChain}
+              >
+                <Shield className="h-4 w-4" />
+                Verify on Blockchain
+              </Button>
+            </div>
+          )}
+        </>
       )}
       
       {responses.length > 1 && !isLoading && (

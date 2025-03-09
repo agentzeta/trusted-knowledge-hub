@@ -9,13 +9,6 @@ import { verifyResponses } from '../utils/consensusUtils';
 export const useQuerySubmission = (
   apiKeys: any,
   user: any,
-  recordOnBlockchain: (
-    privateKey: string | null,
-    userId: string | null, 
-    queryText: string, 
-    consensusResponse: string, 
-    responses: Response[]
-  ) => Promise<any>,
   privateKey: string | null
 ) => {
   const [query, setQuery] = useState<string | null>(null);
@@ -54,19 +47,20 @@ export const useQuerySubmission = (
       } else {
         // Verify responses based on consensus
         const verifiedResponses = verifyResponses(allResponses, derivedConsensus);
-        console.log('Verified responses:', verifiedResponses.length);
-        console.log('Verified response sources:', verifiedResponses.map(r => r.source).join(', '));
+        console.log('Verified responses:', verifiedResponses.filter(r => r.verified).length);
+        console.log('Verified response sources:', verifiedResponses.filter(r => r.verified).map(r => r.source).join(', '));
         
         // Store all responses
-        setResponses(allResponses);
-        console.log('All responses set in state:', allResponses.length);
+        setResponses(verifiedResponses);
+        console.log('All responses set in state:', verifiedResponses.length);
         
         // Log individual model responses for debugging
         console.log('=== INDIVIDUAL RESPONSES DETAILS ===');
-        allResponses.forEach((response, index) => {
+        verifiedResponses.forEach((response, index) => {
           console.log(`Response #${index + 1}:`, {
             source: response.source,
             id: response.id,
+            verified: response.verified,
             contentLength: response.content.length,
             contentSample: response.content.substring(0, 40) + '...',
             timestamp: response.timestamp
@@ -76,17 +70,6 @@ export const useQuerySubmission = (
         // Save to database if user is logged in
         if (user) {
           await saveResponseToDatabase(user.id, queryText, derivedConsensus, verifiedResponses);
-        }
-        
-        // Record on blockchain if private key is available
-        if (privateKey) {
-          await recordOnBlockchain(
-            privateKey,
-            user?.id || null,
-            queryText,
-            derivedConsensus,
-            verifiedResponses
-          );
         }
       }
     } catch (error) {

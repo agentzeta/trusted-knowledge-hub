@@ -39,4 +39,5 @@ export interface QueryContextType {
   isRecordingOnChain: boolean;
   user: any;
   exportToGoogleDocs: () => Promise<void>;
+  verifyOnBlockchain?: () => Promise<void>; // Added for blockchain verification button
 }

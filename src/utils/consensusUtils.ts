@@ -23,18 +23,23 @@ const isOutlier = (response: Response, responses: Response[], threshold: number)
   
   for (const otherResponse of responses) {
     if (otherResponse.id !== response.id) {
-      totalSimilarity += calculateJaccardSimilarity(response.content, otherResponse.content);
+      const similarity = calculateJaccardSimilarity(response.content, otherResponse.content);
+      console.log(`Similarity between ${response.source} and ${otherResponse.source}: ${similarity.toFixed(3)}`);
+      totalSimilarity += similarity;
       count++;
     }
   }
   
   const avgSimilarity = count > 0 ? totalSimilarity / count : 0;
+  console.log(`Average similarity for ${response.source}: ${avgSimilarity.toFixed(3)}, threshold: ${threshold}`);
   return avgSimilarity < threshold;
 };
 
 // Helper to group responses into clusters of similar content
 const clusterResponses = (responses: Response[], similarityThreshold: number): Response[][] => {
   if (responses.length === 0) return [];
+  
+  console.log(`Clustering responses with similarity threshold: ${similarityThreshold}`);
   
   const clusters: Response[][] = [];
   const assigned = new Set<string>();
@@ -46,6 +51,8 @@ const clusterResponses = (responses: Response[], similarityThreshold: number): R
     const cluster: Response[] = [responses[i]];
     assigned.add(responses[i].id);
     
+    console.log(`Creating new cluster with seed response from: ${responses[i].source}`);
+    
     // Find all similar responses and add to this cluster
     for (let j = 0; j < responses.length; j++) {
       if (i !== j && !assigned.has(responses[j].id)) {
@@ -54,15 +61,26 @@ const clusterResponses = (responses: Response[], similarityThreshold: number): R
           responses[j].content
         );
         
+        console.log(`Checking ${responses[j].source} for cluster inclusion. Similarity: ${similarity.toFixed(3)}`);
+        
         if (similarity >= similarityThreshold) {
           cluster.push(responses[j]);
           assigned.add(responses[j].id);
+          console.log(`Added ${responses[j].source} to cluster with ${responses[i].source}`);
         }
       }
     }
     
     clusters.push(cluster);
   }
+  
+  // Sort clusters by size (largest first)
+  clusters.sort((a, b) => b.length - a.length);
+  
+  console.log(`Created ${clusters.length} clusters:`);
+  clusters.forEach((cluster, idx) => {
+    console.log(`Cluster ${idx+1} (size: ${cluster.length}): ${cluster.map(r => r.source).join(', ')}`);
+  });
   
   return clusters;
 };
@@ -74,6 +92,11 @@ const extractCommonInformation = (cluster: Response[]): string => {
   
   // Sort by confidence to prioritize high confidence responses
   const sortedByConfidence = [...cluster].sort((a, b) => b.confidence - a.confidence);
+  
+  console.log(`Extracting consensus from cluster with ${cluster.length} responses`);
+  console.log(`Response confidence values: ${cluster.map(r => `${r.source}: ${r.confidence.toFixed(2)}`).join(', ')}`);
+  console.log(`Highest confidence response from: ${sortedByConfidence[0].source}`);
+  
   const topResponse = sortedByConfidence[0].content;
   
   // For more sophisticated approaches, we could implement:
@@ -99,7 +122,14 @@ const calculateConsensusConfidence = (
   const avgConfidence = cluster.reduce((sum, r) => sum + r.confidence, 0) / cluster.length;
   
   // Combined confidence score (simple weighted average)
-  return (clusterSizeFactor * 0.7) + (avgConfidence * 0.3);
+  const confidenceScore = (clusterSizeFactor * 0.7) + (avgConfidence * 0.3);
+  
+  console.log(`Consensus confidence calculation:`);
+  console.log(`- Cluster size factor: ${clusterSizeFactor.toFixed(3)} (${cluster.length}/${allResponses.length} responses)`);
+  console.log(`- Average confidence: ${avgConfidence.toFixed(3)}`);
+  console.log(`- Combined confidence score: ${confidenceScore.toFixed(3)}`);
+  
+  return confidenceScore;
 };
 
 // Generate an explanation of consensus calculation
@@ -174,16 +204,39 @@ export const generateConsensusExplanation = (
 export const verifyResponses = (
   responses: Response[], 
   consensusText: string,
-  verificationThreshold: number = 0.5 // Lowered from 0.6 to 0.5 to be more inclusive
+  verificationThreshold: number = 0.45 // Adjusted threshold to be more inclusive
 ): Response[] => {
-  return responses.map(response => {
-    // Calculate similarity with consensus
+  console.log(`Verifying ${responses.length} responses against consensus with threshold: ${verificationThreshold}`);
+  
+  // Track similarities for all responses before determining verification status
+  const similarities = responses.map(response => {
     const similarity = calculateJaccardSimilarity(response.content, consensusText);
+    console.log(`${response.source} similarity to consensus: ${similarity.toFixed(3)}`);
+    return { response, similarity };
+  });
+  
+  // Calculate mean and standard deviation to detect bias
+  const mean = similarities.reduce((sum, item) => sum + item.similarity, 0) / similarities.length;
+  const stdDev = Math.sqrt(
+    similarities.reduce((sum, item) => sum + Math.pow(item.similarity - mean, 2), 0) / similarities.length
+  );
+  
+  console.log(`Similarity statistics - Mean: ${mean.toFixed(3)}, StdDev: ${stdDev.toFixed(3)}`);
+  
+  // Adjust threshold if there's high variance to prevent bias
+  const adjustedThreshold = stdDev > 0.2 
+    ? Math.max(0.4, mean - (0.5 * stdDev)) // More inclusive when there's high variance
+    : verificationThreshold;
+  
+  console.log(`Adjusted verification threshold: ${adjustedThreshold.toFixed(3)}`);
+  
+  // Apply verification with the adjusted threshold
+  return responses.map(response => {
+    const similarity = calculateJaccardSimilarity(response.content, consensusText);
+    const isVerified = similarity >= adjustedThreshold;
     
-    // Determine verification status based on similarity and confidence
-    const isVerified = similarity >= verificationThreshold;
+    console.log(`${response.source} verified: ${isVerified} (similarity: ${similarity.toFixed(3)})`);
     
-    // Return a new object with updated verification status
     return {
       ...response,
       verified: isVerified
@@ -196,23 +249,32 @@ export const deriveConsensusResponse = (allResponses: Response[]): string => {
   if (allResponses.length === 0) return "No responses available";
   if (allResponses.length === 1) return allResponses[0].content;
   
+  console.log(`=== DERIVING CONSENSUS FROM ${allResponses.length} RESPONSES ===`);
+  
   // Step 1: Filter out clear outliers based on similarity
   const outlierThreshold = 0.12; // Lowered from 0.15 to be more inclusive
   const nonOutliers = allResponses.filter(r => !isOutlier(r, allResponses, outlierThreshold));
   
+  console.log(`After outlier filtering: ${nonOutliers.length} responses remaining`);
+  console.log(`Outliers removed: ${allResponses.length - nonOutliers.length}`);
+  
   if (nonOutliers.length === 0) {
     // If all were outliers, fall back to the highest confidence response
     const sortedByConfidence = [...allResponses].sort((a, b) => b.confidence - a.confidence);
+    console.log(`All responses were outliers. Using highest confidence response from: ${sortedByConfidence[0].source}`);
     return sortedByConfidence[0].content + "\n\n(Note: There was significant disagreement between AI responses on this query.)";
   }
   
   // Step 2: Cluster similar responses
-  const similarityThreshold = 0.30; // Lowered from 0.35 to be more inclusive
+  const similarityThreshold = 0.30; // Properly balanced threshold
   const clusters = clusterResponses(nonOutliers, similarityThreshold);
   
   // Step 3: Find the largest cluster (majority opinion)
   const sortedClusters = clusters.sort((a, b) => b.length - a.length);
   const largestCluster = sortedClusters[0];
+  
+  console.log(`Largest cluster size: ${largestCluster.length} responses`);
+  console.log(`Largest cluster sources: ${largestCluster.map(r => r.source).join(', ')}`);
   
   // Step 4: Extract common information from the largest cluster
   const consensusContent = extractCommonInformation(largestCluster);
@@ -221,6 +283,8 @@ export const deriveConsensusResponse = (allResponses: Response[]): string => {
   const consensusConfidence = calculateConsensusConfidence(largestCluster, allResponses);
   const confidenceLevel = consensusConfidence >= 0.8 ? "High" : 
                           consensusConfidence >= 0.5 ? "Moderate" : "Low";
+  
+  console.log(`Consensus confidence: ${confidenceLevel} (${Math.round(consensusConfidence * 100)}%)`);
   
   // Add confidence information to the response
   return `${consensusContent}
@@ -236,7 +300,7 @@ export const analyzeConsensus = (allResponses: Response[]) => {
   if (allResponses.length === 0) return { confidence: 0, agreementRate: 0, clusters: [] };
   
   // Cluster the responses
-  const similarityThreshold = 0.30; // Lowered from 0.35 to be more inclusive
+  const similarityThreshold = 0.30; // Properly balanced threshold
   const clusters = clusterResponses(allResponses, similarityThreshold);
   
   // Sort clusters by size (largest first)
