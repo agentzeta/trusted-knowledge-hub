@@ -28,7 +28,7 @@ export const processApiResults = (apiResults: PromiseSettledResult<any>[], apiSo
           });
         });
         
-        // Add each individual response from the array to our valid responses
+        // Validate each response in the array
         const validArrayResponses = result.value.filter((item: Response) => {
           if (item && item.content && item.source) {
             return true;
@@ -38,6 +38,7 @@ export const processApiResults = (apiResults: PromiseSettledResult<any>[], apiSo
           }
         });
         
+        // Add each validated response to our valid responses
         validResponses = [...validResponses, ...validArrayResponses];
         console.log(`Added ${validArrayResponses.length} responses from array`);
         

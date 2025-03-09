@@ -50,7 +50,7 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
     }
   });
   
-  // Process results and collect valid responses
+  // Process results and collect valid responses with improved handling for arrays
   const validResponses = processApiResults(apiResults, apiSources);
   
   console.log(`After processing, have ${validResponses.length} total responses from:`, 
