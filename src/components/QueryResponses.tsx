@@ -9,6 +9,7 @@ import ConsensusVisual from './ConsensusVisual';
 import ConsensusStatistics from './ConsensusStatistics';
 import ConsensusExplanation from './ConsensusExplanation';
 import FollowUpQuestion from './query/FollowUpQuestion';
+import ModelAccuracyLeaderboard from './leaderboard/ModelAccuracyLeaderboard';
 import { useQueryContext } from '../hooks/useQueryContext';
 
 interface QueryResponsesProps {
@@ -78,6 +79,15 @@ const QueryResponses: React.FC<QueryResponsesProps> = ({
           consensusResponse={consensusResponse} 
           timestamp={timestamp} 
         />
+      )}
+      
+      {responses.length > 1 && !isLoading && consensusResponse && (
+        <div className="mt-8">
+          <ModelAccuracyLeaderboard 
+            responses={responses} 
+            consensusText={consensusResponse} 
+          />
+        </div>
       )}
       
       {responses.length > 1 && !isLoading && (
