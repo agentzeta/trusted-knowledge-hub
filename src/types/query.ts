@@ -19,7 +19,7 @@ export interface ApiKeys {
   deepseek?: string;
   grok?: string;
   qwen?: string;
-  openrouter?: string;
+  openrouter?: string;  // Added for OpenRouter API access
   llama?: string;      // Added for consolidated Llama models access
   elevenlabs?: string; // Added for voice synthesis
 }

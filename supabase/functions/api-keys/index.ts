@@ -25,6 +25,8 @@ serve(async (req) => {
       grok: Deno.env.get('GROK_API_KEY') || '',
       qwen: Deno.env.get('QWEN_API_KEY') || '',
       openrouter: Deno.env.get('OPENROUTER_API_KEY') || '',
+      llama: Deno.env.get('LLAMA_API_KEY') || '',
+      elevenlabs: Deno.env.get('ELEVENLABS_API_KEY') || '',
     };
 
     // Log which keys are available (without revealing the actual keys)

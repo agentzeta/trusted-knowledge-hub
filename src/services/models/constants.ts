@@ -12,7 +12,8 @@ export const AI_SOURCES = [
   'Grok-1.5', 
   'Perplexity Sonar', 
   'DeepSeek Coder',
-  'Qwen2 72B'
+  'Qwen2 72B',
+  'OpenRouter' // Added OpenRouter as a source
 ];
 
 // Default API keys
@@ -26,6 +27,7 @@ export const DEFAULT_API_KEYS = {
   deepseek: import.meta.env.VITE_DEEPSEEK_API_KEY || '',
   grok: import.meta.env.VITE_GROK_API_KEY || '',
   qwen: import.meta.env.VITE_QWEN_API_KEY || '',
+  openrouter: import.meta.env.VITE_OPENROUTER_API_KEY || '', // Added OpenRouter API key
   llama: import.meta.env.VITE_LLAMA_API_KEY || '',
   elevenlabs: import.meta.env.VITE_ELEVENLABS_API_KEY || '',
 };

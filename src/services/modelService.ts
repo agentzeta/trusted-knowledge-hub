@@ -6,6 +6,7 @@ import { fetchFromAnthropic, fetchFromAnthropicClaude35 } from './models/anthrop
 import { fetchFromGemini, fetchFromGeminiProExp } from './models/googleService';
 import { fetchFromPerplexity } from './models/perplexityService';
 import { fetchFromDeepseek } from './models/deepseekService';
+import { fetchFromOpenRouter } from './models/openRouterService';
 import { getMockResponse } from './models/mockService';
 
 // Re-export everything
@@ -19,5 +20,6 @@ export {
   fetchFromGeminiProExp,
   fetchFromPerplexity,
   fetchFromDeepseek,
+  fetchFromOpenRouter,
   getMockResponse
 };

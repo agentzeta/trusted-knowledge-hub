@@ -10,6 +10,7 @@ import {
   fetchFromPerplexity, 
   fetchFromDeepseek
 } from './modelService';
+import { fetchFromOpenRouter } from './models/openRouterService';
 import { deriveConsensusResponse } from '../utils/consensusUtils';
 import { toast } from '@/components/ui/use-toast';
 
@@ -95,6 +96,26 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
     apiSources.push('DeepSeek Coder');
   } else {
     console.log('Skipping DeepSeek (Coder) - No API key provided');
+  }
+  
+  // Add support for OpenRouter
+  if (apiKeys.openrouter) {
+    console.log('Adding OpenRouter models to request queue');
+    
+    // Add multiple models from OpenRouter
+    const openRouterModels = [
+      { name: 'anthropic/claude-3-opus:20240229', label: 'Claude 3 Opus' },
+      { name: 'meta-llama/llama-3-70b-instruct', label: 'Llama 3 70B' },
+      { name: 'google/gemini-1.5-pro', label: 'Gemini 1.5 Pro' }
+    ];
+    
+    for (const model of openRouterModels) {
+      console.log(`Adding OpenRouter model: ${model.label}`);
+      apiPromises.push(fetchFromOpenRouter(queryText, apiKeys.openrouter, model.name));
+      apiSources.push(`OpenRouter/${model.label}`);
+    }
+  } else {
+    console.log('Skipping OpenRouter models - No API key provided');
   }
   
   // Add support for Llama models using a single API key
