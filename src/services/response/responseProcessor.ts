@@ -15,7 +15,7 @@ export const processApiResults = (apiResults: PromiseSettledResult<any>[], apiSo
     const source = index < apiSources.length ? apiSources[index] : 'Unknown';
     
     if (result.status === 'fulfilled') {
-      // Special handling for OpenRouter which returns an array of responses
+      // Special handling for responses that return an array of responses (like OpenRouter)
       if (Array.isArray(result.value)) {
         console.log(`✅ SUCCESS: Received an array of ${result.value.length} responses from ${source}`);
         
@@ -29,14 +29,17 @@ export const processApiResults = (apiResults: PromiseSettledResult<any>[], apiSo
         });
         
         // Add each individual response from the array to our valid responses
-        result.value.forEach((item: Response) => {
+        const validArrayResponses = result.value.filter((item: Response) => {
           if (item && item.content && item.source) {
-            validResponses.push(item);
-            console.log(`Added response from ${item.source}`);
+            return true;
           } else {
             console.warn(`Invalid item in response array:`, item);
+            return false;
           }
         });
+        
+        validResponses = [...validResponses, ...validArrayResponses];
+        console.log(`Added ${validArrayResponses.length} responses from array`);
         
       } else if (result.value && result.value.content) {
         // Single response case

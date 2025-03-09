@@ -38,21 +38,22 @@ export const fetchResponses = async (queryText: string, apiKeys: ApiKeys) => {
   
   console.log('API results received, processing each:');
   apiResults.forEach((result, i) => {
+    const source = i < apiSources.length ? apiSources[i] : 'Unknown';
     if (result.status === 'fulfilled') {
       if (Array.isArray(result.value)) {
-        console.log(`${apiSources[i]}: SUCCESS (array of ${result.value.length} responses)`);
+        console.log(`${source}: SUCCESS (array of ${result.value.length} responses)`);
       } else {
-        console.log(`${apiSources[i]}: SUCCESS (single response)`);
+        console.log(`${source}: SUCCESS (single response)`);
       }
     } else {
-      console.log(`${apiSources[i]}: FAILED (${result.reason})`);
+      console.log(`${source}: FAILED (${result.reason})`);
     }
   });
   
   // Process results and collect valid responses
   const validResponses = processApiResults(apiResults, apiSources);
   
-  console.log(`After processing, have ${validResponses.length} valid responses from:`, 
+  console.log(`After processing, have ${validResponses.length} total responses from:`, 
     validResponses.map(r => r.source).join(', '));
   
   // If no valid responses, handle that case

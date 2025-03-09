@@ -59,47 +59,43 @@ const IndividualResponses: React.FC<IndividualResponsesProps> = ({ responses }) 
     </div>
   );
   
-  // Group responses by category
-  const claudeResponses = sortedResponses.filter(r => r.source.includes('Claude'));
-  const gpt4Responses = sortedResponses.filter(r => r.source.includes('GPT-4'));
-  const geminiResponses = sortedResponses.filter(r => (
-    r.source.includes('Gemini') && !r.source.includes('OpenRouter')
-  ));
+  // Group responses by model family and source
+  const openRouterModels = sortedResponses.filter(r => r.source.includes('OpenRouter') || 
+    r.source === 'Claude 3.7 Opus' || 
+    r.source === 'Claude 3.5 Sonnet' ||
+    r.source === 'Gemini 1.5 Pro (OpenRouter)' ||
+    r.source === 'Llama 3 70B' ||
+    r.source === 'Mistral Large' ||
+    r.source === 'DeepSeek V2' ||
+    r.source === 'Cohere Command-R+' ||
+    r.source === 'Perplexity Sonar');
+    
+  const directModels = sortedResponses.filter(r => !openRouterModels.includes(r));
   
-  // OpenRouter specific model groupings
-  const orClaudeResponses = sortedResponses.filter(r => r.source === 'Claude 3.7 Opus' || r.source === 'Claude 3.5 Sonnet');
-  const orGeminiResponses = sortedResponses.filter(r => r.source === 'Gemini 1.5 Pro (OpenRouter)');
-  const orLlamaResponses = sortedResponses.filter(r => r.source === 'Llama 3 70B');
-  const orMistralResponses = sortedResponses.filter(r => r.source === 'Mistral Large');
-  const orDeepseekResponses = sortedResponses.filter(r => r.source === 'DeepSeek V2');
-  const orCohereResponses = sortedResponses.filter(r => r.source === 'Cohere Command-R+');
-  const orPerplexityResponses = sortedResponses.filter(r => r.source === 'Perplexity Sonar');
+  // Group OpenRouter models
+  const claudeModels = openRouterModels.filter(r => r.source.includes('Claude'));
+  const geminiModels = openRouterModels.filter(r => r.source.includes('Gemini'));
+  const llamaModels = openRouterModels.filter(r => r.source.includes('Llama'));
+  const mistralModels = openRouterModels.filter(r => r.source.includes('Mistral'));
+  const deepseekModels = openRouterModels.filter(r => r.source.includes('DeepSeek'));
+  const cohereModels = openRouterModels.filter(r => r.source.includes('Cohere'));
+  const perplexityModels = openRouterModels.filter(r => r.source.includes('Perplexity'));
   
-  // Other models
-  const perplexityResponses = sortedResponses.filter(r => 
-    r.source.includes('Perplexity') && r.source !== 'Perplexity Sonar'
+  // Group Direct API models
+  const directClaudeModels = directModels.filter(r => r.source.includes('Claude') && !r.source.includes('OpenRouter'));
+  const directGPTModels = directModels.filter(r => r.source.includes('GPT'));
+  const directGeminiModels = directModels.filter(r => r.source.includes('Gemini') && !r.source.includes('OpenRouter'));
+  const directPerplexityModels = directModels.filter(r => 
+    r.source.includes('Perplexity') && !r.source.includes('Sonar'));
+  const directDeepseekModels = directModels.filter(r => 
+    r.source.includes('DeepSeek') && !r.source.includes('V2'));
+  const otherDirectModels = directModels.filter(r => 
+    !directClaudeModels.includes(r) && 
+    !directGPTModels.includes(r) && 
+    !directGeminiModels.includes(r) &&
+    !directPerplexityModels.includes(r) &&
+    !directDeepseekModels.includes(r)
   );
-  const deepseekResponses = sortedResponses.filter(r => 
-    r.source.includes('DeepSeek') && r.source !== 'DeepSeek V2'
-  );
-  
-  // Count all OpenRouter models
-  const orModelCount = 
-    orClaudeResponses.length + 
-    orGeminiResponses.length + 
-    orLlamaResponses.length + 
-    orMistralResponses.length + 
-    orDeepseekResponses.length + 
-    orCohereResponses.length + 
-    orPerplexityResponses.length;
-  
-  // Count direct models (non-OpenRouter)
-  const directModelCount = 
-    claudeResponses.length + 
-    gpt4Responses.length + 
-    geminiResponses.length + 
-    perplexityResponses.length + 
-    deepseekResponses.length;
 
   return (
     <motion.div
@@ -113,119 +109,127 @@ const IndividualResponses: React.FC<IndividualResponsesProps> = ({ responses }) 
         <h3 className="text-lg font-medium mb-4">Individual AI Responses ({responses.length}):</h3>
         
         {/* OpenRouter Models Section */}
-        {orModelCount > 0 && (
+        {openRouterModels.length > 0 && (
           <div className="mb-6">
             <h4 className="text-md font-medium text-blue-600 mb-4">
-              OpenRouter Models ({orModelCount})
+              OpenRouter Models ({openRouterModels.length})
             </h4>
             
-            {/* Claude models from OpenRouter */}
-            {orClaudeResponses.length > 0 && (
+            {/* Claude models */}
+            {claudeModels.length > 0 && (
               <div className="mb-4">
-                <h5 className="text-sm font-medium mb-2">Claude Models ({orClaudeResponses.length})</h5>
-                {orClaudeResponses.map(renderSingleResponse)}
+                <h5 className="text-sm font-medium mb-2">Claude Models ({claudeModels.length})</h5>
+                {claudeModels.map(renderSingleResponse)}
               </div>
             )}
             
-            {/* Gemini models from OpenRouter */}
-            {orGeminiResponses.length > 0 && (
+            {/* Gemini models */}
+            {geminiModels.length > 0 && (
               <div className="mb-4">
-                <h5 className="text-sm font-medium mb-2">Gemini Models ({orGeminiResponses.length})</h5>
-                {orGeminiResponses.map(renderSingleResponse)}
+                <h5 className="text-sm font-medium mb-2">Gemini Models ({geminiModels.length})</h5>
+                {geminiModels.map(renderSingleResponse)}
               </div>
             )}
             
-            {/* Llama models from OpenRouter */}
-            {orLlamaResponses.length > 0 && (
+            {/* Llama models */}
+            {llamaModels.length > 0 && (
               <div className="mb-4">
-                <h5 className="text-sm font-medium mb-2">Llama Models ({orLlamaResponses.length})</h5>
-                {orLlamaResponses.map(renderSingleResponse)}
+                <h5 className="text-sm font-medium mb-2">Llama Models ({llamaModels.length})</h5>
+                {llamaModels.map(renderSingleResponse)}
               </div>
             )}
             
-            {/* Mistral models from OpenRouter */}
-            {orMistralResponses.length > 0 && (
+            {/* Mistral models */}
+            {mistralModels.length > 0 && (
               <div className="mb-4">
-                <h5 className="text-sm font-medium mb-2">Mistral Models ({orMistralResponses.length})</h5>
-                {orMistralResponses.map(renderSingleResponse)}
+                <h5 className="text-sm font-medium mb-2">Mistral Models ({mistralModels.length})</h5>
+                {mistralModels.map(renderSingleResponse)}
               </div>
             )}
             
-            {/* DeepSeek models from OpenRouter */}
-            {orDeepseekResponses.length > 0 && (
+            {/* DeepSeek models */}
+            {deepseekModels.length > 0 && (
               <div className="mb-4">
-                <h5 className="text-sm font-medium mb-2">DeepSeek Models ({orDeepseekResponses.length})</h5>
-                {orDeepseekResponses.map(renderSingleResponse)}
+                <h5 className="text-sm font-medium mb-2">DeepSeek Models ({deepseekModels.length})</h5>
+                {deepseekModels.map(renderSingleResponse)}
               </div>
             )}
             
-            {/* Cohere models from OpenRouter */}
-            {orCohereResponses.length > 0 && (
+            {/* Cohere models */}
+            {cohereModels.length > 0 && (
               <div className="mb-4">
-                <h5 className="text-sm font-medium mb-2">Cohere Models ({orCohereResponses.length})</h5>
-                {orCohereResponses.map(renderSingleResponse)}
+                <h5 className="text-sm font-medium mb-2">Cohere Models ({cohereModels.length})</h5>
+                {cohereModels.map(renderSingleResponse)}
               </div>
             )}
             
-            {/* Perplexity models from OpenRouter */}
-            {orPerplexityResponses.length > 0 && (
+            {/* Perplexity models */}
+            {perplexityModels.length > 0 && (
               <div className="mb-4">
-                <h5 className="text-sm font-medium mb-2">Perplexity Models ({orPerplexityResponses.length})</h5>
-                {orPerplexityResponses.map(renderSingleResponse)}
+                <h5 className="text-sm font-medium mb-2">Perplexity Models ({perplexityModels.length})</h5>
+                {perplexityModels.map(renderSingleResponse)}
               </div>
             )}
           </div>
         )}
         
         {/* Direct API Models Section */}
-        {directModelCount > 0 && (
+        {directModels.length > 0 && (
           <div>
-            <h4 className="text-md font-medium mb-4 text-green-600">Direct API Models ({directModelCount})</h4>
+            <h4 className="text-md font-medium mb-4 text-green-600">Direct API Models ({directModels.length})</h4>
             
             {/* Claude direct models */}
-            {claudeResponses.length > 0 && (
+            {directClaudeModels.length > 0 && (
               <div className="mb-4">
-                <h5 className="text-sm font-medium mb-2">Claude Models ({claudeResponses.length})</h5>
-                {claudeResponses.map(renderSingleResponse)}
+                <h5 className="text-sm font-medium mb-2">Claude Models ({directClaudeModels.length})</h5>
+                {directClaudeModels.map(renderSingleResponse)}
               </div>
             )}
             
-            {/* GPT-4 direct models */}
-            {gpt4Responses.length > 0 && (
+            {/* GPT direct models */}
+            {directGPTModels.length > 0 && (
               <div className="mb-4">
-                <h5 className="text-sm font-medium mb-2">GPT-4 Models ({gpt4Responses.length})</h5>
-                {gpt4Responses.map(renderSingleResponse)}
+                <h5 className="text-sm font-medium mb-2">GPT Models ({directGPTModels.length})</h5>
+                {directGPTModels.map(renderSingleResponse)}
               </div>
             )}
             
             {/* Gemini direct models */}
-            {geminiResponses.length > 0 && (
+            {directGeminiModels.length > 0 && (
               <div className="mb-4">
-                <h5 className="text-sm font-medium mb-2">Gemini Models ({geminiResponses.length})</h5>
-                {geminiResponses.map(renderSingleResponse)}
+                <h5 className="text-sm font-medium mb-2">Gemini Models ({directGeminiModels.length})</h5>
+                {directGeminiModels.map(renderSingleResponse)}
               </div>
             )}
             
             {/* Perplexity direct models */}
-            {perplexityResponses.length > 0 && (
+            {directPerplexityModels.length > 0 && (
               <div className="mb-4">
-                <h5 className="text-sm font-medium mb-2">Perplexity Models ({perplexityResponses.length})</h5>
-                {perplexityResponses.map(renderSingleResponse)}
+                <h5 className="text-sm font-medium mb-2">Perplexity Models ({directPerplexityModels.length})</h5>
+                {directPerplexityModels.map(renderSingleResponse)}
               </div>
             )}
             
             {/* DeepSeek direct models */}
-            {deepseekResponses.length > 0 && (
+            {directDeepseekModels.length > 0 && (
               <div className="mb-4">
-                <h5 className="text-sm font-medium mb-2">DeepSeek Models ({deepseekResponses.length})</h5>
-                {deepseekResponses.map(renderSingleResponse)}
+                <h5 className="text-sm font-medium mb-2">DeepSeek Models ({directDeepseekModels.length})</h5>
+                {directDeepseekModels.map(renderSingleResponse)}
+              </div>
+            )}
+            
+            {/* Other direct models */}
+            {otherDirectModels.length > 0 && (
+              <div className="mb-4">
+                <h5 className="text-sm font-medium mb-2">Other Models ({otherDirectModels.length})</h5>
+                {otherDirectModels.map(renderSingleResponse)}
               </div>
             )}
           </div>
         )}
         
-        {/* Fallback if we couldn't categorize any responses */}
-        {orModelCount === 0 && directModelCount === 0 && (
+        {/* Fallback if no categorized responses */}
+        {openRouterModels.length === 0 && directModels.length === 0 && (
           <div className="grid grid-cols-1 gap-4">
             {sortedResponses.map(renderSingleResponse)}
           </div>
