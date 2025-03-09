@@ -7,6 +7,7 @@ import ConsensusResponse from './query/ConsensusResponse';
 import IndividualResponses from './query/IndividualResponses';
 import ConsensusVisual from './ConsensusVisual';
 import ConsensusStatistics from './ConsensusStatistics';
+import ConsensusExplanation from './ConsensusExplanation';
 import FollowUpQuestion from './query/FollowUpQuestion';
 import { useQueryContext } from '../hooks/useQueryContext';
 
@@ -75,6 +76,10 @@ const QueryResponses: React.FC<QueryResponsesProps> = ({
       
       {responses.length > 1 && !isLoading && (
         <ConsensusVisual responses={responses} />
+      )}
+      
+      {responses.length > 1 && !isLoading && (
+        <ConsensusExplanation responses={responses} />
       )}
       
       {responses.length > 0 && !isLoading && (
